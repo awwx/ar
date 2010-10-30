@@ -538,7 +538,7 @@
 (ac-def ac globals* (s env)
   ((hash-ref globals* 'err) "Bad object in expression" s))
 
-; ...which will be extended to do more soon.
+; ...which is extended to do more below :-)
 
 (test-expect-error
  (let ((globals* (new-ac)))
