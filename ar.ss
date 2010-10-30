@@ -577,11 +577,17 @@
     ((test-expect-error expr expected-error-message)
      (test-expect-error-impl 'expr (lambda () expr) expected-error-message))))
 
+(define-syntax test-arc1
+  (syntax-rules ()
+    ((test-arc1 (arc-program-source expected))
+     (make-arc-test arc-program-source (new-ac) expected))
+    ((test-arc1 (arc-program-source globals* expected))
+     (make-arc-test arc-program-source globals* expected))))
+
 (define-syntax test-arc
   (syntax-rules ()
-    ((test-arc (arc-program-source globals* expected) ...)
-     (add-tests (list (make-arc-test arc-program-source globals* expected)
-                       ...)))))
+    ((test-arc test ...)
+     (add-tests (list (test-arc1 test) ...)))))
 
   
 ;; Arc compiler steps
@@ -672,9 +678,9 @@
   ((g ac-literal?) s)
   s)
 
-(test-arc ("123"     (new-ac) 123)
-          ("#\\a"    (new-ac) #\a)
-          ("\"abc\"" (new-ac) "abc"))
+(test-arc ("123"     123)
+          ("#\\a"    #\a)
+          ("\"abc\"" "abc"))
 ; it's alive!
 
 
@@ -690,7 +696,7 @@
   (tnil (eq? s 'nil))
   (ac-nil globals*))
 
-(test-arc ("nil" (new-ac) 'nil))
+(test-arc ("nil" 'nil))
 
 
 ;; variables
@@ -718,6 +724,7 @@
 ; An Arc global variable reference to "foo" such as in (+ foo 3) compiles into
 ; the Racket expression
 ; (#<procedure:hash-ref> #<hash:globals*> 'foo #<procedure:global-ref-err>)
+; ...and thus performs no lookups in Racket's namespace, if we care.
 
 (ac-def ac-global (v)
   ((g list)
@@ -757,11 +764,11 @@
   ((g ac-call) (ar-car s) (ar-cdr s) env))
 
 (test-arc
- ("(+)"           (new-ac) 0)
- ("(+ 1 2)"       (new-ac) 3)
- ("(+ 1 2 3)"     (new-ac) 6)
- ("(+ 1 2 3 4)"   (new-ac) 10)
- ("(+ 1 2 3 4 5)" (new-ac) 15))
+ ("(+)"           0)
+ ("(+ 1 2)"       3)
+ ("(+ 1 2 3)"     6)
+ ("(+ 1 2 3 4)"   10)
+ ("(+ 1 2 3 4 5)" 15))
 
 
 ;; quote
@@ -770,11 +777,11 @@
   ((g caris) s 'quote)
   ((g list) 'quote (make-tunnel ((g cadr) s))))
 
-(test-arc ("'abc"     (new-ac) 'abc)
-          ("'()"      (new-ac) 'nil)
-          ("'(a)"     (new-ac) (ar-list 'a))
-          ("'(nil)"   (new-ac) (ar-list 'nil))
-          ("'(a . b)" (new-ac) (mcons 'a 'b)))
+(test-arc ("'abc"     'abc)
+          ("'()"      'nil)
+          ("'(a)"     (ar-list 'a))
+          ("'(nil)"   (ar-list 'nil))
+          ("'(a . b)" (mcons 'a 'b)))
 
 
 ;; ac-fn
@@ -817,8 +824,91 @@
   ((g ac-fn) ((g cadr) s) ((g cddr) s) env))
 
 (test-arc
- ("((fn ()))"                  (new-ac) 'nil)
- ("((fn () 3))"                (new-ac) 3)
- ("((fn (a) a) 3)"             (new-ac) 3)
- ("((fn (a b) b) 1 2)"         (new-ac) 2)
- ("((fn (a b) (+ a b 3)) 1 2)" (new-ac) 6))
+ ("((fn ()))"                  'nil)
+ ("((fn () 3))"                3)
+ ("((fn (a) a) 3)"             3)
+ ("((fn (a b) b) 1 2)"         2)
+ ("((fn (a b) (+ a b 3)) 1 2)" 6))
+
+
+;; eval
+
+; todo: an optional second argument specifying the global namespace to
+; eval in.
+
+(ac-def eval (x)
+  (eval (deep-fromarc ((g ac) x 'nil))))
+
+(test-arc
+ ("(eval 3)" 3)
+ ("(eval '(+ 1 2))" 3)
+ )
+
+
+;; quasiquotation
+
+; qq-expand takes an Arc list containing a quasiquotation expression
+; (the x in `x), and returns an Arc list containing Arc code.  The Arc
+; code, when evaled by Arc, will construct an Arc list, the
+; expansion of the quasiquotation expression.
+
+; Alan Bawden's quasiquotation expansion algorithm from
+; "Quasiquotation in Lisp"
+; http://repository.readscheme.org/ftp/papers/pepm99/bawden.pdf
+
+(ac-def qq-expand-pair (x)
+  (ar-list 'join
+           ((g qq-expand-list) (mcar x))
+           ((g qq-expand) (mcdr x))))
+
+(ac-def qq-expand (x)
+  (cond ((true? (ar-caris x 'unquote))
+         (ar-cadr x))
+        ((true? (ar-caris x 'unquote-splicing))
+         (error "illegal use of ,@ in non-list quasiquote expansion"))
+        ((true? (ar-caris x 'quasiquote))
+         ((g qq-expand) ((g qq-expand) (ar-cadr x))))
+        ((mpair? x)
+         ((g qq-expand-pair) x))
+        (else
+         (ar-list 'quote x))))
+
+(ac-def qq-expand-list (x)
+  (cond ((true? (ar-caris x 'unquote))
+         (ar-list 'list (ar-cadr x)))
+        ((true? (ar-caris x 'unquote-splicing))
+         (ar-cadr x))
+        ((true? (ar-caris x 'quasiquote))
+         ((g qq-expand-list) ((g qq-expand) (ar-cadr x))))
+        ((mpair? x)
+         (ar-list 'list ((g qq-expand-pair) x)))
+        (else
+         (ar-list 'quote (list x)))))
+
+(ac-extend (s env)
+  ((g caris) s 'quasiquote)
+  (let ((expansion ((g qq-expand) (ar-cadr s))))
+    ((g ac) expansion env)))
+
+(test-arc
+ ("`nil" 'nil)
+ ("`3" 3)
+ ("`a" 'a)
+ ("`()" 'nil)
+ ("`(1)" (ar-list 1))
+ ("`(1 . 2)" (mcons 1 2))
+ ("`(1 2)" (ar-list 1 2))
+ ("`((1 2))" (ar-list (ar-list 1 2)))
+
+ ("`,(+ 1 2)" 3)
+ ("`(,(+ 1 2))" (ar-list 3))
+ ("`(1 2 ,(+ 1 2) 4)" (ar-list 1 2 3 4))
+
+ ("(eval ``3)" 3)
+ ("(eval ``,,3)" 3)
+ ("(eval ``,,(+ 1 2))" 3)
+
+ ("`(1 ,@(list 2 3) 4)" (ar-list 1 2 3 4))
+ ("(eval ``,(+ 1 ,@(list 2 3) 4))" 10)
+ ("(eval (eval ``(+ 1 ,,@(list 2 3) 4)))" 10)
+)
