@@ -422,7 +422,9 @@
 (define ar-namespace*
   (hash '+     ar-+
         'cadr  ar-cadr
+        'car   ar-car
         'cddr  ar-cddr
+        'cdr   ar-cdr
         'caris ar-caris
         'cons  mcons
         'err   err
@@ -748,7 +750,7 @@
  ("foo" (new-ac 'foo 123) 123))
 
 
-;; ac-call
+;; call
 
 (ac-def ac-call (fn args env)
   (mcons ar-apply
@@ -781,7 +783,7 @@
           ("'(a . b)" (mcons 'a 'b)))
 
 
-;; ac-fn
+;; fn
 
 (ac-def ac-body (body env)
   ((g map1) (lambda (x) ((g ac) x env)) body))
@@ -909,3 +911,31 @@
  ("(eval ``,(+ 1 ,@(list 2 3) 4))" 10)
  ("(eval (eval ``(+ 1 ,,@(list 2 3) 4)))" 10)
 )
+
+
+;; if
+
+(ac-def ac-if (args env)
+  (cond ((no? args)
+         (ac-nil globals*))
+        ((no? ((g cdr) args))
+         ((g ac) ((g car) args) env))
+        (else
+         (ar-list 'if
+                  (ar-list true? ((g ac) ((g car) args) env))
+                  ((g ac) ((g cadr) args) env)
+                  ((g ac-if) ((g cddr) args) env)))))
+
+(ac-extend (s env)
+  ((g caris) s 'if)
+  ((g ac-if) ((g cdr) s) env))
+
+(test-arc
+ ("(if)"           'nil)
+ ("(if nil)"       'nil)
+ ("(if 9)"         9)
+ ("(if nil 1 2)"   2)
+ ("(if 9 1 2)"     1)
+ ("(if 9 1 2 3)"   1)
+ ("(if nil 1 2 3)" 3)
+ )
