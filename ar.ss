@@ -524,25 +524,33 @@
     globals*))
 
 (define-syntax ac-def
-  (syntax-rules ()
-    ((ac-def name globals* args body ...)
-     (add-ac-build-step
-      (lambda (globals*)
-        (hash-set! globals* 'name
-          (lambda args
-            body ...)))))))
+  (lambda (stx)
+    (syntax-case stx ()
+      ((ac-def name args body ...)
+       (with-syntax ((globals* (datum->syntax #'name 'globals*)))
+         #'(add-ac-build-step
+            (lambda (globals*)
+              (hash-set! globals* 'name
+                (lambda args body ...)))))))))
+
+(define-syntax g
+  (lambda (stx)
+    (syntax-case stx ()
+      ((g v)
+       (with-syntax ((globals* (datum->syntax #'v 'globals*)))
+         #'(hash-ref globals* 'v))))))
 
 
 ;; The Arc compiler!
 
-(ac-def ac globals* (s env)
-  ((hash-ref globals* 'err) "Bad object in expression" s))
+(ac-def ac (s env)
+  ((g err) "Bad object in expression" s))
 
 ; ...which is extended to do more below :-)
 
 (test-expect-error
  (let ((globals* (new-ac)))
-   ((hash-ref globals* 'ac) (lambda () 'foo) 'nil))
+   ((g ac) (lambda () 'foo) 'nil))
  "Bad object in expression")
 
 
@@ -551,7 +559,7 @@
 (define (ac-extend-impl test body)
   (add-ac-build-step
    (lambda (globals*)
-     (let ((previous-ac (hash-ref globals* 'ac)))
+     (let ((previous-ac (g ac)))
        (hash-set! globals* 'ac
          (lambda (s env)
            (if (true? (test globals* s env))
@@ -559,22 +567,24 @@
                 (previous-ac s env))))))))
 
 (define-syntax ac-extend
-  (syntax-rules ()
-    ((ac-extend globals* s env test body ...)
-     (ac-extend-impl
-      (lambda (globals* s env) test)
-      (lambda (globals* s env) body ...)))))
+  (lambda (stx)
+    (syntax-case stx ()
+      ((ac-extend (s env) test body ...)
+       (with-syntax ((globals* (datum->syntax #'s 'globals*)))
+         #'(ac-extend-impl
+            (lambda (globals* s env) test)
+            (lambda (globals* s env) body ...)))))))
 
 
 ;; literal
 
-(ac-def ac-literal? globals* (x)
+(ac-def ac-literal? (x)
   (tnil (or (char? x)
             (string? x)
             (number? x))))
 
-(ac-extend globals* s env
-  ((hash-ref globals* 'ac-literal?) s)
+(ac-extend (s env)
+  ((g ac-literal?) s)
   s)
 
 (test-arc ("123"     (new-ac) 123)
@@ -589,9 +599,9 @@
 ; converted to a Racket ().
 
 (define (ac-nil globals*)
-  ((hash-ref globals* 'list) 'quote (make-tunnel 'nil)))
+  ((g list) 'quote (make-tunnel 'nil)))
 
-(ac-extend globals* s env
+(ac-extend (s env)
   (tnil (eq? s 'nil))
   (ac-nil globals*))
 
@@ -600,16 +610,16 @@
 
 ;; variables
 
-(ac-def ac-lex? globals* (v env)
-  ((hash-ref globals* 'mem) v env))
+(ac-def ac-lex? (v env)
+  ((g mem) v env))
 
 (test-t (let ((globals* (new-ac)))
-          ((hash-ref globals* 'ac-lex?)
+          ((g ac-lex?)
            'y
            (ar-list 'x 'y 'z))))
 
 (test-nil (let ((globals* (new-ac)))
-            ((hash-ref globals* 'ac-lex?)
+            ((g ac-lex?)
              'w
              (ar-list 'x 'y 'z))))
 
@@ -618,23 +628,27 @@
                                 (symbol->string v)
                                 "\" which hasn't been set yet")))
     (lambda ()
-      ((hash-ref globals* 'err) message))))
+      ((g err) message))))
 
-(ac-def ac-global globals* (v)
-  ((hash-ref globals* 'list)
-   'hash-ref
+; An Arc global variable reference to "foo" such as in (+ foo 3) compiles into
+; the Racket expression
+; (#<procedure:hash-ref> #<hash:globals*> 'foo #<procedure:global-ref-err>)
+
+(ac-def ac-global (v)
+  ((g list)
+   hash-ref
    globals*
-   ((hash-ref globals* 'list) 'quote v)
+   ((g list) 'quote v)
    (global-ref-err globals* v)))
 
-(ac-def ac-var-ref globals* (s env)
-  (ar-if ((hash-ref globals* 'ac-lex?) s env)
+(ac-def ac-var-ref (s env)
+  (ar-if ((g ac-lex?) s env)
          s
-         ((hash-ref globals* 'ac-global) s)))
+         ((g ac-global) s)))
 
-(ac-extend globals* s env
+(ac-extend (s env)
   (ar-and (tnil (not (no? s))) (tnil (symbol? s)))
-  ((hash-ref globals* 'ac-var-ref) s env))
+  ((g ac-var-ref) s env))
 
 (test-expect-error
  ; todo: should clear trace here
@@ -647,15 +661,16 @@
 
 ;; ac-call
 
-(ac-def ac-call globals* (fn args env)
+(ac-def ac-call (fn args env)
   (mcons ar-apply
-         (mcons ((hash-ref globals* 'ac) fn env)
+         (mcons ((g ac) fn env)
+                ; todo: ref map1 from globals
                 (ar-map1 (lambda (x)
-                           ((hash-ref globals* 'ac) x env)) args))))
+                           ((g ac) x env)) args))))
 
-(ac-extend globals* s env
+(ac-extend (s env)
   (tnil (mpair? s))
-  ((hash-ref globals* 'ac-call) (ar-car s) (ar-cdr s) env))
+  ((g ac-call) (ar-car s) (ar-cdr s) env))
 
 (test-arc
  ("(+)"           (new-ac '+ +) 0)
@@ -667,11 +682,9 @@
 
 ;; quote
 
-(ac-extend globals* s env
-  ((hash-ref globals* 'caris) s 'quote)
-  ((hash-ref globals* 'list)
-   'quote
-   (make-tunnel ((hash-ref globals* 'cadr) s))))
+(ac-extend (s env)
+  ((g caris) s 'quote)
+  ((g list) 'quote (make-tunnel ((g cadr) s))))
 
 (test-arc ("'abc"     (new-ac) 'abc)
           ("'()"      (new-ac) 'nil)
@@ -682,47 +695,42 @@
 
 ;; ac-fn
 
-(ac-def ac-body globals* (body env)
-  ((hash-ref globals* 'map1)
-   (lambda (x) ((hash-ref globals* 'ac) x env))
-   body))
+(ac-def ac-body (body env)
+  ((g map1) (lambda (x) ((g ac) x env)) body))
 
 (test-equal
  (let ((globals* (new-ac)))
-  ((hash-ref globals* 'ac-body)
+  ((g ac-body)
    (ar-list 1 2 3)
    'nil))
  (ar-list 1 2 3))
 
-(ac-def ac-body* globals* (body env)
+(ac-def ac-body* (body env)
   (if (no? body)
-      ((hash-ref globals* 'list) (ac-nil globals*))
-      ((hash-ref globals* 'ac-body) body env)))
+      ((g list) (ac-nil globals*))
+      ((g ac-body) body env)))
 
-(ac-def ac-arglist globals* (a)
+(ac-def ac-arglist (a)
   (cond ((no? a) 'nil)
         ((symbol? a) (ar-list a))
         ((and (symbol? (mcdr a)) (not (no? (mcdr a))))
          (ar-list (mcar a) (mcdr a)))
-        (else (mcons (mcar a) ((hash-ref globals* 'ac-arglist) (mcdr a))))))
+        (else (mcons (mcar a) ((g ac-arglist) (mcdr a))))))
 
-(ac-def ac-fn globals* (args body env)
-  ((hash-ref globals* 'cons)
+(ac-def ac-fn (args body env)
+  ((g cons)
    'lambda
-   ((hash-ref globals* 'cons)
+   ((g cons)
     args
-    ((hash-ref globals* 'ac-body*)
+    ((g ac-body*)
      body
-     ((hash-ref globals* 'join)
-      ((hash-ref globals* 'ac-arglist) args)
+     ((g join)
+      ((g ac-arglist) args)
       env)))))
 
-(ac-extend globals* s env
-  ((hash-ref globals* 'caris) s 'fn)
-  ((hash-ref globals* 'ac-fn)
-   ((hash-ref globals* 'cadr) s)
-   ((hash-ref globals* 'cddr) s)
-   env))
+(ac-extend (s env)
+  ((g caris) s 'fn)
+  ((g ac-fn) ((g cadr) s) ((g cddr) s) env))
 
 (test-arc
  ("((fn ()))"                  (new-ac)      'nil)
