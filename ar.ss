@@ -664,9 +664,8 @@
 (ac-def ac-call (fn args env)
   (mcons ar-apply
          (mcons ((g ac) fn env)
-                ; todo: ref map1 from globals
-                (ar-map1 (lambda (x)
-                           ((g ac) x env)) args))))
+                ((g map1) (lambda (x)
+                            ((g ac) x env)) args))))
 
 (ac-extend (s env)
   (tnil (mpair? s))
