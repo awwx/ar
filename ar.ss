@@ -1,15 +1,11 @@
+#lang scheme
+
 (require scheme/mpair)
 
+(current-namespace (make-base-namespace))
+
+
 ; Arc runtime functions
-
-; While we don't care much if the Arc compiler is particularly fast or
-; not, we do want the runtime functions to be as fast as possible.  So
-; todo: can try putting them into a module to see if the promise that
-; they won't be redefined does lead to a speed improvement, and/or
-; other optiminzations.
-
-; todo: some of these are utility functions only used by the compiler,
-; and so could be separated out from the runtime functions.
 
 (define (pair xs)
   (cond ((null? xs)
@@ -516,7 +512,8 @@
 (define (run-tests)
   (map (lambda (test)
          (test))
-       arc-tests))
+       arc-tests)
+  (void))
 
 (define (add-tests tests)
   (set! arc-tests (append arc-tests tests))
@@ -724,7 +721,7 @@
 ; An Arc global variable reference to "foo" such as in (+ foo 3) compiles into
 ; the Racket expression
 ; (#<procedure:hash-ref> #<hash:globals*> 'foo #<procedure:global-ref-err>)
-; ...and thus performs no lookups in Racket's namespace, if we care.
+; ...and thus performs no lookups in Racket's namespace (if it makes a difference).
 
 (ac-def ac-global (v)
   ((g list)

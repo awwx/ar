@@ -44,3 +44,10 @@ an Arc list (an Arc list representation of the Racket expression the
 Arc expression is compiled into).  Thus Arc, either in it's runtime or
 in it's compiler, never sees Racket's () list terminator or immutable
 pairs.
+
+To run the runtime (so far all it does is run tests, so you won't get
+any output unless a test fails):
+
+    mzscheme ar.ss
+
+note that you don't use the "-f" option like you would with Arc 3.1.
