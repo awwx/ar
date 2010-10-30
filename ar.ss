@@ -939,3 +939,26 @@
  ("(if 9 1 2 3)"   1)
  ("(if nil 1 2 3)" 3)
  )
+
+
+;; assign
+
+(ac-def ac-global-assign (a b env)
+  (ar-list hash-set! globals* a ((g ac) b env)))
+
+;; (ac-def ac-assign1 (a b1 env)
+;;   (unless (symbol? a)
+;;     (err "First arg to assign must be a symbol" a))
+;;   (if (tnil (ac-lex? a env))
+;;       (ar-list 'set! a ((g ac) b1 env))
+;;       ((g ac-set-global) a b1 env)))
+
+(ac-extend (s env)
+  (ar-caris s 'assign)
+  ((g ac-global-assign) (ar-cdr s) env))
+
+(test-arc
+ "((fn ()
+     (assign x 123)
+     x))"
+ 123)
