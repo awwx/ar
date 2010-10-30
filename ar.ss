@@ -5,7 +5,28 @@
 (current-namespace (make-base-namespace))
 
 
-; Arc runtime functions
+(define (print-list xs)
+  (cond ((eq? (mcdr xs) 'nil)
+         (print (mcar xs))
+         (display ")"))
+        ((mpair? (mcdr xs))
+         (print (mcar xs))
+         (display " ")
+         (print-list (mcdr xs)))
+        (else
+         (print (mcar xs))
+         (display " . ")
+         (print (mcdr xs))
+         (display ")"))))
+
+(define (print x)
+  (cond ((mpair? x)
+         (display "(")
+         (print-list x))
+        ((hash? x)
+         (display "#globals"))
+        (else
+         (write x))))
 
 (define (pair xs)
   (cond ((null? xs)
@@ -446,21 +467,26 @@
 (define traces '())
 
 (define (trace . args)
-  (set! traces (append traces (list args))))
+  (set! traces (append traces (list (cons 'racket args)))))
+
+(define (trace/arc . args)
+  (set! traces (append traces (list (cons 'arc args)))))
 
 ; When looking at trace output, it's helpful to know that Racket displays
 ; an Arc list like (1 2 3) as {1 2 3 . nil}
 
 (define (display-trace)
   (map (lambda (trace)
-         (display (car trace))
-         (display ": ")
-         (map (lambda (arg)
-                (write arg)
-                (display " "))
-              (cdr trace))
-         (newline))
-         traces))
+         ;(write trace) (newline)
+         (let ((w (if (eq? (car trace) 'racket) write print)))
+           (display (cadr trace))
+           (display ": ")
+           (map (lambda (arg)
+                  (w arg)
+                  (display " "))
+                (cddr trace))
+           (newline)))
+       traces))
        
 ; Trace each step of reading, compiling, eval'ing an Arc program, with
 ; all the converting lists back and forth.
@@ -472,7 +498,7 @@
     (let ((a/source (deep-toarc r/source)))
       (trace "program (arc)" a/source)
       (let ((a/compiled ((hash-ref globals 'ac) a/source 'nil)))
-        (trace "compiled (arc)" a/compiled)
+        (trace/arc "compiled (arc)" a/compiled)
         (let ((r/compiled (deep-fromarc a/compiled)))
           (trace "compiled (racket)" r/compiled)
           (let ((result (eval r/compiled)))
@@ -939,3 +965,48 @@
  ("(if 9 1 2 3)"   1)
  ("(if nil 1 2 3)" 3)
  )
+
+
+;; assign
+
+(ac-def ac-global-assign (a b env)
+  (ar-list hash-set! globals* (ar-list 'quote a) ((g ac) b env)))
+
+(ac-def ac-assign1 (a b1 env)
+  (unless (symbol? a)
+    (err "First arg to assign must be a symbol" a))
+  (if (true? ((g ac-lex?) a env))
+      (ar-list 'set! a ((g ac) b1 env))
+      ((g ac-global-assign) a b1 env)))
+
+(ac-def ac-assignn (x env)
+  (if (no? x)
+      'nil
+      (mcons ((g ac-assign1) (ar-car x) (ar-cadr x) env)
+             ((g ac-assignn) (ar-cddr x) env))))
+
+(ac-def ac-assign (x env)
+  (mcons 'begin
+         ((g ac-assignn) x env)))
+
+(ac-extend (s env)
+  (ar-caris s 'assign)
+  ((g ac-assign) (ar-cdr s) env))
+
+(test-arc
+ ("((fn ()
+     (assign x 123)
+     x))"
+  123)
+ ("((fn (x)
+      (assign x 123)
+      x)
+    456)"
+  123)
+ ("((fn (a b)
+      (assign a 11)
+      (assign b 22)
+      (list a b))
+    1 2)"
+  (ar-list 11 22))
+)
