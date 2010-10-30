@@ -33,7 +33,7 @@
     ((test1 expr expected)
      (let ((r expr))
        (unless (equal? r expected)
-         (display "bzzt ")
+         (display "bzzt! ")
          (write 'expr)
          (display " => ")
          (write r)
@@ -338,9 +338,94 @@
 
 (test (ar-funcall4 + 3 4 5 6) 18)
 
+(define (iround x) (inexact->exact (round x)))
+
+(define (ar-coerce x type . args)
+  (cond 
+    ((tagged? x) (err "Can't coerce annotated object"))
+    ((eqv? type (ar-type x)) x)
+    ((char? x)      (case type
+                      ((int)     (char->integer x))
+                      ((string)  (string x))
+                      ((sym)     (string->symbol (string x)))
+                      (else      (err "Can't coerce" x type))))
+    ((exint? x)     (case type
+                      ((num)     x)
+                      ((char)    (integer->char x))
+                      ((string)  (apply number->string x args))
+                      (else      (err "Can't coerce" x type))))
+    ((number? x)    (case type
+                      ((int)     (iround x))
+                      ((char)    (integer->char (iround x)))
+                      ((string)  (apply number->string x args))
+                      (else      (err "Can't coerce" x type))))
+    ((string? x)    (case type
+                      ((sym)     (string->symbol x))
+                      ((cons)    (list-toarc (string->list x)))
+                      ((num)     (or (apply string->number x args)
+                                     (err "Can't coerce" x type)))
+                      ((int)     (let ((n (apply string->number x args)))
+                                   (if n 
+                                       (iround n)
+                                       (err "Can't coerce" x type))))
+                      (else      (err "Can't coerce" x type))))
+    ((mpair? x)     (case type
+                      ((string)  (apply string-append
+                                        (list-fromarc
+                                         (ar-map1 (lambda (y) (ar-coerce y 'string)) x))))
+                      (else      (err "Can't coerce" x type))))
+    ((eq? x 'nil)   (case type
+                      ((string)  "")
+                      (else      (err "Can't coerce" x type))))
+    ((symbol? x)    (case type 
+                      ((string)  (symbol->string x))
+                      (else      (err "Can't coerce" x type))))
+    (#t             x)))
+
+(test (ar-coerce #\A                  'int)       65)
+(test (ar-coerce #\A                  'string)    "A")
+(test (ar-coerce #\A                  'sym)       'A)
+(test (ar-coerce 123                  'num)       123)
+(test (ar-coerce 65                   'char)      #\A)
+(test (ar-coerce 123                  'string)    "123")
+(test (ar-coerce 128                  'string 16) "80")
+(test (ar-coerce 13.4                 'int)       13)
+(test (ar-coerce 65.0                 'char)      #\A)
+(test (ar-coerce 14.5                 'string)    "14.5")
+(test (ar-coerce "foo"                'sym)       'foo)
+(test (ar-coerce "foo"                'cons)      (ar-list #\f #\o #\o))
+(test (ar-coerce "123.5"              'num)       123.5)
+(test (ar-coerce "123"                'int)       123)
+(test (ar-coerce (ar-list "a" 'b #\c) 'string)    "abc")
+(test (ar-coerce 'nil                 'string)    "")
+
+
+(define (char-or-string? x) (or (string? x) (char? x)))
+
+(define (arc-list? x) (or (no? x) (mpair? x)))
+
+(define (ar-+ . args)
+  (cond ((null? args)
+         0)
+        ((char-or-string? (car args))
+         (apply string-append 
+                (map (lambda (a) (ar-coerce a 'string)) args)))
+        ((arc-list? (car args)) 
+         (apply ar-join args))
+        (else
+         (apply + args))))
+
+(test (ar-+) 0)
+(test (ar-+ #\a "b" 'c 3) "abc3")
+(test (ar-+ "a" 'b #\c) "abc")
+(test (ar-+ 'nil (ar-list 1 2 3)) (ar-list 1 2 3))
+(test (ar-+ (ar-list 1 2) (ar-list 3)) (ar-list 1 2 3))
+(test (ar-+ 1 2 3) 6)
+
 
 (define ar-namespace*
-  (hash 'cadr  ar-cadr
+  (hash '+     ar-+
+        'cadr  ar-cadr
         'cddr  ar-cddr
         'caris ar-caris
         'cons  mcons
@@ -672,11 +757,11 @@
   ((g ac-call) (ar-car s) (ar-cdr s) env))
 
 (test-arc
- ("(+)"           (new-ac '+ +) 0)
- ("(+ 1 2)"       (new-ac '+ +) 3)
- ("(+ 1 2 3)"     (new-ac '+ +) 6)
- ("(+ 1 2 3 4)"   (new-ac '+ +) 10)
- ("(+ 1 2 3 4 5)" (new-ac '+ +) 15))
+ ("(+)"           (new-ac) 0)
+ ("(+ 1 2)"       (new-ac) 3)
+ ("(+ 1 2 3)"     (new-ac) 6)
+ ("(+ 1 2 3 4)"   (new-ac) 10)
+ ("(+ 1 2 3 4 5)" (new-ac) 15))
 
 
 ;; quote
@@ -732,8 +817,8 @@
   ((g ac-fn) ((g cadr) s) ((g cddr) s) env))
 
 (test-arc
- ("((fn ()))"                  (new-ac)      'nil)
- ("((fn () 3))"                (new-ac)      3)
- ("((fn (a) a) 3)"             (new-ac)      3)
- ("((fn (a b) b) 1 2)"         (new-ac)      2)
- ("((fn (a b) (+ a b 3)) 1 2)" (new-ac '+ +) 6))
+ ("((fn ()))"                  (new-ac) 'nil)
+ ("((fn () 3))"                (new-ac) 3)
+ ("((fn (a) a) 3)"             (new-ac) 3)
+ ("((fn (a b) b) 1 2)"         (new-ac) 2)
+ ("((fn (a b) (+ a b 3)) 1 2)" (new-ac) 6))
