@@ -68,6 +68,23 @@
       (close-input-port port)
       val)))
 
+(test (read-from-string "(1 2 3)") '(1 2 3))
+
+(define (read* port (accum '()))
+  (let ((a (read port)))
+    (if (eof-object? a)
+        (reverse accum)
+        (read* port (cons a accum)))))
+
+(define (read*-from-string str)
+  (let ((port (open-input-string str)))
+    (let ((vals (read* port)))
+      (close-input-port port)
+      vals)))
+
+(test (read*-from-string "") '())
+(test (read*-from-string "1 2 3") '(1 2 3))
+
 (define (write-to-string x)
   (let ((port (open-output-string)))
     (write x port)
@@ -141,38 +158,38 @@
 (define (true? x)
   (not (no? x)))
 
-(define (ar-car x)
+(define (arc-car x)
   (if (eq? x 'nil)
        'nil
        (mcar x)))
 
-(test (equal? (ar-car 'nil)             'nil)
-      (equal? (ar-car (arc-list 1 2 3)) 1))
+(test (equal? (arc-car 'nil)             'nil)
+      (equal? (arc-car (arc-list 1 2 3)) 1))
 
-(define (ar-cdr x)
+(define (arc-cdr x)
   (if (eq? x 'nil)
        'nil
        (mcdr x)))
 
-(test (ar-cdr 'nil)             'nil)
-(test (ar-cdr (arc-list 1 2 3)) (arc-list 2 3))
+(test (arc-cdr 'nil)             'nil)
+(test (arc-cdr (arc-list 1 2 3)) (arc-list 2 3))
 
 (define (ar-cadr x)
-  (ar-car (ar-cdr x)))
+  (arc-car (arc-cdr x)))
 
 (test (ar-cadr (arc-list 1 2 3)) 2)
 
 (define (ar-cddr x)
-  (ar-cdr (ar-cdr x)))
+  (arc-cdr (arc-cdr x)))
 
 (define (tnil x) (if x 't 'nil))
 
-(define (ar-map1 f xs)
+(define (arc-map1 f xs)
   (if (no? xs) 
       'nil
-      (mcons (f (ar-car xs)) (ar-map1 f (ar-cdr xs)))))
+      (mcons (f (arc-car xs)) (arc-map1 f (arc-cdr xs)))))
 
-(test (ar-map1 (lambda (x) (tnil (odd? x))) (arc-list 1 2 3 4)) (arc-list 't 'nil 't 'nil))
+(test (arc-map1 (lambda (x) (tnil (odd? x))) (arc-list 1 2 3 4)) (arc-list 't 'nil 't 'nil))
 
 (define (ar-join . args)
   (list-toarc (apply append (map list-fromarc args))))
@@ -244,27 +261,23 @@
          (pairwise pred (cdr lst)))
         (else 'nil)))
 
-(define (ar-is . args)
+(define (arc-is . args)
   (pairwise ar-is2 args))
 
-(test (ar-is)       't)
-(test (ar-is 4)     't)
-(test (ar-is 3 4)   'nil)
-(test (ar-is 4 4)   't)
-(test (ar-is 4 4 5) 'nil)
-(test (ar-is 4 4 4) 't)
+(test (arc-is)       't)
+(test (arc-is 4)     't)
+(test (arc-is 3 4)   'nil)
+(test (arc-is 4 4)   't)
+(test (arc-is 4 4 5) 'nil)
+(test (arc-is 4 4 4) 't)
 
 (define (ar-caris x val)
   (tnil (and (mpair? x)
-             (true? (ar-is (ar-car x) val)))))
+             (true? (arc-is (arc-car x) val)))))
 
 (test (ar-caris 4 'x)                'nil)
 (test (ar-caris (arc-list 'y 'z) 'x) 'nil)
 (test (ar-caris (arc-list 'x 'y) 'x) 't)
-
-(define (ar-tag type rep)
-  (cond ((eqv? (ar-type rep) type) rep)
-        (else (vector 'tagged type rep))))
 
 (define (tagged? x)
   (and (vector? x) (eq? (vector-ref x 0) 'tagged)))
@@ -276,7 +289,7 @@
 
 (define (exint? x) (and (integer? x) (exact? x)))
 
-(define (ar-type x)
+(define (arc-type x)
   (cond ((tagged? x)        (vector-ref x 1))
         ((mpair? x)         'cons)
         ((symbol? x)        'sym)
@@ -293,11 +306,15 @@
         ((thread? x)        'thread)
         (else               (err "Type: unknown type" x))))
 
-(define (ar-isa x y)
-  (ar-is (ar-type x) y))
+(define (ar-tag type rep)
+  (cond ((eqv? (arc-type rep) type) rep)
+        (else (vector 'tagged type rep))))
+
+(define (arc-isa x y)
+  (arc-is (arc-type x) y))
 
 (define (ar-testify x)
-  (ar-if (ar-isa x 'fn) x (lambda (_) (ar-is _ x))))
+  (ar-if (arc-isa x 'fn) x (lambda (_) (arc-is _ x))))
 
 (define (ar-mem test seq)
   (let ((f (ar-testify test)))
@@ -381,7 +398,7 @@
 (define (ar-coerce x type . args)
   (cond 
     ((tagged? x) (err "Can't coerce annotated object"))
-    ((eqv? type (ar-type x)) x)
+    ((eqv? type (arc-type x)) x)
     ((char? x)      (case type
                       ((int)     (char->integer x))
                       ((string)  (string x))
@@ -410,7 +427,7 @@
     ((mpair? x)     (case type
                       ((string)  (apply string-append
                                         (list-fromarc
-                                         (ar-map1 (lambda (y) (ar-coerce y 'string)) x))))
+                                         (arc-map1 (lambda (y) (ar-coerce y 'string)) x))))
                       (else      (err "Can't coerce" x type))))
     ((eq? x 'nil)   (case type
                       ((string)  "")
@@ -465,17 +482,17 @@
   (hash '+        ar-+
         'annotate ar-tag
         'apply    arc-apply
-        'cadr     ar-cadr
-        'car      ar-car
-        'cddr     ar-cddr
-        'cdr      ar-cdr
+        'car      arc-car
+        'cdr      arc-cdr
         'caris    ar-caris
         'cons     mcons
         'err      err
         'join     ar-join
+        'is       arc-is
         'list     arc-list
-        'map1     ar-map1
+        'map1     arc-map1
         'mem      ar-mem
+        'type     arc-type
         ))
 
 (define (new-ar)
@@ -515,17 +532,20 @@
 
 (define (trace-eval arc-program-string globals)
   (trace "program (string)"  arc-program-string)
-  (let ((r/source (read-from-string arc-program-string)))
-    (trace "program (racket)" r/source)
-    (let ((a/source (deep-toarc r/source)))
-      (trace "program (arc)" a/source)
-      (let ((a/compiled ((hash-ref globals 'ac) a/source 'nil)))
-        (trace/arc "compiled (arc)" a/compiled)
-        (let ((r/compiled (deep-fromarc a/compiled)))
-          ; (trace "compiled (racket)" r/compiled)
-          (let ((result (eval r/compiled)))
-            (trace "result" result)
-            result))))))
+  (let ((r/sources (read*-from-string arc-program-string)))
+    (trace "program (racket)" r/sources)
+    (let ((final 'nil))
+      (for-each (lambda (r/source)
+                  (let ((a/source (deep-toarc r/source)))
+                    (trace "program (arc)" a/source)
+                    (let ((a/compiled ((hash-ref globals 'ac) a/source 'nil)))
+                      (trace/arc "compiled (arc)" a/compiled)
+                      (let ((r/compiled (deep-fromarc a/compiled)))
+                        (let ((result (eval r/compiled)))
+                          (trace "result" result)
+                          (set! final result))))))
+                r/sources)
+      final)))
 
 ; If a test fails, display all the steps.
 
@@ -771,7 +791,7 @@
 (define (global-ref-err globals* v)
   (let ((message (string-append "reference to global variable \""
                                 (symbol->string v)
-                                "\" which hasn't been set yet")))
+                                "\" which hasn't been set")))
     (lambda ()
       ((g err) message))))
 
@@ -802,7 +822,7 @@
  "reference to global variable \"foo\" which hasn't been set")
 
 (test-arc
- ("car" ar-car))
+ ("car" arc-car))
 
 
 ;; call
@@ -815,7 +835,7 @@
 
 (extend ac (s env)
   (tnil (mpair? s))
-  ((g ac-call) (ar-car s) (ar-cdr s) env))
+  ((g ac-call) (arc-car s) (arc-cdr s) env))
 
 (test-arc
  ("(+)"           0)
@@ -829,7 +849,7 @@
 
 (extend ac (s env)
   ((g caris) s 'quote)
-  ((g list) 'quote (make-tunnel ((g cadr) s))))
+  ((g list) 'quote (make-tunnel (ar-cadr s))))
 
 (test-arc ("'abc"     'abc)
           ("'()"      'nil)
@@ -875,7 +895,7 @@
 
 (extend ac (s env)
   ((g caris) s 'fn)
-  ((g ac-fn) ((g cadr) s) ((g cddr) s) env))
+  ((g ac-fn) (ar-cadr s) (ar-cddr s) env))
 
 (test-arc
  ("((fn ()))"                  'nil)
@@ -978,8 +998,8 @@
         (else
          (arc-list 'if
                    (arc-list true? ((g ac) ((g car) args) env))
-                   ((g ac) ((g cadr) args) env)
-                   ((g ac-if) ((g cddr) args) env)))))
+                   ((g ac) (ar-cadr args) env)
+                   ((g ac-if) (ar-cddr args) env)))))
 
 (extend ac (s env)
   ((g caris) s 'if)
@@ -1012,7 +1032,7 @@
   (if (no? x)
       'nil
       ;; todo: Arc 3.1 calls ac-macex here
-      (mcons ((g ac-assign1) (ar-car x) (ar-cadr x) env)
+      (mcons ((g ac-assign1) (arc-car x) (ar-cadr x) env)
              ((g ac-assignn) (ar-cddr x) env))))
 
 (ac-def ac-assign (x env)
@@ -1021,7 +1041,7 @@
 
 (extend ac (s env)
   (ar-caris s 'assign)
-  ((g ac-assign) (ar-cdr s) env))
+  ((g ac-assign) (arc-cdr s) env))
 
 (test-arc
  ("((fn ()
@@ -1048,7 +1068,7 @@
   (if (symbol? fn)
       (let ((v (hash-ref globals* fn 'nil)))
         (if (and (tagged? v)
-                 (eq? (ar-type v) 'mac))
+                 (eq? (arc-type v) 'mac))
             (ar-rep v)
             'nil))
       'nil))
@@ -1288,3 +1308,48 @@
 
 (test-arc
  (("(def a () 123)" "(a)") 123))
+
+
+;;
+
+(ac-eval #<<.
+(def caar (xs) (car (car xs)))
+(def cadr (xs) (car (cdr xs)))
+(def cddr (xs) (cdr (cdr xs)))
+
+(def no (x) (is x nil))
+
+(def acons (x) (is (type x) 'cons))
+
+(def atom (x) (no (acons x)))
+
+(def copylist (xs)
+  (if (no xs) 
+      nil 
+      (cons (car xs) (copylist (cdr xs)))))
+
+(def idfn (x) x)
+.
+)
+
+(test-arc
+ ("(car nil)"       'nil)
+ ("(car '(1 2 3))"  1)
+ ("(cdr nil)"       'nil)
+ ("(cdr '(1 2 3))"  (arc-list 2 3))
+ ("(caar '((1 2)))" 1)
+ ("(cadr '(1 2 3))" 2)
+ ("(cddr '(1 2 3))" (arc-list 3))
+
+ ("(acons 3)"    'nil)
+ ("(acons '(3))" 't)
+
+ ("(atom 3)"     't)
+ ("(atom '(3))"  'nil)
+ 
+ ("(copylist '(1 2 3))" (arc-list 1 2 3))
+
+ ("(idfn 123)" 123)
+
+ ("(map1 acons '(1 (2) 3 (4)))" (arc-list 'nil 't 'nil 't))
+)
