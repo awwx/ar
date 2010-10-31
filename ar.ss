@@ -1267,3 +1267,22 @@
        a)"
   "abMd")
 )
+
+
+;; def
+
+(ac-eval #<<.
+(assign sig (table))
+.
+)
+
+(ac-eval #<<.
+(assign def (annotate 'mac
+               (fn (name parms . body)
+                 `(do (sref sig ',parms ',name)
+                      (safeset ,name (fn ,parms ,@body))))))
+.
+)
+
+(test-arc
+ (("(def a () 123)" "(a)") 123))
