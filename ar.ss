@@ -5,28 +5,32 @@
 (current-namespace (make-base-namespace))
 
 
-(define (print-list xs)
+(define (printwith-list port f xs)
   (cond ((eq? (mcdr xs) 'nil)
-         (print (mcar xs))
-         (display ")"))
+         (printwith port f (mcar xs))
+         (display ")" port))
         ((mpair? (mcdr xs))
-         (print (mcar xs))
-         (display " ")
-         (print-list (mcdr xs)))
+         (printwith port f (mcar xs))
+         (display " " port)
+         (printwith-list port f (mcdr xs)))
         (else
-         (print (mcar xs))
-         (display " . ")
-         (print (mcdr xs))
-         (display ")"))))
+         (printwith port f (mcar xs))
+         (display " . " port)
+         (printwith port f (mcdr xs))
+         (display ")" port))))
+
+(define (printwith port f x)
+  (cond ((mpair? x)
+         (display "(" port)
+         (printwith-list port f x))
+        ; todo
+        ((hash? x)
+         (display "#table()" port))
+        (else
+         (f x port))))
 
 (define (print x)
-  (cond ((mpair? x)
-         (display "(")
-         (print-list x))
-        ((hash? x)
-         (display "#globals"))
-        (else
-         (write x))))
+  (printwith (current-output-port) write x))
 
 (define (pair xs)
   (cond ((null? xs)
@@ -1107,3 +1111,25 @@
   (("(assign foo 123)"
     "(bound 'foo)")
    't))
+
+
+;; disp
+
+(ac-def disp (x (port (current-output-port)))
+  (printwith port display x))
+
+(test-equal
+  (let ((port (open-output-string))
+        (globals* (new-ac)))
+    (hash-set! globals* 'port port)
+    (test-eval "(disp '(\"a\" b 3) port)" globals*)
+    (get-output-string port))
+  "(a b 3)")
+
+(test-equal
+ (let ((port (open-output-string))
+       (globals* (new-ac)))
+   (parameterize ((current-output-port port))
+    (test-eval "(disp '(\"a\" b 3))" globals*)
+    (get-output-string port)))
+ "(a b 3)")
