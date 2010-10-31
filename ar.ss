@@ -1221,3 +1221,49 @@
      (trace-eval "(safeset a 456)" globals*))
    (get-output-string port))
  "*** redefining a\n")
+
+;; table
+
+(ac-def table ((init #f))
+  (let ((h (hash)))
+    (when init (init h))
+    h))
+
+(test-arc ("(table)" (hash)))
+
+
+;; sref
+
+(ac-def sref (com val ind)
+  (cond ((hash? com)
+         (if (eq? val 'nil)
+             (hash-remove! com ind)
+             (hash-set! com ind val)))
+        ((string? com)
+         (string-set! com ind val))
+        ((mpair? com)
+         (set-mcar! (mlist-tail com ind) val))
+        (else
+         (err "Can't set reference" com ind val))))
+
+(test-arc
+ ("(do (assign a '(x y z))
+       (sref a 'M 1)
+       a)"
+  (arc-list 'x 'M 'z))
+
+ ("(do (assign a (table))
+       (sref a 55 'x)
+       a)"
+  (hash 'x 55))
+
+ ("(table (fn (h)
+            (sref h 55 'x)
+            (sref h 66 'y)))"
+  (hash 'x 55 'y 66))
+
+ ("(do (assign a \"abcd\")
+       (sref a #\\M 2)
+       a)"
+  "abMd")
+)
