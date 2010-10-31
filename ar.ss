@@ -1196,3 +1196,28 @@
     ((g ac-defvar) 'stderr (arc-list (lambda () (current-error-port))))))
 
 (test-arc ("stdin" (current-input-port)))
+
+
+;; safeset
+
+(ac-eval #<<.
+(assign safeset (annotate 'mac
+                  (fn (var val)
+                    `(do (if (bound ',var)
+                             (do (disp "*** redefining " stderr)
+                                 (disp ',var stderr)
+                                 (disp #\newline stderr)))
+                         (assign ,var ,val)))))
+.
+)
+
+(test-arc (("(safeset a 123)" "a") 123))
+
+(test-equal
+ (let ((globals* (new-ac))
+       (port (open-output-string)))
+   (parameterize ((current-error-port port))
+     (trace-eval "(safeset a 123)" globals*)
+     (trace-eval "(safeset a 456)" globals*))
+   (get-output-string port))
+ "*** redefining a\n")

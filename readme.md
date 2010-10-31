@@ -45,6 +45,11 @@ Thus (hypothetically):
 which I hope will fix list splicing in nested quasiquotes which was giving people trouble writing macro-defining macros.
 
 
+* global variables are stored in an Arc table instead of in a Racket namespace
+
+as an experiment to see if the simpler data structure is sufficient.
+
+
 * replaces (stdin), (stdout), (stderr) with stdin, stdout, stderr
 
 removing an unnecessary layer of parentheses.
