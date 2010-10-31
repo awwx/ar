@@ -574,15 +574,17 @@
      (test-nil-impl (lambda () body ...)))))
 
 (define (test-equal-impl source thunk expected)
-  (let ((result (thunk)))
-    (unless (equal? result expected)
-      (error (string-append
-              "bzzt! "
-              (write-to-string source)
-              " => "
-              (write-to-string result)
-              " not "
-              (write-to-string expected))))))
+  (add-test
+   (lambda ()
+     (let ((result (thunk)))
+       (unless (equal? result expected)
+         (error (string-append
+                 "bzzt! "
+                 (write-to-string source)
+                 " => "
+                 (write-to-string result)
+                 " not "
+                 (write-to-string expected))))))))
 
 (define-syntax test-equal
   (syntax-rules ()
@@ -839,9 +841,9 @@
 
 (test-equal
  (let ((globals* (new-ac)))
-  ((g ac-body)
-   (arc-list 1 2 3)
-   'nil))
+   ((g ac-body)
+    (arc-list 1 2 3)
+    'nil))
  (arc-list 1 2 3))
 
 (ac-def ac-body* (body env)
@@ -1121,17 +1123,49 @@
   (printwith port display x))
 
 (test-equal
-  (let ((port (open-output-string))
-        (globals* (new-ac)))
-    (hash-set! globals* 'port port)
-    (test-eval "(disp '(\"a\" b 3) port)" globals*)
-    (get-output-string port))
-  "(a b 3)")
+ (let ((port (open-output-string))
+       (globals* (new-ac)))
+   (hash-set! globals* 'port port)
+   (test-eval "(disp '(\"a\" b 3) port)" globals*)
+   (get-output-string port))
+ "(a b 3)")
 
 (test-equal
  (let ((port (open-output-string))
        (globals* (new-ac)))
    (parameterize ((current-output-port port))
-    (test-eval "(disp '(\"a\" b 3))" globals*)
-    (get-output-string port)))
+     (test-eval "(disp '(\"a\" b 3))" globals*)
+     (get-output-string port)))
  "(a b 3)")
+
+
+;; defvar impl
+
+(add-ac-build-step
+ (lambda (globals*)
+   (hash-set! globals* 'ac-defined-vars* (hash))))
+
+(ac-def ac-defined-var (v)
+  (hash-ref (g ac-defined-vars*) v (lambda () 'nil)))
+
+(extend ac-global (v)
+  ((g ac-defined-var) v)
+  (arc-list ar-apply (mcar it)))
+
+(test-equal
+ (let ((globals* (new-ac)))
+   (hash-set! (g ac-defined-vars*) 'x (arc-list (lambda () 'foo)))
+   (trace-eval "x" globals*))
+ 'foo)
+
+(extend ac-global-assign (a b env)
+  ((g ac-defined-var) a)
+  (arc-list ar-apply (ar-cadr it) ((g ac) b env)))
+
+(test-equal
+ (let ((globals* (new-ac)))
+   (trace-eval "(assign foo (fn (x) (assign a (+ x 1))))" globals*)
+   (hash-set! (g ac-defined-vars*) 'x (arc-list 'nil (g foo)))
+   (trace-eval "(assign x 5)" globals*)
+   (trace-eval "a" globals*))
+ 6)
