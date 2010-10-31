@@ -40,6 +40,11 @@ Thus (hypothetically):
     #<procedure:+>
 
 
+* implements quasiquotation with Alan Bawden's algorithm
+
+which I hope will fix list splicing in nested quasiquotes which was giving people trouble writing macro-defining macros.
+
+
 * replaces (stdin), (stdout), (stderr) with stdin, stdout, stderr
 
 removing an unnecessary layer of parentheses.
