@@ -592,13 +592,15 @@
      (test-equal-impl 'expr (lambda () expr) expected))))
 
 (define (test-expect-error-impl source thunk expected-error-message)
-  (let ((actual-error
-         (with-handlers ((exn:fail? (lambda (c) (exn-message c))))
-           (thunk)
-           'oops-no-error-after-all)))
-    (unless (equal? (substring actual-error 0 (string-length expected-error-message))
-                    expected-error-message)
-      (error actual-error))))
+  (add-test
+   (lambda ()
+     (let ((actual-error
+            (with-handlers ((exn:fail? (lambda (c) (exn-message c))))
+              (thunk)
+              'oops-no-error-after-all)))
+       (unless (equal? (substring actual-error 0 (string-length expected-error-message))
+                       expected-error-message)
+         (error actual-error))))))
 
 (define-syntax test-expect-error
   (syntax-rules ()
@@ -795,7 +797,7 @@
 (test-expect-error
  ; todo: should clear trace here
  (trace-eval "foo" (new-ac))
- "reference to global variable \"foo\" which hasn't been set yet")
+ "reference to global variable \"foo\" which hasn't been set")
 
 (test-arc
  ("car" ar-car))
@@ -1145,6 +1147,9 @@
  (lambda (globals*)
    (hash-set! globals* 'ac-defined-vars* (hash))))
 
+(ac-def ac-defvar (v x)
+  (hash-set! (g ac-defined-vars*) v x))
+
 (ac-def ac-defined-var (v)
   (hash-ref (g ac-defined-vars*) v (lambda () 'nil)))
 
@@ -1154,18 +1159,40 @@
 
 (test-equal
  (let ((globals* (new-ac)))
-   (hash-set! (g ac-defined-vars*) 'x (arc-list (lambda () 'foo)))
+   (trace-eval "(ac-defvar 'x (list (fn () 'foo)))" globals*)
    (trace-eval "x" globals*))
  'foo)
 
+(ac-def ac-not-assignable (v)
+  (lambda (x)
+    (err (string-append (symbol->string v) " is not assignable"))))
+
 (extend ac-global-assign (a b env)
   ((g ac-defined-var) a)
-  (arc-list ar-apply (ar-cadr it) ((g ac) b env)))
+  (arc-list ar-apply
+            (ar-or (ar-cadr it) ((g ac-not-assignable) a))
+            ((g ac) b env)))
 
 (test-equal
  (let ((globals* (new-ac)))
-   (trace-eval "(assign foo (fn (x) (assign a (+ x 1))))" globals*)
-   (hash-set! (g ac-defined-vars*) 'x (arc-list 'nil (g foo)))
+   (trace-eval "(ac-defvar 'x (list nil (fn (x) (assign a (+ x 1)))))" globals*)
    (trace-eval "(assign x 5)" globals*)
    (trace-eval "a" globals*))
  6)
+
+(test-expect-error
+ (let ((globals* (new-ac)))
+   (trace-eval "(ac-defvar 'x (list nil))" globals*)
+   (trace-eval "(assign x 5)" globals*))
+ "x is not assignable")
+
+
+;; stdin, stdout, stderr
+
+(add-ac-build-step
+  (lambda (globals*)
+    ((g ac-defvar) 'stdin  (arc-list (lambda () (current-input-port))))
+    ((g ac-defvar) 'stdout (arc-list (lambda () (current-output-port))))
+    ((g ac-defvar) 'stderr (arc-list (lambda () (current-error-port))))))
+
+(test-arc ("stdin" (current-input-port)))

@@ -1,24 +1,25 @@
-My goals for this Arc runtime project are:
+To run:
 
-* to fix bugs, and
+    mzscheme ar.ss
 
-* to make Arc more hackable, and
+Note that you don't use the "-f" option like you would with Arc 3.1.
 
-* to avoid changing the Arc language.
+All this work in progress does so far is run tests, so you won't get
+any output unless a test fails.
 
-The later two go together because when there's some change we'd like
-to make to Arc, we can make Arc more hackable instead, and then we can
-get the "different" Arc that we want as a library, instead of having
-to actually change Arc.
+Changes
+-------
 
-The primary bug I'm focused on is the queue bug
-(http://awwx.ws/queue-test-summary), which I suspect is caused by
-mutating Racket's immutable pairs.  Thus in this version of the
-runtime, Arc's lists are implemented with Racket's mutable pairs
-(mpair's).
+This version of the Arc runtime:
 
-To support making Arc more hackable, I'm working on reflecting the Arc compiler
-into Arc.  Thus (hypothetically):
+* Implements Arc lists using Racket's mutable pairs (mpair's)
+
+which I hope will fix the queue bug (http://awwx.ws/queue-test-summary).
+
+
+* Reflects the Arc compiler into Arc to make Arc more hackable
+
+Thus (hypothetically):
 
     arc> (ac-literal? 123)
     t
@@ -38,16 +39,7 @@ into Arc.  Thus (hypothetically):
     arc> (eval +)
     #<procedure:+>
 
-To support this reflection, this version of the Arc compiler both
-takes as input an Arc list (the Arc expression to compile) and returns
-an Arc list (an Arc list representation of the Racket expression the
-Arc expression is compiled into).  Thus Arc, either in it's runtime or
-in it's compiler, never sees Racket's () list terminator or immutable
-pairs.
 
-To run the runtime (so far all it does is run tests, so you won't get
-any output unless a test fails):
+* replaces (stdin), (stdout), (stderr) with stdin, stdout, stderr
 
-    mzscheme ar.ss
-
-note that you don't use the "-f" option like you would with Arc 3.1.
+removing an unnecessary layer of parentheses.
