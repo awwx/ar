@@ -116,17 +116,22 @@
 (define (deep-fromarc x)
   (cond ((tunnel? x)
          (tunnel-x x))
-        ((eq? x 'nil)
-         '())
+
         ;; While I usually dislike being pedantic, this turned out to
         ;; be helpful in tracking down bugs.
         ;; Can have a more relaxed version for the runtime once the
         ;; compiler is working.
         ((or (pair? x) (null? x))
          (error "oops, a Racket list snuck in here!"))
+
+        ;; nil in the car position isn't a list terminator, and so can
+        ;; be left alone.
         ((mpair? x)
-         (cons (deep-fromarc (mcar x))
-               (deep-fromarc (mcdr x))))
+         (cons (let ((a (mcar x)))
+                 (if (eq? a 'nil) 'nil (deep-fromarc a)))
+               (let ((b (mcdr x)))
+                 (if (eq? b 'nil) '() (deep-fromarc b)))))
+
         (else
          x)))
 
@@ -738,15 +743,12 @@
 
 ;; nil
 
-; Need to tunnel nil through deep-fromarc, since otherwise it will be
-; converted to a Racket ().
-
-(define (ac-nil globals*)
-  ((g list) 'quote (make-tunnel 'nil)))
+(define (ac-nil)
+  (arc-list 'quote 'nil))
 
 (extend ac (s env)
   (tnil (eq? s 'nil))
-  (ac-nil globals*))
+  (ac-nil))
 
 (test-arc ("nil" 'nil))
 
@@ -850,7 +852,7 @@
 
 (ac-def ac-body* (body env)
   (if (no? body)
-      ((g list) (ac-nil globals*))
+      ((g list) (ac-nil))
       ((g ac-body) body env)))
 
 (ac-def ac-arglist (a)
@@ -970,7 +972,7 @@
 
 (ac-def ac-if (args env)
   (cond ((no? args)
-         (ac-nil globals*))
+         (ac-nil))
         ((no? ((g cdr) args))
          ((g ac) ((g car) args) env))
         (else
