@@ -323,8 +323,12 @@
 (test (ar-apply (hash 'a 1 'b 2) 'x) 'nil)
 (test (ar-apply (hash 'a 1 'b 2) 'x 3) 3)
 
+
+; todo: (apply list 1 2 '(3 4))
+
 (define (arc-apply fn args)
   (apply ar-apply fn (list-fromarc args)))
+
 
 (define (ar-funcall0 fn)
   (if (procedure? fn)
@@ -451,6 +455,7 @@
 (define ar-namespace*
   (hash '+        ar-+
         'annotate ar-tag
+        'apply    arc-apply
         'cadr     ar-cadr
         'car      ar-car
         'cddr     ar-cddr
@@ -994,6 +999,7 @@
 (ac-def ac-assignn (x env)
   (if (no? x)
       'nil
+      ;; todo: Arc 3.1 calls ac-macex here
       (mcons ((g ac-assign1) (ar-car x) (ar-cadr x) env)
              ((g ac-assignn) (ar-cddr x) env))))
 
@@ -1088,3 +1094,16 @@
        (assign c 3)
        (list a b c))"
   (arc-list 1 2 3)))
+
+
+; bound
+
+(ac-def bound (x)
+  (tnil (hash-ref globals* x (lambda () #f))))
+
+(test-arc
+  ("(bound 'foo)" 'nil)
+
+  (("(assign foo 123)"
+    "(bound 'foo)")
+   't))
