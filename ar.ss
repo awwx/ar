@@ -699,18 +699,20 @@
      (let ((previous (hash-ref globals* name)))
        (hash-set! globals* name
          (lambda args
-           (if (true? (apply test globals* args))
-                (apply body globals* args)
-                (apply previous args))))))))
+           (let ((result (apply test globals* args)))
+             (if (true? result)
+                  (apply body globals* result args)
+                  (apply previous args)))))))))
 
 (define-syntax extend
   (lambda (stx)
     (syntax-case stx ()
       ((extend name args test body ...)
-       (with-syntax ((globals* (datum->syntax #'args 'globals*)))
+       (with-syntax ((globals* (datum->syntax #'args 'globals*))
+                     (it       (datum->syntax #'args 'it)))
          #'(extend-impl 'name
             (lambda (globals* . args) test)
-            (lambda (globals* . args) body ...)))))))
+            (lambda (globals* it . args) body ...)))))))
 
 
 ;; literal
@@ -1066,7 +1068,7 @@
 
 (extend ac-call (fn args env)
   ((g ac-macro?) fn)
-  ((g ac-mac-call) ((g ac-macro?) fn) args env))
+  ((g ac-mac-call) it args env))
 
 (test-arc
  (("(assign foo (annotate 'mac (fn (x) x)))"
