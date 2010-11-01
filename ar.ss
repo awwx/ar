@@ -530,9 +530,9 @@
 ; Trace each step of reading, compiling, eval'ing an Arc program, with
 ; all the converting lists back and forth.
 
-(define (trace-eval arc-program-string globals)
-  (trace "program (string)"  arc-program-string)
-  (let ((r/sources (read*-from-string arc-program-string)))
+(define (trace-eval arc-program globals)
+  (trace "program (string)" arc-program)
+  (let ((r/sources (read*-from-string arc-program)))
     (trace "program (racket)" r/sources)
     (let ((final 'nil))
       (for-each (lambda (r/source)
@@ -549,12 +549,12 @@
 
 ; If a test fails, display all the steps.
 
-(define (test-eval arc-program-string globals*)
+(define (test-eval arc-program globals*)
   (set! traces '())
   (with-handlers ((exn:fail? (lambda (c)
                                (display-trace)
                                (raise c))))
-    (trace-eval arc-program-string globals*)))
+    (trace-eval arc-program globals*)))
 
 ; A test adds itself to the list of tests, and also runs all the tests
 ; again (including itself) from the beginning.  This allows us e.g. to
@@ -632,19 +632,14 @@
     ((test-expect-error expr expected-error-message)
      (test-expect-error-impl 'expr (lambda () expr) expected-error-message))))
 
-; Test that compiling an eval'ing an Arc program produces the
+; Test that compiling and eval'ing an Arc program produces the
 ; expected Racket result.
 
-(define (make-arc-test sources expected)
+(define (make-arc-test source expected)
   (lambda ()
     (let ((globals* (new-ac)))
       (set! traces '())
-      (let ((result 'nil))
-        (for-each (lambda (source)
-                    (if (string? source)
-                        (set! result (test-eval source globals*))
-                        (source globals*)))
-                  sources)
+      (let ((result (test-eval source globals*)))
         (unless (equal? result expected)
           (display "bzzt!\n")
           (display-trace)
@@ -652,19 +647,12 @@
           (display "not: ") (write expected) (newline)
           (raise "failed"))))))
 
-(define-syntax test-arc1
-  (syntax-rules ()
-    ((test-arc1 ((source ...) expected))
-     (make-arc-test (list source ...) expected))
-    ((test-arc1 (source expected))
-     (make-arc-test (list source) expected))))
-
 (define-syntax test-arc
   (syntax-rules ()
-    ((test-arc test ...)
-     (add-tests (list (test-arc1 test) ...)))))
+    ((test-arc (source expected) ...)
+     (add-tests (list (make-arc-test source expected) ...)))))
 
-  
+
 ;; Arc compiler steps
 
 ; The compiler is built up in steps, so that simple cases can be
@@ -801,11 +789,10 @@
 ; ...and thus performs no lookups in Racket's namespace (if it makes a difference).
 
 (ac-def ac-global (v)
-  ((g list)
-   hash-ref
-   globals*
-   ((g list) 'quote v)
-   (global-ref-err globals* v)))
+  (arc-list hash-ref
+            globals*
+            (arc-list 'quote v)
+            (global-ref-err globals* v)))
 
 (ac-def ac-var-ref (s env)
   (ar-if ((g ac-lex?) s env)
@@ -1078,12 +1065,12 @@
 
  ("(ac-macro? 'foo)" 'nil)
 
- (("(assign foo 5)"
-   "(ac-macro? 'foo)")
+ ("(assign foo 5)
+   (ac-macro? 'foo)"
   'nil)
 
- (("(assign foo (annotate 'mac 123))"
-   "(ac-macro? 'foo)")
+ ("(assign foo (annotate 'mac 123))
+   (ac-macro? 'foo)"
   123)
 )
 
@@ -1097,8 +1084,8 @@
   ((g ac-mac-call) it args env))
 
 (test-arc
- (("(assign foo (annotate 'mac (fn (x) x)))"
-   "(foo 123)")
+ ("(assign foo (annotate 'mac (fn (x) x)))
+   (foo 123)"
   123))
 
 
@@ -1136,8 +1123,8 @@
 (test-arc
   ("(bound 'foo)" 'nil)
 
-  (("(assign foo 123)"
-    "(bound 'foo)")
+  ("(assign foo 123)
+    (bound 'foo)"
    't))
 
 
@@ -1233,7 +1220,7 @@
 .
 )
 
-(test-arc (("(safeset a 123)" "a") 123))
+(test-arc ("(safeset a 123) a" 123))
 
 (test-equal
  (let ((globals* (new-ac))
@@ -1307,7 +1294,7 @@
 )
 
 (test-arc
- (("(def a () 123)" "(a)") 123))
+ ("(def a () 123) (a)" 123))
 
 
 ;;

@@ -1,11 +1,13 @@
+Under development, all it does currently is run tests against what's
+been implemented so far.  You won't get any output unless a test
+fails.
+
 To run:
 
     mzscheme ar.ss
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
-All this work in progress does so far is run tests, so you won't get
-any output unless a test fails.
 
 Changes
 -------
@@ -14,7 +16,7 @@ This version of the Arc runtime:
 
 * Implements Arc lists using Racket's mutable pairs (mpair's)
 
-which I hope will fix the queue bug (http://awwx.ws/queue-test-summary).
+which I hope will fix the [queue bug](http://awwx.ws/queue-test-summary).
 
 
 * Reflects the Arc compiler into Arc to make Arc more hackable
