@@ -62,29 +62,6 @@
          (write expected)
          (newline))))))
   
-(define (read-from-string str)
-  (let ((port (open-input-string str)))
-    (let ((val (read port)))
-      (close-input-port port)
-      val)))
-
-(test (read-from-string "(1 2 3)") '(1 2 3))
-
-(define (read* port (accum '()))
-  (let ((a (read port)))
-    (if (eof-object? a)
-        (reverse accum)
-        (read* port (cons a accum)))))
-
-(define (read*-from-string str)
-  (let ((port (open-input-string str)))
-    (let ((vals (read* port)))
-      (close-input-port port)
-      vals)))
-
-(test (read*-from-string "") '())
-(test (read*-from-string "1 2 3") '(1 2 3))
-
 (define (write-to-string x)
   (let ((port (open-output-string)))
     (write x port)
@@ -512,9 +489,6 @@
 (define (trace/arc . args)
   (set! traces (append traces (list (cons 'arc args)))))
 
-; When looking at trace output, it's helpful to know that Racket displays
-; an Arc list like (1 2 3) as {1 2 3 . nil}
-
 (define (display-trace)
   (map (lambda (trace)
          (let ((w (if (eq? (car trace) 'racket) write print)))
@@ -530,22 +504,20 @@
 ; Trace each step of reading, compiling, eval'ing an Arc program, with
 ; all the converting lists back and forth.
 
-(define (trace-eval arc-program globals)
-  (trace "program (string)" arc-program)
-  (let ((r/sources (read*-from-string arc-program)))
-    (trace "program (racket)" r/sources)
-    (let ((final 'nil))
-      (for-each (lambda (r/source)
-                  (let ((a/source (deep-toarc r/source)))
-                    (trace "program (arc)" a/source)
-                    (let ((a/compiled ((hash-ref globals 'ac) a/source 'nil)))
-                      (trace/arc "compiled (arc)" a/compiled)
-                      (let ((r/compiled (deep-fromarc a/compiled)))
-                        (let ((result (eval r/compiled)))
-                          (trace "result" result)
-                          (set! final result))))))
-                r/sources)
-      final)))
+(define (trace-eval r/arc-program globals)
+  (trace "program (racket)" r/arc-program)
+  (let ((final 'nil))
+    (for-each (lambda (r/source)
+                (let ((a/source (deep-toarc r/source)))
+                  (trace "program (arc)" a/source)
+                  (let ((a/compiled ((hash-ref globals 'ac) a/source 'nil)))
+                    (trace/arc "compiled (arc)" a/compiled)
+                    (let ((r/compiled (deep-fromarc a/compiled)))
+                      (let ((result (eval r/compiled)))
+                        (trace "result" result)
+                        (set! final result))))))
+              r/arc-program)
+    final))
 
 ; If a test fails, display all the steps.
 
@@ -623,8 +595,10 @@
             (with-handlers ((exn:fail? (lambda (c) (exn-message c))))
               (thunk)
               'oops-no-error-after-all)))
-       (unless (equal? (substring actual-error 0 (string-length expected-error-message))
-                       expected-error-message)
+       (unless (and (>= (string-length actual-error)
+                        (string-length expected-error-message))
+                    (equal? (substring actual-error 0 (string-length expected-error-message))
+                            expected-error-message))
          (error actual-error))))))
 
 (define-syntax test-expect-error
@@ -650,7 +624,7 @@
 (define-syntax test-arc
   (syntax-rules ()
     ((test-arc (source expected) ...)
-     (add-tests (list (make-arc-test source expected) ...)))))
+     (add-tests (list (make-arc-test 'source expected) ...)))))
 
 
 ;; Arc compiler steps
@@ -743,9 +717,11 @@
   ((g ac-literal?) s)
   s)
 
-(test-arc ("123"     123)
-          ("#\\a"    #\a)
-          ("\"abc\"" "abc"))
+(test-arc
+ (( 123   ) 123)
+ (( #\a   ) #\a)
+ (( "abc" ) "abc"))
+
 ; it's alive!
 
 
@@ -758,7 +734,7 @@
   (tnil (eq? s 'nil))
   (ac-nil))
 
-(test-arc ("nil" 'nil))
+(test-arc (( nil ) 'nil))
 
 
 ;; variables
@@ -805,11 +781,11 @@
 
 (test-expect-error
  ; todo: should clear trace here
- (trace-eval "foo" (new-ac))
+ (trace-eval '( foo ) (new-ac))
  "reference to global variable \"foo\" which hasn't been set")
 
 (test-arc
- ("car" arc-car))
+ (( car ) arc-car))
 
 
 ;; call
@@ -825,11 +801,11 @@
   ((g ac-call) (arc-car s) (arc-cdr s) env))
 
 (test-arc
- ("(+)"           0)
- ("(+ 1 2)"       3)
- ("(+ 1 2 3)"     6)
- ("(+ 1 2 3 4)"   10)
- ("(+ 1 2 3 4 5)" 15))
+ (( (+)           ) 0)
+ (( (+ 1 2)       ) 3)
+ (( (+ 1 2 3)     ) 6)
+ (( (+ 1 2 3 4)   ) 10)
+ (( (+ 1 2 3 4 5) ) 15))
 
 
 ;; quote
@@ -838,11 +814,12 @@
   ((g caris) s 'quote)
   ((g list) 'quote (make-tunnel (ar-cadr s))))
 
-(test-arc ("'abc"     'abc)
-          ("'()"      'nil)
-          ("'(a)"     (arc-list 'a))
-          ("'(nil)"   (arc-list 'nil))
-          ("'(a . b)" (mcons 'a 'b)))
+(test-arc
+ (( 'abc     ) 'abc)
+ (( '()      ) 'nil)
+ (( '(a)     ) (arc-list 'a))
+ (( '(nil)   ) (arc-list 'nil))
+ (( '(a . b) ) (mcons 'a 'b)))
 
 
 ;; fn
@@ -885,11 +862,11 @@
   ((g ac-fn) (ar-cadr s) (ar-cddr s) env))
 
 (test-arc
- ("((fn ()))"                  'nil)
- ("((fn () 3))"                3)
- ("((fn (a) a) 3)"             3)
- ("((fn (a b) b) 1 2)"         2)
- ("((fn (a b) (+ a b 3)) 1 2)" 6))
+ (( ((fn ()))                  ) 'nil)
+ (( ((fn () 3))                ) 3)
+ (( ((fn (a) a) 3)             ) 3)
+ (( ((fn (a b) b) 1 2)         ) 2)
+ (( ((fn (a b) (+ a b 3)) 1 2) ) 6))
 
 
 ;; eval
@@ -901,9 +878,8 @@
   (eval (deep-fromarc ((g ac) x 'nil))))
 
 (test-arc
- ("(eval 3)" 3)
- ("(eval '(+ 1 2))" 3)
- )
+ (( (eval 3)        ) 3)
+ (( (eval '(+ 1 2)) ) 3))
 
 
 ;; quasiquotation
@@ -952,27 +928,26 @@
     ((g ac) expansion env)))
 
 (test-arc
- ("`nil" 'nil)
- ("`3" 3)
- ("`a" 'a)
- ("`()" 'nil)
- ("`(1)" (arc-list 1))
- ("`(1 . 2)" (mcons 1 2))
- ("`(1 2)" (arc-list 1 2))
- ("`((1 2))" (arc-list (arc-list 1 2)))
+ (( `nil     ) 'nil)
+ (( `3       ) 3)
+ (( `a       ) 'a)
+ (( `()      ) 'nil)
+ (( `(1)     ) (arc-list 1))
+ (( `(1 . 2) ) (mcons 1 2))
+ (( `(1 2)   ) (arc-list 1 2))
+ (( `((1 2)) ) (arc-list (arc-list 1 2)))
 
- ("`,(+ 1 2)" 3)
- ("`(,(+ 1 2))" (arc-list 3))
- ("`(1 2 ,(+ 1 2) 4)" (arc-list 1 2 3 4))
+ (( `,(+ 1 2)         ) 3)
+ (( `(,(+ 1 2))       ) (arc-list 3))
+ (( `(1 2 ,(+ 1 2) 4) ) (arc-list 1 2 3 4))
 
- ("(eval ``3)" 3)
- ("(eval ``,,3)" 3)
- ("(eval ``,,(+ 1 2))" 3)
+ (( (eval ``3)         ) 3)
+ (( (eval ``,,3)       ) 3)
+ (( (eval ``,,(+ 1 2)) ) 3)
 
- ("`(1 ,@(list 2 3) 4)" (arc-list 1 2 3 4))
- ("(eval ``,(+ 1 ,@(list 2 3) 4))" 10)
- ("(eval (eval ``(+ 1 ,,@(list 2 3) 4)))" 10)
-)
+ (( `(1 ,@(list 2 3) 4)                   ) (arc-list 1 2 3 4))
+ (( (eval ``,(+ 1 ,@(list 2 3) 4))        ) 10)
+ (( (eval (eval ``(+ 1 ,,@(list 2 3) 4))) ) 10))
 
 
 ;; if
@@ -993,14 +968,13 @@
   ((g ac-if) ((g cdr) s) env))
 
 (test-arc
- ("(if)"           'nil)
- ("(if nil)"       'nil)
- ("(if 9)"         9)
- ("(if nil 1 2)"   2)
- ("(if 9 1 2)"     1)
- ("(if 9 1 2 3)"   1)
- ("(if nil 1 2 3)" 3)
- )
+ (( (if)           ) 'nil)
+ (( (if nil)       ) 'nil)
+ (( (if 9)         ) 9)
+ (( (if nil 1 2)   ) 2)
+ (( (if 9 1 2)     ) 1)
+ (( (if 9 1 2 3)   ) 1)
+ (( (if nil 1 2 3) ) 3))
 
 
 ;; assign
@@ -1031,22 +1005,21 @@
   ((g ac-assign) (arc-cdr s) env))
 
 (test-arc
- ("((fn ()
-     (assign x 123)
-     x))"
+ (( ((fn ()
+       (assign x 123)
+       x)) )
   123)
- ("((fn (x)
-      (assign x 123)
-      x)
-    456)"
+ (( ((fn (x)
+       (assign x 123)
+       x)
+     456) )
   123)
- ("((fn (a b)
-      (assign a 11)
-      (assign b 22)
-      (list a b))
-    1 2)"
-  (arc-list 11 22))
-)
+ (( ((fn (a b)
+       (assign a 11)
+       (assign b 22)
+       (list a b))
+     1 2) )
+  (arc-list 11 22)))
 
 
 ;; macros
@@ -1061,18 +1034,16 @@
       'nil))
 
 (test-arc
- ("(ac-macro? 5)" 'nil)
+ (( (ac-macro? 5)    ) 'nil)
+ (( (ac-macro? 'foo) ) 'nil)
 
- ("(ac-macro? 'foo)" 'nil)
-
- ("(assign foo 5)
-   (ac-macro? 'foo)"
+ (( (assign foo 5)
+    (ac-macro? 'foo) )
   'nil)
 
- ("(assign foo (annotate 'mac 123))
-   (ac-macro? 'foo)"
-  123)
-)
+ (( (assign foo (annotate 'mac 123))
+    (ac-macro? 'foo) )
+  123))
 
 (ac-def ac-mac-call (m args env)
   (let ((x1 (arc-apply m args)))
@@ -1084,8 +1055,8 @@
   ((g ac-mac-call) it args env))
 
 (test-arc
- ("(assign foo (annotate 'mac (fn (x) x)))
-   (foo 123)"
+ (( (assign foo (annotate 'mac (fn (x) x)))
+    (foo 123) )
   123))
 
 
@@ -1099,19 +1070,18 @@
 
 ;; do
 
-(ac-eval #<<.
+(ac-eval '(
   (assign do (annotate 'mac
     (fn args `((fn () ,@args)))))
-.
-)
+))
 
 ; dum de dum dum!
 
 (test-arc
- ("(do (assign a 1)
-       (assign b 2)
-       (assign c 3)
-       (list a b c))"
+ (( (do (assign a 1)
+        (assign b 2)
+        (assign c 3)
+        (list a b c)) )
   (arc-list 1 2 3)))
 
 
@@ -1121,10 +1091,10 @@
   (tnil (hash-ref globals* x (lambda () #f))))
 
 (test-arc
-  ("(bound 'foo)" 'nil)
+  (( (bound 'foo) ) 'nil)
 
-  ("(assign foo 123)
-    (bound 'foo)"
+  (( (assign foo 123)
+     (bound 'foo) )
    't))
 
 
@@ -1137,7 +1107,7 @@
  (let ((port (open-output-string))
        (globals* (new-ac)))
    (hash-set! globals* 'port port)
-   (test-eval "(disp '(\"a\" b 3) port)" globals*)
+   (test-eval '( (disp '("a" b 3) port) ) globals*)
    (get-output-string port))
  "(a b 3)")
 
@@ -1145,7 +1115,7 @@
  (let ((port (open-output-string))
        (globals* (new-ac)))
    (parameterize ((current-output-port port))
-     (test-eval "(disp '(\"a\" b 3))" globals*)
+     (test-eval '( (disp '("a" b 3)) ) globals*)
      (get-output-string port)))
  "(a b 3)")
 
@@ -1168,8 +1138,8 @@
 
 (test-equal
  (let ((globals* (new-ac)))
-   (trace-eval "(ac-defvar 'x (list (fn () 'foo)))" globals*)
-   (trace-eval "x" globals*))
+   (trace-eval '( (ac-defvar 'x (list (fn () 'foo))) ) globals*)
+   (trace-eval '( x ) globals*))
  'foo)
 
 (ac-def ac-not-assignable (v)
@@ -1183,16 +1153,16 @@
             ((g ac) b env)))
 
 (test-equal
- (let ((globals* (new-ac)))
-   (trace-eval "(ac-defvar 'x (list nil (fn (x) (assign a (+ x 1)))))" globals*)
-   (trace-eval "(assign x 5)" globals*)
-   (trace-eval "a" globals*))
+ (trace-eval '( (ac-defvar 'x (list nil (fn (x) (assign a (+ x 1)))))
+                (assign x 5)
+                a )
+             (new-ac))
  6)
 
 (test-expect-error
- (let ((globals* (new-ac)))
-   (trace-eval "(ac-defvar 'x (list nil))" globals*)
-   (trace-eval "(assign x 5)" globals*))
+ (trace-eval '( (ac-defvar 'x (list nil))
+                (assign x 5) )
+              (new-ac))
  "x is not assignable")
 
 
@@ -1204,12 +1174,12 @@
     ((g ac-defvar) 'stdout (arc-list (lambda () (current-output-port))))
     ((g ac-defvar) 'stderr (arc-list (lambda () (current-error-port))))))
 
-(test-arc ("stdin" (current-input-port)))
+(test-arc (( stdin ) (current-input-port)))
 
 
 ;; safeset
 
-(ac-eval #<<.
+(ac-eval '(
 (assign safeset (annotate 'mac
                   (fn (var val)
                     `(do (if (bound ',var)
@@ -1217,19 +1187,19 @@
                                  (disp ',var stderr)
                                  (disp #\newline stderr)))
                          (assign ,var ,val)))))
-.
-)
+))
 
-(test-arc ("(safeset a 123) a" 123))
+(test-arc (( (safeset a 123) a ) 123))
 
 (test-equal
- (let ((globals* (new-ac))
-       (port (open-output-string)))
+ (let ((port (open-output-string)))
    (parameterize ((current-error-port port))
-     (trace-eval "(safeset a 123)" globals*)
-     (trace-eval "(safeset a 456)" globals*))
+     (trace-eval '( (safeset a 123)
+                    (safeset a 456) )
+                 (new-ac)))
    (get-output-string port))
  "*** redefining a\n")
+
 
 ;; table
 
@@ -1238,7 +1208,7 @@
     (when init (init h))
     h))
 
-(test-arc ("(table)" (hash)))
+(test-arc (( (table) ) (hash)))
 
 
 ;; sref
@@ -1256,50 +1226,45 @@
          (err "Can't set reference" com ind val))))
 
 (test-arc
- ("(do (assign a '(x y z))
-       (sref a 'M 1)
-       a)"
+ (( (assign a '(x y z))
+    (sref a 'M 1)
+    a )
   (arc-list 'x 'M 'z))
 
- ("(do (assign a (table))
-       (sref a 55 'x)
-       a)"
+ (( (assign a (table))
+    (sref a 55 'x)
+    a)
   (hash 'x 55))
 
- ("(table (fn (h)
-            (sref h 55 'x)
-            (sref h 66 'y)))"
+ (( (table (fn (h)
+             (sref h 55 'x)
+             (sref h 66 'y))) )
   (hash 'x 55 'y 66))
 
- ("(do (assign a \"abcd\")
-       (sref a #\\M 2)
-       a)"
-  "abMd")
-)
+ (( (assign a "abcd")
+    (sref a #\M 2)
+    a )
+  "abMd"))
 
 
 ;; def
 
-(ac-eval #<<.
+(ac-eval '(
 (assign sig (table))
-.
-)
 
-(ac-eval #<<.
 (assign def (annotate 'mac
                (fn (name parms . body)
                  `(do (sref sig ',parms ',name)
                       (safeset ,name (fn ,parms ,@body))))))
-.
-)
+))
 
 (test-arc
- ("(def a () 123) (a)" 123))
+ (( (def a () 123) (a) ) 123))
 
 
 ;;
 
-(ac-eval #<<.
+(ac-eval '(
 (def caar (xs) (car (car xs)))
 (def cadr (xs) (car (cdr xs)))
 (def cddr (xs) (cdr (cdr xs)))
@@ -1316,27 +1281,25 @@
       (cons (car xs) (copylist (cdr xs)))))
 
 (def idfn (x) x)
-.
-)
+))
 
 (test-arc
- ("(car nil)"       'nil)
- ("(car '(1 2 3))"  1)
- ("(cdr nil)"       'nil)
- ("(cdr '(1 2 3))"  (arc-list 2 3))
- ("(caar '((1 2)))" 1)
- ("(cadr '(1 2 3))" 2)
- ("(cddr '(1 2 3))" (arc-list 3))
+ (( (car nil)       ) 'nil)
+ (( (car '(1 2 3))  ) 1)
+ (( (cdr nil)       ) 'nil)
+ (( (cdr '(1 2 3))  ) (arc-list 2 3))
+ (( (caar '((1 2))) ) 1)
+ (( (cadr '(1 2 3)) ) 2)
+ (( (cddr '(1 2 3)) ) (arc-list 3))
 
- ("(acons 3)"    'nil)
- ("(acons '(3))" 't)
+ (( (acons 3)    ) 'nil)
+ (( (acons '(3)) ) 't)
 
- ("(atom 3)"     't)
- ("(atom '(3))"  'nil)
+ (( (atom 3)    ) 't)
+ (( (atom '(3)) ) 'nil)
  
- ("(copylist '(1 2 3))" (arc-list 1 2 3))
+ (( (copylist '(1 2 3)) ) (arc-list 1 2 3))
 
- ("(idfn 123)" 123)
+ (( (idfn 123) ) 123)
 
- ("(map1 acons '(1 (2) 3 (4)))" (arc-list 'nil 't 'nil 't))
-)
+ (( (map1 acons '(1 (2) 3 (4))) ) (arc-list 'nil 't 'nil 't)))
