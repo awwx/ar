@@ -1062,18 +1062,22 @@
 
 ;; Eval Arc code as a step in building ac ^_^
 
-(define (ac-eval arccode)
+(define (ac-eval-impl forms)
   (add-ac-build-step
    (lambda (globals*)
-     (trace-eval arccode globals*))))
+     (trace-eval forms globals*))))
+
+(define-syntax ac-eval
+  (syntax-rules ()
+    ((ac-eval form ...)
+     (ac-eval-impl '(form ...)))))
 
 
 ;; do
 
-(ac-eval '(
+(ac-eval
   (assign do (annotate 'mac
-    (fn args `((fn () ,@args)))))
-))
+               (fn args `((fn () ,@args))))))
 
 ; dum de dum dum!
 
@@ -1179,15 +1183,14 @@
 
 ;; safeset
 
-(ac-eval '(
-(assign safeset (annotate 'mac
-                  (fn (var val)
-                    `(do (if (bound ',var)
-                             (do (disp "*** redefining " stderr)
-                                 (disp ',var stderr)
-                                 (disp #\newline stderr)))
-                         (assign ,var ,val)))))
-))
+(ac-eval
+ (assign safeset (annotate 'mac
+                   (fn (var val)
+                     `(do (if (bound ',var)
+                              (do (disp "*** redefining " stderr)
+                                  (disp ',var stderr)
+                                  (disp #\newline stderr)))
+                          (assign ,var ,val))))))
 
 (test-arc (( (safeset a 123) a ) 123))
 
@@ -1249,14 +1252,13 @@
 
 ;; def
 
-(ac-eval '(
-(assign sig (table))
+(ac-eval
+ (assign sig (table))
 
-(assign def (annotate 'mac
-               (fn (name parms . body)
-                 `(do (sref sig ',parms ',name)
-                      (safeset ,name (fn ,parms ,@body))))))
-))
+ (assign def (annotate 'mac
+                (fn (name parms . body)
+                  `(do (sref sig ',parms ',name)
+                       (safeset ,name (fn ,parms ,@body)))))))
 
 (test-arc
  (( (def a () 123) (a) ) 123))
@@ -1264,24 +1266,23 @@
 
 ;;
 
-(ac-eval '(
-(def caar (xs) (car (car xs)))
-(def cadr (xs) (car (cdr xs)))
-(def cddr (xs) (cdr (cdr xs)))
+(ac-eval
+ (def caar (xs) (car (car xs)))
+ (def cadr (xs) (car (cdr xs)))
+ (def cddr (xs) (cdr (cdr xs)))
 
-(def no (x) (is x nil))
+ (def no (x) (is x nil))
 
-(def acons (x) (is (type x) 'cons))
+ (def acons (x) (is (type x) 'cons))
 
-(def atom (x) (no (acons x)))
+ (def atom (x) (no (acons x)))
 
-(def copylist (xs)
-  (if (no xs) 
-      nil 
-      (cons (car xs) (copylist (cdr xs)))))
+ (def copylist (xs)
+   (if (no xs) 
+       nil 
+       (cons (car xs) (copylist (cdr xs)))))
 
-(def idfn (x) x)
-))
+ (def idfn (x) x))
 
 (test-arc
  (( (car nil)       ) 'nil)
