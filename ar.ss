@@ -1,5 +1,14 @@
 #lang scheme
 
+; set to 'none, 'atend, or 'iteratively
+;
+; 'iteratively runs all the tests at each step of building the
+; compiler.  This is slow, but good at finding out which step
+; broke an earlier test.
+
+(define run-tests* 'atend)
+
+
 (require scheme/mpair)
 
 (current-namespace (make-base-namespace))
@@ -545,7 +554,8 @@
 
 (define (add-tests tests)
   (set! arc-tests (append arc-tests tests))
-  (run-tests))
+  (when (eq? run-tests* 'iteratively)
+    (run-tests)))
 
 (define (add-test test)
   (add-tests (list test)))
@@ -1429,3 +1439,6 @@
 
 (test-arc
  (( (pair '(1 2 3 4 5)) ) (toarc '((1 2) (3 4) (5)))))
+
+(when (eq? run-tests* 'atend)
+  (run-tests))
