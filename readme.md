@@ -19,6 +19,16 @@ This version of the Arc runtime:
 which I hope will fix the [queue bug](http://awwx.ws/queue-test-summary).
 
 
+* implements quasiquotation with Alan Bawden's algorithm
+
+which I hope will fix list splicing in nested quasiquotes which was giving people trouble writing macro-defining macros.
+
+
+* Function rest arguments are 'nil terminated Arc lists
+
+(cdr ((fn args args) 1)) => nil
+
+
 * Reflects the Arc compiler into Arc to make Arc more hackable
 
 Thus (hypothetically):
@@ -40,11 +50,6 @@ Thus (hypothetically):
     t
     arc> (eval +)
     #<procedure:+>
-
-
-* implements quasiquotation with Alan Bawden's algorithm
-
-which I hope will fix list splicing in nested quasiquotes which was giving people trouble writing macro-defining macros.
 
 
 * global variables are stored in an Arc table instead of in a Racket namespace

@@ -1132,7 +1132,8 @@
                  env))
 
 (test-arc
- (( ((fn args (car args)) 1 2) ) 1)
+ (( ((fn args (car args)) 1 2)             ) 1)
+ (( (cdr ((fn args args) 1))               ) 'nil)
  (( ((fn (a b . rest) (car rest)) 1 2 3 4) ) 3))
 
 
