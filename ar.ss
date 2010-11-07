@@ -481,6 +481,7 @@
         'map1         arc-map1
         'mem          ar-mem
         'r/list-toarc r/list-toarc
+        't            't
         'type         arc-type
         'uniq         gensym
         ))
@@ -1003,15 +1004,19 @@
 
 ;; assign
 
-(ac-def ac-global-assign (a b env)
-  (arc-list hash-set! globals* (arc-list 'quote a) ((g ac) b env)))
+(ac-def ac-global-assign (a b)
+  (arc-list hash-set! globals* (arc-list 'quote a) b))
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
     (err "First arg to assign must be a symbol" a))
-  (if (true? ((g ac-lex?) a env))
-      (arc-list 'set! a ((g ac) b1 env))
-      ((g ac-global-assign) a b1 env)))
+  (let ((result (gensym)))
+    (arc-list 'let
+              (arc-list (arc-list result ((g ac) b1 env)))
+              (if (true? ((g ac-lex?) a env))                  
+                   (arc-list 'set! a result)
+                   ((g ac-global-assign) a result))
+              result)))
 
 (ac-def ac-assignn (x env)
   (if (no? x)
@@ -1029,15 +1034,24 @@
   ((g ac-assign) (arc-cdr s) env))
 
 (test-arc
+ (( (assign x 123) ) 123)
+
  (( ((fn ()
        (assign x 123)
        x)) )
   123)
+
+ (( ((fn (x)
+       (assign x 123))
+     456) )
+  123)
+
  (( ((fn (x)
        (assign x 123)
        x)
      456) )
   123)
+
  (( ((fn (a b)
        (assign a 11)
        (assign b 22)
@@ -1219,11 +1233,11 @@
   (lambda (x)
     (err (string-append (symbol->string v) " is not assignable"))))
 
-(extend ac-global-assign (a b env)
+(extend ac-global-assign (a b)
   ((g ac-defined-var) a)
   (arc-list ar-apply
             (ar-or (arc-cadr it) ((g ac-not-assignable) a))
-            ((g ac) b env)))
+            b))
 
 (test-equal
  (trace-eval '( (ac-defvar 'x (list nil (fn (x) (assign a (+ x 1)))))
@@ -1459,7 +1473,10 @@
   ((g ac) ((g ac-complex-fn) args body) env))
 
 (test-arc
-  (( ((fn (a (o b 3)) (+ a b)) 5) ) 8))
+  (( ((fn (a (o b 3)) (+ a b)) 5)              ) 8)
+  (( ((fn ((o a 3) . rest) (list a rest)))     ) (arc-list 3 'nil))
+  (( ((fn ((o a 3) . rest) (list a rest)) 1)   ) (arc-list 1 'nil))
+  (( ((fn ((o a 3) . rest) (list a rest)) 1 2) ) (arc-list 1 (arc-list 2))))
 
 
 ;; pair
@@ -1475,6 +1492,70 @@
 
 (test-arc
  (( (pair '(1 2 3 4 5)) ) (toarc '((1 2) (3 4) (5)))))
+
+
+;; mac .. rfn
+
+(ac-eval
+ (assign mac (annotate 'mac
+               (fn (name parms . body)
+                 `(do (sref sig ',parms ',name)
+                      (safeset ,name (annotate 'mac (fn ,parms ,@body)))))))
+
+ (mac and args
+   (if args
+       (if (cdr args)
+           `(if ,(car args) (and ,@(cdr args)))
+           (car args))
+       't))
+
+ (def assoc (key al)
+   (if (atom al)
+        nil
+       (and (acons (car al)) (is (caar al) key))
+        (car al)
+       (assoc key (cdr al))))
+
+ (def alref (al key) (cadr (assoc key al)))
+
+ (mac with (parms . body)
+  `((fn ,(map1 car (pair parms))
+     ,@body)
+    ,@(map1 cadr (pair parms))))
+
+ (mac let (var val . body)
+   `(with (,var ,val) ,@body))
+
+ (mac withs (parms . body)
+   (if (no parms) 
+       `(do ,@body)
+       `(let ,(car parms) ,(cadr parms) 
+          (withs ,(cddr parms) ,@body))))
+
+ (mac rfn (name parms . body)
+   `(let ,name nil
+      (assign ,name (fn ,parms ,@body)))))
+
+
+(test-arc
+ (( (and)       ) 't)
+ (( (and 3)     ) 3)
+ (( (and 3 4)   ) 4)
+ (( (and nil 4) ) 'nil)
+ (( (and 3 4 5) ) 5)
+
+ (( (alref '((a 1) (b 2)) 'b) ) 2)
+
+ (( (with (a 1 b 2)
+      (list a b)) )
+  (arc-list 1 2))
+
+ (( (let a 1 a) ) 1)
+
+ (( (withs (a 1 b (+ a 2)) (list a b)) ) (arc-list 1 3))
+
+ (( ((rfn foo (x) (if (no x) 0 (+ 1 (foo (cdr x))))) '(a b c)) ) 3)
+ )
 
 
 ;;
