@@ -1,6 +1,6 @@
 #lang scheme
 
-; set to 'none, 'atend, or 'iteratively
+; Set to run-tests* to 'none, 'atend, or 'iteratively.
 ;
 ; 'iteratively runs all the tests at each step of building the
 ; compiler.  This is slow, but good at finding out which step
@@ -182,9 +182,11 @@
 
 (test (arc-join) 'nil)
 (test (arc-join (arc-list)) 'nil)
+(test (arc-join 1) 1)
 (test (arc-join (arc-list 1 2)) (arc-list 1 2))
 (test (arc-join (arc-list) (arc-list)) 'nil)
 (test (arc-join (arc-list 1 2) (arc-list)) (arc-list 1 2))
+(test (arc-join (arc-list 1 2) 3) (mcons 1 (mcons 2 3)))
 (test (arc-join (arc-list) (arc-list 1 2)) (arc-list 1 2))
 (test (arc-join (arc-list 1 2) (arc-list 3 4)) (arc-list 1 2 3 4))
 (test (arc-join (arc-list 1 2) 3) (mcons 1 (mcons 2 3)))
@@ -539,10 +541,11 @@
                                (raise c))))
     (trace-eval arc-program globals*)))
 
-; A test adds itself to the list of tests, and also runs all the tests
-; again (including itself) from the beginning.  This allows us e.g. to
-; add things like optimizations to the compiler, and all the previous
-; tests will be run again to ensure that they still work.
+; A test adds itself to the list of tests, and also (when running
+; tests iteratively) runs all the tests again (including itself) from
+; the beginning.  This allows us e.g. to add things like optimizations
+; to the compiler, and all the previous tests will be run again to
+; ensure that they still work.
 
 (define arc-tests '())
 
@@ -680,9 +683,6 @@
       ((g v)
        (with-syntax ((globals* (datum->syntax #'v 'globals*)))
          #'(hash-ref globals* 'v))))))
-
-(define (later globals* fname args)
-  (apply (hash-ref globals* fname) args))
 
 
 ;; The Arc compiler!
@@ -839,6 +839,7 @@
 
 
 ;; fn
+; rest args, optional args, arg list destructuring implemented later
 
 (ac-def ac-body (body env)
   (arc-map1 (lambda (x) ((g ac) x env)) body))
@@ -865,12 +866,20 @@
          (arc-list (mcar a) (mcdr a)))
         (else (mcons (mcar a) ((g ac-arglist) (mcdr a))))))
 
+(ac-def dotted-list? (x)
+  (cond ((and (symbol? x) (not (eq? x 'nil)))
+         't)
+        ((mpair? x)
+         ((g dotted-list?) (mcdr x)))
+        (else
+         'nil)))
+
 (ac-def ac-fn (args body env)
-  (if (and (symbol? args) (not (eq? args 'nil)))
-      (later globals* 'ac-fn-rest (list args body env))
-      (mcons 'lambda
-             (mcons args
-                    ((g ac-body*x) args body env)))))
+  (if (true? ((g dotted-list?) args))
+       ((g ac-fn-rest) args body env)
+       (mcons 'lambda
+              (mcons args
+                     ((g ac-body*x) args body env)))))
 
 (extend ac (s env)
   ((g caris) s 'fn)
@@ -1037,7 +1046,7 @@
   (arc-list 11 22)))
 
 
-;; macros
+;; macro
 
 (ac-def ac-macro? (fn)
   (if (symbol? fn)
@@ -1088,23 +1097,44 @@
      (ac-eval-impl '(form ...)))))
 
 
-;; single rest arg
+;; fn rest arg
 
+(ac-def ac-rest-param (x)
+  (cond ((and (symbol? x) (not (eq? x 'nil)))
+         x)
+        ((mpair? x)
+         ((g ac-rest-param) (mcdr x)))
+        (else
+         (error "not a dotted list"))))
+
+(ac-def ac-args-without-rest (x)
+  (cond ((mpair? x)
+         (arc-join (arc-list (arc-car x)) ((g ac-args-without-rest) (mcdr x))))
+        (else
+         'nil)))
+
+; todo a better name than ac-fn-foo
 (add-ac-build-step
  (lambda (globals*)
    (hash-set! globals* 'ac-fn-foo
      (trace-eval
-      '( (fn (r/args args body env)
-           `(lambda ,r/args
-              (let ((,args (,r/list-toarc ,r/args)))
-                ,@(ac-body*x args body env)))))
+      '( (fn (args r/rest rest body env)
+           `(lambda ,(join args r/rest)
+              (let ((,rest (,r/list-toarc ,r/rest)))
+                ,@(ac-body*x (join args (list rest)) body env)))) )
       globals*))))
-      
+
 (ac-def ac-fn-rest (args body env)
-  ((g ac-fn-foo) (gensym) args body env))
+  ((g ac-fn-foo) ((g ac-args-without-rest) args)
+                 (gensym)
+                 ((g ac-rest-param) args)
+                 body
+                 env))
 
 (test-arc
- (( ((fn args (car args)) 1 2) ) 1))
+ (( ((fn args (car args)) 1 2) ) 1)
+ (( ((fn (a b . rest) (car rest)) 1 2 3 4) ) 3))
+
 
 ;; do
 
@@ -1128,7 +1158,12 @@
   (tnil (hash-ref globals* x (lambda () #f))))
 
 (test-arc
-  (( (bound 'foo) ) 'nil)
+  (( (bound 'foo) )
+   'nil)
+
+  (( (assign foo nil)
+     (bound 'foo) )
+   't)
 
   (( (assign foo 123)
      (bound 'foo) )
@@ -1413,8 +1448,10 @@
         (else 't)))
 
 (test-arc
- (( (ac-complex-args? '(a b c))   ) 'nil)
- (( (ac-complex-args? '(a (o b))) ) 't))
+ (( (ac-complex-args? '(a b c))      ) 'nil)
+ (( (ac-complex-args? '(a b . rest)) ) 'nil)
+ (( (ac-complex-args? '(a (o b)))    ) 't)
+ )
 
 (extend ac-fn (args body env)
   ((g ac-complex-args?) args)
@@ -1422,8 +1459,6 @@
 
 (test-arc
   (( ((fn (a (o b 3)) (+ a b)) 5) ) 8))
-
-; todo: note we still don't have (fn (a . rest) ...) yet
 
 
 ;; pair
@@ -1439,6 +1474,9 @@
 
 (test-arc
  (( (pair '(1 2 3 4 5)) ) (toarc '((1 2) (3 4) (5)))))
+
+
+;;
 
 (when (eq? run-tests* 'atend)
   (run-tests))
