@@ -318,7 +318,7 @@
 
 (define (iround x) (inexact->exact (round x)))
 
-(define (ar-coerce x type . args)
+(define (arc-coerce x type . args)
   (cond 
     ((tagged? x) (err "Can't coerce annotated object"))
     ((eqv? type (arc-type x)) x)
@@ -350,7 +350,7 @@
     ((mpair? x)     (case type
                       ((string)  (apply string-append
                                         (list-fromarc
-                                         (arc-map1 (lambda (y) (ar-coerce y 'string)) x))))
+                                         (arc-map1 (lambda (y) (arc-coerce y 'string)) x))))
                       (else      (err "Can't coerce" x type))))
     ((eq? x 'nil)   (case type
                       ((string)  "")
@@ -360,22 +360,22 @@
                       (else      (err "Can't coerce" x type))))
     (#t             x)))
 
-(test (ar-coerce #\A                   'int)       65)
-(test (ar-coerce #\A                   'string)    "A")
-(test (ar-coerce #\A                   'sym)       'A)
-(test (ar-coerce 123                   'num)       123)
-(test (ar-coerce 65                    'char)      #\A)
-(test (ar-coerce 123                   'string)    "123")
-(test (ar-coerce 128                   'string 16) "80")
-(test (ar-coerce 13.4                  'int)       13)
-(test (ar-coerce 65.0                  'char)      #\A)
-(test (ar-coerce 14.5                  'string)    "14.5")
-(test (ar-coerce "foo"                 'sym)       'foo)
-(test (ar-coerce "foo"                 'cons)      (arc-list #\f #\o #\o))
-(test (ar-coerce "123.5"               'num)       123.5)
-(test (ar-coerce "123"                 'int)       123)
-(test (ar-coerce (arc-list "a" 'b #\c) 'string)    "abc")
-(test (ar-coerce 'nil                  'string)    "")
+(test (arc-coerce #\A                   'int)       65)
+(test (arc-coerce #\A                   'string)    "A")
+(test (arc-coerce #\A                   'sym)       'A)
+(test (arc-coerce 123                   'num)       123)
+(test (arc-coerce 65                    'char)      #\A)
+(test (arc-coerce 123                   'string)    "123")
+(test (arc-coerce 128                   'string 16) "80")
+(test (arc-coerce 13.4                  'int)       13)
+(test (arc-coerce 65.0                  'char)      #\A)
+(test (arc-coerce 14.5                  'string)    "14.5")
+(test (arc-coerce "foo"                 'sym)       'foo)
+(test (arc-coerce "foo"                 'cons)      (arc-list #\f #\o #\o))
+(test (arc-coerce "123.5"               'num)       123.5)
+(test (arc-coerce "123"                 'int)       123)
+(test (arc-coerce (arc-list "a" 'b #\c) 'string)    "abc")
+(test (arc-coerce 'nil                  'string)    "")
 
 
 (define (char-or-string? x) (or (string? x) (char? x)))
@@ -387,7 +387,7 @@
          0)
         ((char-or-string? (car args))
          (apply string-append 
-                (map (lambda (a) (ar-coerce a 'string)) args)))
+                (map (lambda (a) (arc-coerce a 'string)) args)))
         ((arc-list? (car args)) 
          (apply arc-join args))
         (else
@@ -399,6 +399,49 @@
 (test (ar-+ 'nil (arc-list 1 2 3)) (arc-list 1 2 3))
 (test (ar-+ (arc-list 1 2) (arc-list 3)) (arc-list 1 2 3))
 (test (ar-+ 1 2 3) 6)
+
+
+(define (arc->2 x y)
+  (tnil (cond ((and (number? x) (number? y)) (> x y))
+              ((and (string? x) (string? y)) (string>? x y))
+              ((and (symbol? x) (symbol? y)) (string>? (symbol->string x)
+                                                       (symbol->string y)))
+              ((and (char? x) (char? y)) (char>? x y))
+              (#t (> x y)))))
+
+(define (arc-> . args) (pairwise arc->2 args))
+
+(define (arc-<2 x y)
+  (tnil (cond ((and (number? x) (number? y)) (< x y))
+              ((and (string? x) (string? y)) (string<? x y))
+              ((and (symbol? x) (symbol? y)) (string<? (symbol->string x)
+                                                       (symbol->string y)))
+              ((and (char? x) (char? y)) (char<? x y))
+              (#t (< x y)))))
+
+(define (arc-< . args) (pairwise arc-<2 args))
+
+
+(define (arc-list-len x)
+  (cond ((no? x)    0)
+        ((mpair? x) (+ 1 (arc-list-len (mcdr x))))
+        (else       (err "len expects a proper list"))))
+
+(test (arc-list-len (arc-list))       0)
+(test (arc-list-len (arc-list 1))     1)
+(test (arc-list-len (arc-list 1 2))   2)
+(test (arc-list-len (arc-list 1 2 3)) 3)
+
+
+(define (arc-len x)
+  (cond ((string? x) (string-length x))
+        ((hash? x)   (hash-count x))
+        (else        (arc-list-len x))))
+
+(test (arc-len "abc")            3)
+(test (arc-len (hash 'a 1 'b 2)) 2)
+(test (arc-len (arc-list 1 2 3)) 3)
+
 
 (define (ar-apply fn . r/args)
   (cond ((procedure? fn)
@@ -479,15 +522,20 @@
 
 (define ar-namespace*
   (hash '+            ar-+
+        '-            -
+        '<            arc-<
+        '>            arc->
         'annotate     ar-tag
         'apply        arc-apply
         'car          arc-car
-        'cdr          arc-cdr
         'caris        ar-caris
+        'cdr          arc-cdr
+        'coerce       arc-coerce
         'cons         mcons
         'err          err
         'join         arc-join
         'is           arc-is
+        'len          arc-len
         'list         arc-list
         'map1         arc-map1
         'mem          ar-mem
@@ -1631,6 +1679,152 @@
  (( (or nil 4)     ) 4)
  (( (or nil nil 5) ) 5)
  )
+
+
+;; alist
+
+(ac-eval
+ (def alist (x) (or (no x) (is (type x) 'cons))))
+
+(test-arc
+ (( (alist nil)      ) 't)
+ (( (alist '(1 2 3)) ) 't)
+ (( (alist 3)        ) 'nil))
+
+
+;; in
+
+(ac-eval
+ (mac in (x . choices)
+   (w/uniq g
+     `(let ,g ,x
+        (or ,@(map1 (fn (c) `(is ,g ,c)) choices))))))
+
+(test-arc
+ (( (in 'c 'a 'b 'c) ) 't)
+ (( (in 'x 'a 'b 'c) ) 'nil))
+
+
+;; iso
+
+(ac-eval
+ (def iso (x y)
+   (or (is x y)
+       (and (acons x) 
+            (acons y) 
+            (iso (car x) (car y)) 
+            (iso (cdr x) (cdr y))))))
+
+(test-arc
+ (( (iso '(1 2 3) (list 1 2 3)) ) 't)
+ (( (iso 'x 5)                  ) 'nil))
+
+
+;; when
+
+(ac-eval
+ (mac when (test . body)
+   `(if ,test (do ,@body))))
+
+(test-arc
+ (( (when 'yes 1 2 3 (+ 4 5)) ) 9))
+
+
+;; unless
+
+(ac-eval
+ (mac unless (test . body)
+   `(if (no ,test) (do ,@body))))
+
+(test-arc
+ (( (unless 'yes 1 2 3 (+ 4 5)) ) 'nil))
+
+
+;; while
+
+(ac-eval
+ (mac while (test . body)
+   (w/uniq (gf gp)
+     `((rfn ,gf (,gp)
+         (when ,gp ,@body (,gf ,test)))
+       ,test))))
+
+(test-arc
+ (( (assign x 5)
+    (while (> x 0)
+      (assign x (- x 1)))
+    x)
+  0))
+
+
+;; empty
+
+(ac-eval
+ (def empty (seq) 
+   (or (no seq) 
+       (and (or (is (type seq) 'string) (is (type seq) 'table))
+            (is (len seq) 0)))))
+
+(test-arc
+ (( (empty '())      ) 't)
+ (( (empty '(a b))   ) 'nil)
+ (( (empty "")       ) 't)
+ (( (empty "ab")     ) 'nil)
+ (( (empty (table))  ) 't)
+ (( (empty (let h (table)
+             (sref h 4 'x)
+             h)) )
+  'nil)
+ )
+
+
+;; reclist
+
+(ac-eval
+ (def reclist (f xs)
+   (and xs (or (f xs) (reclist f (cdr xs))))))
+
+
+;; recstring
+
+(ac-eval
+ (def recstring (test s (o start 0))
+   ((afn (i)
+      (and (< i (len s))
+           (or (test i)
+               (self (+ i 1)))))
+    start)))
+
+;; testify
+; cheating, we don't have [] yet
+
+(ac-eval
+ (def testify (x)
+   (if (isa x 'fn) x (fn (_) (is _ x)))))
+
+
+;; some
+; nor do we have ssyntax
+
+(ac-eval
+ (def some (test seq)
+   (let f (testify test)
+     (if (alist seq)
+         (reclist   (compose f car) seq)
+         (recstring (compose f seq) seq)))))
+
+(test-arc
+ (( (some 'x '(a b c)) ) 'nil)
+ (( (some 'x '(a x c)) ) 't)
+
+ (( (some atom '((a) (b) (c))) ) 'nil)
+ (( (some atom '((a) b (c)))   ) 't)
+
+ (( (some #\x "abc")   ) 'nil)
+ (( (some #\x "abx")   ) 't)
+
+ (( (some (fn (_) (> (coerce _ 'int) 99)) "abc")  ) 'nil)
+ (( (some (fn (_) (> (coerce _ 'int) 99)) "abcd") ) 't))
 
 
 ;;
