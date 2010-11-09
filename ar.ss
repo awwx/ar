@@ -316,71 +316,6 @@
   (test (ar-mem 4 a) d)
   (test (ar-mem 5 a) 'nil))
 
-(define (ar-apply fn . r/args)
-  (cond ((procedure? fn)
-         (apply fn r/args))
-        ((mpair? fn)
-         (mlist-ref fn (car r/args)))
-        ((string? fn)
-         (string-ref fn (car r/args)))
-        ((hash? fn)
-         (hash-ref fn
-                   (car r/args)
-                   (let ((default (if (pair? (cdr r/args)) (car (cdr r/args)) 'nil)))
-                     (lambda () default))))
-        (else (error "Function call on inappropriate object" fn r/args))))
-
-(test (ar-apply + 1 2 3) 6)
-(test (ar-apply (arc-list 1 2 3) 1) 2)
-(test (ar-apply "abcde" 2) #\c)
-(test (ar-apply (hash 'a 1 'b 2) 'b) 2)
-(test (ar-apply (hash 'a 1 'b 2) 'x) 'nil)
-(test (ar-apply (hash 'a 1 'b 2) 'x 3) 3)
-
-
-; todo: (apply list 1 2 '(3 4))
-
-(define (arc-apply fn args)
-  (apply ar-apply fn (list-fromarc args)))
-
-
-(define (ar-funcall0 fn)
-  (if (procedure? fn)
-      (fn)
-      (ar-apply fn)))
-
-(test (ar-funcall0 +) 0)
-
-(define (ar-funcall1 fn arg1)
-  (if (procedure? fn)
-      (fn arg1)
-      (ar-apply fn arg1)))
-
-(test (ar-funcall1 + 3) 3)
-(test (ar-funcall1 "abcd" 2) #\c)
-
-(define (ar-funcall2 fn arg1 arg2)
-  (if (procedure? fn)
-      (fn arg1 arg2)
-      (ar-apply fn arg1 arg2)))
-
-(test (ar-funcall2 + 3 4) 7)
-(test (ar-funcall2 (hash 'a 1 'b 2) 'x 3) 3)
-
-(define (ar-funcall3 fn arg1 arg2 arg3)
-  (if (procedure? fn)
-      (fn arg1 arg2 arg3)
-      (ar-apply fn arg1 arg2 arg3)))
-
-(test (ar-funcall3 + 3 4 5) 12)
-
-(define (ar-funcall4 fn arg1 arg2 arg3 arg4)
-  (if (procedure? fn)
-      (fn arg1 arg2 arg3 arg4)
-      (ar-apply fn arg1 arg2 arg3 arg4)))
-
-(test (ar-funcall4 + 3 4 5 6) 18)
-
 (define (iround x) (inexact->exact (round x)))
 
 (define (ar-coerce x type . args)
@@ -464,6 +399,82 @@
 (test (ar-+ 'nil (arc-list 1 2 3)) (arc-list 1 2 3))
 (test (ar-+ (arc-list 1 2) (arc-list 3)) (arc-list 1 2 3))
 (test (ar-+ 1 2 3) 6)
+
+(define (ar-apply fn . r/args)
+  (cond ((procedure? fn)
+         (apply fn r/args))
+        ((mpair? fn)
+         (mlist-ref fn (car r/args)))
+        ((string? fn)
+         (string-ref fn (car r/args)))
+        ((hash? fn)
+         (hash-ref fn
+                   (car r/args)
+                   (let ((default (if (pair? (cdr r/args)) (car (cdr r/args)) 'nil)))
+                     (lambda () default))))
+        (else (error "Function call on inappropriate object" fn r/args))))
+
+(test (ar-apply + 1 2 3) 6)
+(test (ar-apply (arc-list 1 2 3) 1) 2)
+(test (ar-apply "abcde" 2) #\c)
+(test (ar-apply (hash 'a 1 'b 2) 'b) 2)
+(test (ar-apply (hash 'a 1 'b 2) 'x) 'nil)
+(test (ar-apply (hash 'a 1 'b 2) 'x 3) 3)
+
+
+(define (combine as (accum '()))
+  (cond ((null? (cdr as))
+         (append accum (list-fromarc (car as))))
+        (else
+         (combine (cdr as) (append accum (list (car as)))))))
+
+(test (combine (list (arc-list 'a 'b 'c)))    '(a b c))
+(test (combine (list 'a (arc-list 'b 'c 'd))) '(a b c d))
+(test (combine (list 'a 'b (arc-list 'c 'd))) '(a b c d))
+
+
+(define (arc-apply fn . args)
+  (apply ar-apply fn (combine args)))
+
+(test (arc-apply ar-+ 'nil (toarc '((a b) (c d)))) (toarc '(a b c d)))
+
+
+(define (ar-funcall0 fn)
+  (if (procedure? fn)
+      (fn)
+      (ar-apply fn)))
+
+(test (ar-funcall0 +) 0)
+
+(define (ar-funcall1 fn arg1)
+  (if (procedure? fn)
+      (fn arg1)
+      (ar-apply fn arg1)))
+
+(test (ar-funcall1 + 3) 3)
+(test (ar-funcall1 "abcd" 2) #\c)
+
+(define (ar-funcall2 fn arg1 arg2)
+  (if (procedure? fn)
+      (fn arg1 arg2)
+      (ar-apply fn arg1 arg2)))
+
+(test (ar-funcall2 + 3 4) 7)
+(test (ar-funcall2 (hash 'a 1 'b 2) 'x 3) 3)
+
+(define (ar-funcall3 fn arg1 arg2 arg3)
+  (if (procedure? fn)
+      (fn arg1 arg2 arg3)
+      (ar-apply fn arg1 arg2 arg3)))
+
+(test (ar-funcall3 + 3 4 5) 12)
+
+(define (ar-funcall4 fn arg1 arg2 arg3 arg4)
+  (if (procedure? fn)
+      (fn arg1 arg2 arg3 arg4)
+      (ar-apply fn arg1 arg2 arg3 arg4)))
+
+(test (ar-funcall4 + 3 4 5 6) 18)
 
 
 (define ar-namespace*
@@ -656,8 +667,8 @@
 ; Return a global variable namespace that includes the Arc runtime
 ; globals (car, +, etc.) and whatever Arc compiler globals that have
 ; been defined so far (ac, ac-literal?, etc.)  Note that a fresh copy
-; of the compiler is created each time (new-ac) is called, with
-; whatever compiler building steps have been defined so far.
+; of the compiler is created each time (new-ac) is called, including
+; the compiler building steps have been defined so far.
 
 (define (new-ac . args)
   (let ((globals* (new-ar)))
@@ -806,6 +817,7 @@
 
 
 ;; call
+; todo optimizations
 
 (ac-def ac-call (fn args env)
   (mcons ar-apply
@@ -837,6 +849,12 @@
  (( '(a)     ) (arc-list 'a))
  (( '(nil)   ) (arc-list 'nil))
  (( '(a . b) ) (mcons 'a 'b)))
+
+
+;; apply
+
+(test-arc
+ (( (apply list 1 2 '(3 4)) ) (toarc '(1 2 3 4))))
 
 
 ;; fn
@@ -1494,7 +1512,7 @@
  (( (pair '(1 2 3 4 5)) ) (toarc '((1 2) (3 4) (5)))))
 
 
-;; mac .. rfn
+;; mac .. or
 
 (ac-eval
  (assign mac (annotate 'mac
@@ -1534,8 +1552,46 @@
 
  (mac rfn (name parms . body)
    `(let ,name nil
-      (assign ,name (fn ,parms ,@body)))))
+      (assign ,name (fn ,parms ,@body))))
 
+ (mac afn (parms . body)
+  `(let self nil
+     (assign self (fn ,parms ,@body))))
+
+ (mac compose args
+   (let g (uniq)
+     `(fn ,g
+        ,((afn (fs)
+            (if (cdr fs)
+                (list (car fs) (self (cdr fs)))
+                `(apply ,(if (car fs) (car fs) 'idfn) ,g)))
+          args))))
+
+ (mac complement (f)
+   (let g (uniq)
+     `(fn ,g (no (apply ,f ,g)))))
+
+ (def rev (xs) 
+   ((afn (xs acc)
+      (if (no xs)
+          acc
+          (self (cdr xs) (cons (car xs) acc))))
+    xs nil))
+
+ (def isnt (x y) (no (is x y)))
+
+ (mac w/uniq (names . body)
+   (if (acons names)
+       `(with ,(apply + nil (map1 (fn (n) (list n '(uniq)))
+                              names))
+          ,@body)
+       `(let ,names (uniq) ,@body)))
+
+ (mac or args
+   (and args
+        (w/uniq g
+          `(let ,g ,(car args)
+             (if ,g ,g (or ,@(cdr args))))))))
 
 (test-arc
  (( (and)       ) 't)
@@ -1555,6 +1611,25 @@
  (( (withs (a 1 b (+ a 2)) (list a b)) ) (arc-list 1 3))
 
  (( ((rfn foo (x) (if (no x) 0 (+ 1 (foo (cdr x))))) '(a b c)) ) 3)
+
+ (( ((afn (x) (if (no x) 0 (+ 1 (self (cdr x))))) '(a b c)) ) 3)
+
+ (( ((compose + car) '(3 4)) ) 3)
+
+ (( ((complement acons) 3) ) 't)
+
+ (( (rev '(1 2 3 4 5)) ) (arc-list 5 4 3 2 1))
+
+ (( (isnt 5 5) ) 'nil)
+ (( (isnt 4 6) ) 't)
+
+ (( (w/uniq (a b)) ) 'nil)
+
+ (( (or)           ) 'nil)
+ (( (or 3)         ) 3)
+ (( (or 3 4)       ) 3)
+ (( (or nil 4)     ) 4)
+ (( (or nil nil 5) ) 5)
  )
 
 
