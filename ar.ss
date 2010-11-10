@@ -1827,6 +1827,17 @@
  (( (some (fn (_) (> (coerce _ 'int) 99)) "abcd") ) 't))
 
 
+;; all
+
+(ac-eval
+ (def all (test seq) 
+   ((complement some) (complement (testify test)) seq)))
+       
+(test-arc
+ (( (all 'x '(a x x)) ) 'nil)
+ (( (all 'x '(x x x)) ) 't))
+
+
 ;;
 
 (when (eq? run-tests* 'atend)
