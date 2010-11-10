@@ -520,29 +520,41 @@
 (test (ar-funcall4 + 3 4 5 6) 18)
 
 
+(define (racket-module a/module)
+  (let ((r/module (deep-fromarc a/module)))
+    (lambda (sym)
+      (dynamic-require r/module sym))))
+
+(define (racket-parameterize parameter value body)
+  (parameterize ((parameter value))
+    (body)))
+
+
 (define ar-namespace*
-  (hash '+            ar-+
-        '-            -
-        '<            arc-<
-        '>            arc->
-        'annotate     ar-tag
-        'apply        arc-apply
-        'car          arc-car
-        'caris        ar-caris
-        'cdr          arc-cdr
-        'coerce       arc-coerce
-        'cons         mcons
-        'err          err
-        'join         arc-join
-        'is           arc-is
-        'len          arc-len
-        'list         arc-list
-        'map1         arc-map1
-        'mem          ar-mem
-        'r/list-toarc r/list-toarc
-        't            't
-        'type         arc-type
-        'uniq         gensym
+  (hash '+                   ar-+
+        '-                   -
+        '<                   arc-<
+        '>                   arc->
+        'annotate            ar-tag
+        'apply               arc-apply
+        'car                 arc-car
+        'caris               ar-caris
+        'cdr                 arc-cdr
+        'coerce              arc-coerce
+        'cons                mcons
+        'err                 err
+        'join                arc-join
+        'is                  arc-is
+        'len                 arc-len
+        'list                arc-list
+        'map1                arc-map1
+        'mem                 ar-mem
+        'r/list-toarc        r/list-toarc
+        'racket-module       racket-module
+        'racket-parameterize racket-parameterize
+        't                   't
+        'type                arc-type
+        'uniq                gensym
         ))
 
 (define (new-ar)
@@ -1280,7 +1292,8 @@
    (hash-set! globals* 'ac-defined-vars* (hash))))
 
 (ac-def ac-defvar (v x)
-  (hash-set! (g ac-defined-vars*) v x))
+  (hash-set! (g ac-defined-vars*) v x)
+  'nil)
 
 (ac-def ac-defined-var (v)
   (hash-ref (g ac-defined-vars*) v (lambda () 'nil)))
@@ -1836,6 +1849,18 @@
 (test-arc
  (( (all 'x '(a x x)) ) 'nil)
  (( (all 'x '(x x x)) ) 't))
+
+
+;; defvar
+
+(ac-eval
+ (mac defvar (name get (o set))
+   `(ac-defvar ',name (list ,get ,set))))
+
+(test-arc
+ (( (defvar x (fn () 3))
+    x )
+  3))
 
 
 ;;
