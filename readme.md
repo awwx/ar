@@ -72,3 +72,6 @@ removing an unnecessary layer of parentheses.
 
 
 * uniq implemented using Racket's gensym
+
+* defvar allows global variables to be hacked to supply your own
+  implementation for getting or setting the variable
