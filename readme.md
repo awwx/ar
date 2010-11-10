@@ -75,3 +75,7 @@ removing an unnecessary layer of parentheses.
 
 * defvar allows global variables to be hacked to supply your own
   implementation for getting or setting the variable
+
+* implicit variables can help make programs more concise when the same
+  variable doesn't need to be threaded through many layers of function
+  calls

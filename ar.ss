@@ -1863,6 +1863,44 @@
   3))
 
 
+;; sym
+
+(ac-eval
+ (def sym (x) (coerce x 'sym)))
+
+(test-arc
+ (( (sym "foo") ) 'foo))
+
+
+;; implicit
+
+(ac-eval
+ (mac implicit (name (o val))
+   (withs (param  (((racket-module 'scheme) 'make-parameter) val)
+           get    (fn () (param))
+           set    (fn (val) (param val))
+           w/name (sym (+ "w/" name)))
+     `(do (defvar ,name ',get ',set)
+          (mac ,w/name (val . body)
+            `(racket-parameterize ',',param ,val (fn () ,@body)))))))
+
+(test-arc
+ (( (implicit foo 3)
+    foo )
+  3))
+
+(test-arc
+ (( (implicit foo 3)
+    (assign foo 4)
+    foo )
+  4))
+
+(test-arc
+ (( (implicit foo 3)
+    (w/foo 4 foo) )
+  4))
+
+
 ;;
 
 (when (eq? run-tests* 'atend)
