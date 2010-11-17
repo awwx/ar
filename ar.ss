@@ -533,6 +533,8 @@
 (define ar-namespace*
   (hash '+                   ar-+
         '-                   -
+        '/                   /
+        '*                   *
         '<                   arc-<
         '>                   arc->
         'annotate            ar-tag
@@ -544,12 +546,18 @@
         'cons                mcons
         'err                 err
         'join                arc-join
+        'inside              get-output-string
+        'instring            open-input-string
         'is                  arc-is
         'len                 arc-len
         'list                arc-list
         'map1                arc-map1
         'mem                 ar-mem
+        'outstring           open-output-string
         'r/list-toarc        r/list-toarc
+        'racket-stdin        current-input-port
+        'racket-stdout       current-output-port
+        'racket-stderr       current-error-port
         'racket-module       racket-module
         'racket-parameterize racket-parameterize
         't                   't
@@ -627,10 +635,13 @@
        arc-tests)
   (void))
 
+(define test* #t)
+
 (define (add-tests tests)
-  (set! arc-tests (append arc-tests tests))
-  (when (eq? run-tests* 'iteratively)
-    (run-tests)))
+  (when test*
+    (set! arc-tests (append arc-tests tests))
+    (when (eq? run-tests* 'iteratively)
+      (run-tests))))
 
 (define (add-test test)
   (add-tests (list test)))
@@ -1265,8 +1276,17 @@
 
 ;; disp
 
+(define (tostringf f)
+  (let ((port (open-output-string)))
+    (parameterize ((current-output-port port))
+      (f))
+    (get-output-string port)))
+
 (ac-def disp (x (port (current-output-port)))
   (printwith port display x))
+
+(ac-def write (x (port (current-output-port)))
+  (printwith port write x))
 
 (test-equal
  (let ((port (open-output-string))
@@ -1276,13 +1296,17 @@
    (get-output-string port))
  "(a b 3)")
 
+; todo these tests assume that new-ac won't print anything
+
 (test-equal
- (let ((port (open-output-string))
-       (globals* (new-ac)))
-   (parameterize ((current-output-port port))
-     (test-eval '( (disp '("a" b 3)) ) globals*)
-     (get-output-string port)))
+ (tostringf (lambda ()
+              (test-eval '( (disp '("a" b 3)) ) (new-ac))))
  "(a b 3)")
+
+(test-equal
+ (tostringf (lambda ()
+              (test-eval '( (write '("a" b 3)) ) (new-ac))))
+ "(\"a\" b 3)")
 
 
 ;; defvar impl
@@ -1332,26 +1356,15 @@
  "x is not assignable")
 
 
-;; stdin, stdout, stderr
-
-(add-ac-build-step
-  (lambda (globals*)
-    ((g ac-defvar) 'stdin  (arc-list (lambda () (current-input-port))))
-    ((g ac-defvar) 'stdout (arc-list (lambda () (current-output-port))))
-    ((g ac-defvar) 'stderr (arc-list (lambda () (current-error-port))))))
-
-(test-arc (( stdin ) (current-input-port)))
-
-
 ;; safeset
 
 (ac-eval
  (assign safeset (annotate 'mac
                    (fn (var val)
                      `(do (if (bound ',var)
-                              (do (disp "*** redefining " stderr)
-                                  (disp ',var stderr)
-                                  (disp #\newline stderr)))
+                              (do (disp "*** redefining " (racket-stderr))
+                                  (disp ',var (racket-stderr))
+                                  (disp #\newline (racket-stderr))))
                           (assign ,var ,val))))))
 
 (test-arc (( (safeset a 123) a ) 123))
@@ -1555,7 +1568,11 @@
   (( ((fn (a (o b 3)) (+ a b)) 5)              ) 8)
   (( ((fn ((o a 3) . rest) (list a rest)))     ) (arc-list 3 'nil))
   (( ((fn ((o a 3) . rest) (list a rest)) 1)   ) (arc-list 1 'nil))
-  (( ((fn ((o a 3) . rest) (list a rest)) 1 2) ) (arc-list 1 (arc-list 2))))
+  (( ((fn ((o a 3) . rest) (list a rest)) 1 2) ) (arc-list 1 (arc-list 2)))
+
+; todo optional args referring to earlier args is not implemented yet
+; (( ((fn (a (o b a)) b) 3)                    ) 3)
+  )
 
 
 ;; pair
@@ -1875,33 +1892,90 @@
 ;; implicit
 
 (ac-eval
- (mac implicit (name (o val))
-   (withs (param  (((racket-module 'scheme) 'make-parameter) val)
-           get    (fn () (param))
+ (mac implicit (name (o param (((racket-module 'scheme) 'make-parameter) nil)))
+   (withs (get    (fn () (param))
            set    (fn (val) (param val))
            w/name (sym (+ "w/" name)))
      `(do (defvar ,name ',get ',set)
           (mac ,w/name (val . body)
             `(racket-parameterize ',',param ,val (fn () ,@body)))))))
 
-(test-arc
- (( (implicit foo 3)
-    foo )
-  3))
+;(test-arc
+; (( (implicit foo 3)
+;    foo )
+;  3))
 
 (test-arc
- (( (implicit foo 3)
+ (( (implicit foo)
     (assign foo 4)
     foo )
   4))
 
 (test-arc
- (( (implicit foo 3)
+ (( (implicit foo)
     (w/foo 4 foo) )
   4))
 
 
-;;
+; std ports
+
+(ac-eval
+ (eval `(do (implicit stdin  ,racket-stdin)
+            (implicit stdout ,racket-stdout)
+            (implicit stderr ,racket-stderr))))
+
+
+;; on-err, details
+
+(ac-def on-err (errf f)
+  (with-handlers ((exn:fail? errf))
+    (f)))
+
+(ac-def details (c)
+  (exn-message c))
+
+(test-arc
+  (( (on-err details (fn () (/ 1 0))) )
+   "/: division by zero"))
+
+
+;; pr
+
+(ac-eval
+ (def pr args
+   (map1 disp args)
+   (car args)))
+
+
+;; tostring
+
+(ac-eval
+ (mac w/outstring (var . body)
+   `(let ,var (outstring) ,@body))
+
+ (mac tostring body
+   (w/uniq gv
+    `(w/outstring ,gv
+       (w/stdout ,gv ,@body)
+       (inside ,gv)))))
+
+(test-arc
+ (( (tostring (pr 1 2 3)) ) "123"))
+
+
+;; unit tests written in Arc
+
+(ac-eval
+ (def equal-wrt-testing (a b)
+   (if (and (isa a 'exception) (isa b 'exception))
+        (is (details a) (details b))
+        (iso a b))))
+
+(test-arc
+  (( (equal-wrt-testing (on-err idfn (fn () (/ 1 0)))
+                        (on-err idfn (fn () (/ 1 0)))) )
+   't))
+
 
 (when (eq? run-tests* 'atend)
   (run-tests))
