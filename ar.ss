@@ -529,6 +529,9 @@
   (parameterize ((parameter value))
     (body)))
 
+(define (arc-writec c (port (current-output-port)))
+  (write-char c port))
+
 
 (define ar-namespace*
   (hash '+                   ar-+
@@ -563,6 +566,7 @@
         't                   't
         'type                arc-type
         'uniq                gensym
+        'writec              arc-writec
         ))
 
 (define (new-ar)
@@ -1296,16 +1300,16 @@
    (get-output-string port))
  "(a b 3)")
 
-; todo these tests assume that new-ac won't print anything
-
 (test-equal
- (tostringf (lambda ()
-              (test-eval '( (disp '("a" b 3)) ) (new-ac))))
+ (let ((globals* (new-ac)))
+   (tostringf (lambda ()
+                (test-eval '( (disp '("a" b 3)) ) globals*))))
  "(a b 3)")
 
 (test-equal
- (tostringf (lambda ()
-              (test-eval '( (write '("a" b 3)) ) (new-ac))))
+ (let ((globals* (new-ac)))
+   (tostringf (lambda ()
+                (test-eval '( (write '("a" b 3)) ) (new-ac)))))
  "(\"a\" b 3)")
 
 
@@ -1946,6 +1950,18 @@
    (map1 disp args)
    (car args)))
 
+;; do1
+
+(ac-eval
+ (mac do1 args
+   (w/uniq g
+     `(let ,g ,(car args)
+        ,@(cdr args)
+        ,g))))
+
+(test-arc
+ (( (do1 3 4) ) 3))
+
 
 ;; tostring
 
@@ -1963,6 +1979,17 @@
  (( (tostring (pr 1 2 3)) ) "123"))
 
 
+;; prn
+
+(ac-eval
+ (def prn args
+   (do1 (apply pr args)
+        (writec #\newline))))
+
+(test-arc
+ (( (tostring (prn "hi")) ) "hi\n"))
+
+
 ;; unit tests written in Arc
 
 (ac-eval
@@ -1976,6 +2003,60 @@
                         (on-err idfn (fn () (/ 1 0)))) )
    't))
 
+(ac-eval
+
+ ; todo not sure about these names
+
+ (assign test-verbose* t)
+ (assign runtests* t)
+
+ (def test-iso3 (desc result expected)
+   (if (iso expected result)
+        (when test-verbose*
+          (do (pr "ok " desc " => ")
+              (write result)
+              (prn)))
+        (do (pr "FAIL " desc " => ")
+            (write result)
+            (pr ", not the expected result ")
+            (write expected)
+            (prn)
+            (err "test failed"))))
+
+ (mac test-iso2 (expr expected)
+   `(test-iso3 ',expr ,expr ,expected))
+
+ (mac test-iso args
+   (when runtests*
+     (if (is (len args) 2)
+          `(test-iso2 ,(args 0) ,(args 1))
+          `(test-iso3 ,(args 0) ,(args 1) ,(args 2)))))
+
+ (mac catcherr body
+   `(on-err idfn (fn () ,@body)))
+
+ (def makeerr (msg)
+   (catcherr (err msg)))
+
+ (mac test (expected expr)
+   `(test-iso (tostring (write ',expr)) (catcherr ,expr) ,expected))
+
+ (mac testf (input f qf expected)
+   (w/uniq (gexpected gresult)
+     `(with (,gexpected  ,expected
+             ,gresult (catcherr (,f ,input)))
+        (test-iso (tostring (write ',input) (pr " ") (write ',qf))
+                  ,gresult ,gexpected)))))
+
+(test-equal
+ (let ((globals* (new-ac)))
+   (tostringf
+    (lambda ()
+      (test-eval '( (catcherr (test 4 5)) ) globals*))))
+ "FAIL 5 => 5, not the expected result 4\n")
+
+
+;;
 
 (when (eq? run-tests* 'atend)
   (run-tests))
