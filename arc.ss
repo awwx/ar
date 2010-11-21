@@ -36,7 +36,8 @@
         ((hash? x)
          (display "#table()" port))
         (else
-         (f x port))))
+         (f x port)))
+  (flush-output port))
 
 (define (print x)
   (printwith (current-output-port) write x))
@@ -533,6 +534,14 @@
   (write-char c port))
 
 
+(define (arc-readc (port (current-input-port)))
+  (let ((c (read-char port)))
+    (if (eof-object? c) 'nil c)))
+
+(define (arc-peekc (port (current-input-port)))
+  (let ((c (peek-char port)))
+    (if (eof-object? c) 'nil c)))
+
 (define ar-namespace*
   (hash '+                   ar-+
         '-                   -
@@ -558,12 +567,14 @@
         'map1                arc-map1
         'mem                 ar-mem
         'outstring           open-output-string
+        'peekc               arc-peekc
         'r/list-toarc        r/list-toarc
         'racket-stdin        current-input-port
         'racket-stdout       current-output-port
         'racket-stderr       current-error-port
         'racket-module       racket-module
         'racket-parameterize racket-parameterize
+        'readc               arc-readc
         't                   't
         'type                arc-type
         'uniq                gensym
@@ -640,7 +651,7 @@
        arc-tests)
   (void))
 
-(define test* #t)
+(define test* #f)
 
 (define (add-tests tests)
   (when test*
@@ -718,8 +729,11 @@
       (let ((result (test-eval source globals*)))
         (if (equal? result expected)
              (begin (display "ok ")
-                    (write source)
-                    (display " => ")
+                    (for-each (lambda (s)
+                                (write s)
+                                (display " "))
+                              source)
+                    (display "=> ")
                     (write result)
                     (newline))
              (begin (display "bzzt!\n")
@@ -758,16 +772,21 @@
     (add-to-hash globals* args)
     globals*))
 
-(define-syntax ac-def
+(define-syntax ac-assign
   (lambda (stx)
     (syntax-case stx ()
-      ((ac-def name args body ...)
+      ((ac-assign name expr)
        (with-syntax ((globals* (datum->syntax #'name 'globals*)))
          #'(add-ac-build-step
             (lambda (globals*)
-              (hash-set! globals* 'name
-                (let ((name (lambda args body ...)))
-                  name)))))))))
+              (hash-set! globals* 'name expr))))))))
+    
+(define-syntax ac-def
+  (syntax-rules ()
+    ((ac-def name args body ...)
+     (ac-assign name
+       (let ((name (lambda args body ...)))
+         name)))))
 
 (define-syntax g
   (lambda (stx)
@@ -3289,6 +3308,72 @@ END
 
 END
 )
+
+;; aif
+
+(arc #<<END
+
+(mac aif (expr . body)
+  `(let it ,expr
+     (if it
+         ,@(if (cddr body)
+               `(,(car body) (aif ,@(cdr body)))
+               body))))
+
+END
+)
+
+(test-step #<<END
+
+(test (aif 3 it) 3)
+(test (aif nil 3 nil 4 5 it) 5)
+
+END
+)
+
+;; readline
+
+(arc #<<END
+
+(def readline ((o s stdin))
+  (aif (readc s)
+    (coerce
+     (accum a
+       (xloop (c it)
+         (if (is c #\return)
+              (if (is (peekc s) #\newline)
+                   (readc s))
+             (is c #\newline)
+              nil
+              (do (a c)
+                  (aif (readc s)
+                        (next it))))))
+     'string)))
+
+END
+)
+
+;; toy repl
+
+(arc #<<END
+
+(def toy-repl ()
+  (disp "arc> ")
+  (aif (readline)
+        (do (on-err (fn (e) (prn "err: " (details e)))
+              (fn ()
+                (map1 (fn (r)
+                        (write r)
+                        (prn))
+                      (read-eval it))))
+            (toy-repl))))
+  
+END
+)
+
+((lambda ()
+   (trace-eval '( (toy-repl) ) (new-ac))
+   (void)))
 
 
 ;;

@@ -1,15 +1,20 @@
-Under development, all it does currently is run tests against what's
-been implemented so far.  You won't get any output unless a test
-fails.
+Under development, most of Arc is still unimplemented.
+
+There's now a toy REPL.  It only reads one line and eval's that,
+instead of reading as many lines as are needed to complete the input.
 
 To run:
 
-    mzscheme ar.ss
+    mzscheme arc.ss
+
+or, if you have rlwrap:
+
+    rlwrap -q "\"" mzscheme arc.ss
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
-(If you're wondering why the tests are slow, it's because the Arc
-compiler and Arc are loaded afresh for each test).
+Tests can be run by setting test* to #t in the source.  This is slow
+because the Arc compiler and Arc are loaded afresh for each test.
 
 
 Changes
@@ -79,8 +84,11 @@ removing an unnecessary layer of parentheses.
 * defvar allows global variables to be hacked to supply your own
   implementation for getting or setting the variable
 
-* implicit variables can help make programs more concise when the same
-  variable doesn't need to be threaded through many layers of function
-  calls
+
+* implicit variables
+
+which can help make programs more concise when the same variable
+doesn't need to be threaded through many layers of function calls.
+
 
 * Arc reader implemented in Arc (though incremental reading isn't supported)
