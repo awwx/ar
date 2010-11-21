@@ -1,6 +1,13 @@
 #lang scheme
 
-; Set run-tests* to 'none, 'atend, or 'iteratively.
+; Set run-tests* to 'none, 'inline, 'atend, or 'iteratively.
+;
+;
+; 'inline runs tests immediately, which helps catch things being used
+; before they're defined.
+;
+; 'atend runs all the tests at the end, which helps catch things that
+; got broken by later code.
 ;
 ; 'iteratively runs all the tests at each step of building the
 ; compiler.  This is especially slow, but good at finding out which
@@ -656,6 +663,8 @@
 (define (add-tests tests)
   (when test*
     (set! arc-tests (append arc-tests tests))
+    (when (eq? run-tests* 'inline)
+      (map (lambda (test) (test)) tests))
     (when (eq? run-tests* 'iteratively)
       (run-tests))))
 
@@ -1510,112 +1519,27 @@
 
  (( (map1 acons '(1 (2) 3 (4))) ) (arc-list 'nil 't 'nil 't)))
 
-; next up is (def pair (xs (o f list))... but wait, we need optional arguments!
-
-
-;; optional arguments
-
-; (fn (a (o b 3)) x)
-;   ->
-; (fn args
-;   ((fn (a b) x)
-;    (car args)
-;    (if (cdr args) (cadr args) 3))
-    
-(test-arc
- (( ((fn args
-       ((fn (a b) (list a b))
-        (car args)
-        (if (cdr args) (car (cdr args)) 3)))
-     1 2) )
-  (arc-list 1 2))
-
- (( ((fn args
-       ((fn (a b) (list a b))
-        (car args)
-        (if (cdr args) (car (cdr args)) 3)))
-     1) )
-  (arc-list 1 3)))
-
-(ac-eval
- (def ac-complex-getargs (a) (map1 car a))
-
- (def ac-complex-opt (var expr ra)
-   (list (list var `(if (acons ,ra) (car ,ra) ,expr)))))
-
-(ac-def ac-complex-args (args ra)
-  (cond ((no? args)
-         'nil)
-        ((true? (arc-isa args 'sym))
-         (arc-list (arc-list args ra)))
-        ((mpair? args)
-         (let* ((a (arc-car args))
-                (r (arc-cdr args))
-                (x (if (and (mpair? a) (eq? (arc-car a) 'o))
-                        ((g ac-complex-opt) (arc-cadr a) (arc-car (arc-cddr a)) ra)
-                        ((g ac-complex-args) a (arc-list 'car ra)))))
-           (arc-join x ((g ac-complex-args) (arc-cdr args) (arc-list 'cdr ra)))))
-        (else
-         (err "Can't understand fn arg list" args))))
-
-(test-arc
- (( (ac-complex-args nil 'ra) ) 'nil)
- (( (ac-complex-args 'a  'ra) ) (toarc '((a ra)))))
-
-(ac-eval
- (def ac-complex-fn (args body)
-   ((fn (ra)
-      ((fn (expansion)
-         `(fn ,ra
-            ((fn ,(ac-complex-getargs expansion) ,@body)
-             ,@(map1 cadr expansion))))
-       (ac-complex-args args 'ra)))
-    'ra)))
-
-(test-arc
-  (( ((eval (ac-complex-fn '(a (o b 3)) '((+ a b)))) 5) ) 8))
-
-(ac-def ac-complex-args? (args)
-  (cond ((no? args) 'nil)
-        ((symbol? args) 'nil)
-        ((and (mpair? args) (symbol? (mcar args)))
-         ((g ac-complex-args?) (mcdr args)))
-        (else 't)))
-
-(test-arc
- (( (ac-complex-args? '(a b c))      ) 'nil)
- (( (ac-complex-args? '(a b . rest)) ) 'nil)
- (( (ac-complex-args? '(a (o b)))    ) 't)
- )
-
-(extend ac-fn (args body env)
-  ((g ac-complex-args?) args)
-  ((g ac) ((g ac-complex-fn) args body) env))
-
-(test-arc
-  (( ((fn (a (o b 3)) (+ a b)) 5)              ) 8)
-  (( ((fn ((o a 3) . rest) (list a rest)))     ) (arc-list 3 'nil))
-  (( ((fn ((o a 3) . rest) (list a rest)) 1)   ) (arc-list 1 'nil))
-  (( ((fn ((o a 3) . rest) (list a rest)) 1 2) ) (arc-list 1 (arc-list 2)))
-
-; todo optional args referring to earlier args is not implemented yet
-; (( ((fn (a (o b a)) b) 3)                    ) 3)
-  )
-
 
 ;; pair
+; don't have optional arguments yet
 
 (ac-eval
- (def pair (xs (o f list))
-   (if (no xs)
-        nil
-       (no (cdr xs))
-        (list (list (car xs)))
-       (cons (f (car xs) (cadr xs))
-             (pair (cddr xs) f)))))
+ ; def pair (xs (o f list))
+ (def pair args
+   ((fn (xs f)
+      (if (no xs)
+           nil
+          (no (cdr xs))
+           (list (list (car xs)))
+           (cons (f (car xs) (cadr xs))
+                 (pair (cddr xs) f))))
+    (car args)
+    (if (cdr args) (cadr args) list))))
+
 
 (test-arc
- (( (pair '(1 2 3 4 5)) ) (toarc '((1 2) (3 4) (5)))))
+ (( (pair '(1 2 3 4 5)) ) (toarc '((1 2) (3 4) (5))))
+ (( (pair '(1 2 3 4 5) cons) ) (toarc '((1 . 2) (3 . 4) (5)))))
 
 
 ;; mac .. or
@@ -1735,8 +1659,7 @@
  (( (or 3)         ) 3)
  (( (or 3 4)       ) 3)
  (( (or nil 4)     ) 4)
- (( (or nil nil 5) ) 5)
- )
+ (( (or nil nil 5) ) 5))
 
 
 ;; alist
@@ -1846,12 +1769,18 @@
 ;; recstring
 
 (ac-eval
- (def recstring (test s (o start 0))
-   ((afn (i)
-      (and (< i (len s))
-           (or (test i)
-               (self (+ i 1)))))
-    start)))
+ (def caddr (x) (car (cddr x)))
+
+ ; def recstring (test s (o start 0))
+ (def recstring args
+   (with (test (car args)
+          s    (cadr args)
+          start (if (cddr args) (caddr args) 0))
+     ((afn (i)
+        (and (< i (len s))
+             (or (test i)
+                 (self (+ i 1)))))
+      start))))
 
 ;; testify
 ; cheating, we don't have [] yet
@@ -1899,8 +1828,12 @@
 ;; defvar
 
 (ac-eval
- (mac defvar (name get (o set))
-   `(ac-defvar ',name (list ,get ,set))))
+ ; mac defvar (name get (o set))
+ (mac defvar args
+   (with (name (car args)
+          get  (cadr args)
+          set  (caddr args))
+   `(ac-defvar ',name (list ,get ,set)))))
 
 (test-arc
  (( (defvar x (fn () 3))
@@ -1920,7 +1853,11 @@
 ;; int
 
 (ac-eval
- (def int (x (o b 10)) (coerce x 'int b)))
+ ; def int (x (o b 10))
+ (def int args
+   (with (x (car args)
+          b (if (cdr args) (cadr args) 10))
+     (coerce x 'int b))))
 
 (test-arc
  (( (int "123") ) 123))
@@ -1929,13 +1866,18 @@
 ;; implicit
 
 (ac-eval
- (mac implicit (name (o param (((racket-module 'scheme) 'make-parameter) nil)))
-   (withs (get    (fn () (param))
-           set    (fn (val) (param val))
-           w/name (sym (+ "w/" name)))
-     `(do (defvar ,name ',get ',set)
-          (mac ,w/name (val . body)
-            `(racket-parameterize ',',param ,val (fn () ,@body)))))))
+ ; mac implicit (name (o param (make-parameter...)))
+ (mac implicit args
+   (with (name (car args)
+          param (if (cdr args)
+                     (cadr args)
+                     (((racket-module 'scheme) 'make-parameter) nil)))
+     (withs (get    (fn () (param))
+             set    (fn (val) (param val))
+             w/name (sym (+ "w/" name)))
+       `(do (defvar ,name ',get ',set)
+            (mac ,w/name (val . body)
+              `(racket-parameterize ',',param ,val (fn () ,@body))))))))
 
 ;(test-arc
 ; (( (implicit foo 3)
@@ -1960,20 +1902,6 @@
  (eval `(do (implicit stdin  ,racket-stdin)
             (implicit stdout ,racket-stdout)
             (implicit stderr ,racket-stderr))))
-
-
-;; erp
-
-(ac-eval
- (mac erp (x)
-   (w/uniq (gx)
-     `(let ,gx ,x
-        (w/stdout stderr
-          (write ',x)
-          (disp ": ")
-          (write ,gx)
-          (disp #\newline))
-        ,gx))))
 
 
 ;; on-err, details
@@ -2111,6 +2039,91 @@
       (lambda ()
         (let ((globals* (new-ac)))
           (test-eval '(form ...) globals*)))))))
+
+
+;; erp
+
+(ac-eval
+ (mac erp (x)
+   (w/uniq (gx)
+     `(let ,gx ,x
+        (w/stdout stderr
+          (write ',x)
+          (disp ": ")
+          (write ,gx)
+          (disp #\newline))
+        ,gx))))
+
+
+;; optional arguments, argument destructuring
+
+; (fn (a (o b 3)) ...)
+;   ->
+; (fn args
+;   (withs (a (car args)
+;           b (if (cdr args) (cadr args)))
+;     ...))    
+
+(ac-eval
+ (def ac-complex-getargs (a) (map1 car a))
+
+ (def ac-complex-opt (var expr ra)
+   (list (list var `(if (acons ,ra) (car ,ra) ,expr)))))
+
+; todo more of this could be written in Arc now
+
+(ac-def ac-complex-args (args ra)
+  (cond ((no? args)
+         'nil)
+        ((true? (arc-isa args 'sym))
+         (arc-list (arc-list args ra)))
+        ((mpair? args)
+         (let* ((a (arc-car args))
+                (r (arc-cdr args))
+                (x (if (and (mpair? a) (eq? (arc-car a) 'o))
+                        ((g ac-complex-opt) (arc-cadr a) (arc-car (arc-cddr a)) ra)
+                        ((g ac-complex-args) a (arc-list 'car ra)))))
+           (arc-join x ((g ac-complex-args) (arc-cdr args) (arc-list 'cdr ra)))))
+        (else
+         (err "Can't understand fn arg list" args))))
+
+(test-arc
+ (( (ac-complex-args nil 'ra) ) 'nil)
+ (( (ac-complex-args 'a  'ra) ) (toarc '((a ra)))))
+
+(ac-eval
+ (def ac-complex-fn (args body)
+   (let ra 'ra
+     `(fn ,ra
+        (withs ,(apply join (ac-complex-args args ra))
+          ,@body)))))
+
+(test-arc
+  (( ((eval (ac-complex-fn '(a (o b 3)) '((+ a b)))) 5) ) 8))
+
+(ac-def ac-complex-args? (args)
+  (cond ((no? args) 'nil)
+        ((symbol? args) 'nil)
+        ((and (mpair? args) (symbol? (mcar args)))
+         ((g ac-complex-args?) (mcdr args)))
+        (else 't)))
+
+(test-arc
+ (( (ac-complex-args? '(a b c))      ) 'nil)
+ (( (ac-complex-args? '(a b . rest)) ) 'nil)
+ (( (ac-complex-args? '(a (o b)))    ) 't))
+
+(extend ac-fn (args body env)
+  ((g ac-complex-args?) args)
+  ((g ac) ((g ac-complex-fn) args body) env))
+
+(test-arc
+  (( ((fn (a (o b 3)) (+ a b)) 5)              ) 8)
+  (( ((fn ((o a 3) . rest) (list a rest)))     ) (arc-list 3 'nil))
+  (( ((fn ((o a 3) . rest) (list a rest)) 1)   ) (arc-list 1 'nil))
+  (( ((fn ((o a 3) . rest) (list a rest)) 1 2) ) (arc-list 1 (arc-list 2)))
+  (( ((fn (a (o b a)) b) 3)                    ) 3)
+  (( ((fn ((a b c)) (+ a (* b c))) (list 1 2 3)) ) 7))
 
 
 ;; point

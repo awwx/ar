@@ -13,9 +13,9 @@ or, if you have rlwrap:
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
-Tests can be run by setting run-tests* to 'atend in the source, though
-it's slow because the Arc compiler and Arc are loaded afresh for each
-test.
+Tests can be run by setting run-tests* to 'inline or 'atend in the
+source, though it's slow because the Arc compiler and Arc are loaded
+afresh for each test.
 
 
 Changes
