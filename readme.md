@@ -8,6 +8,9 @@ To run:
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
+(If you're wondering why the tests are slow, it's because the Arc
+compiler and Arc are loaded afresh for each test).
+
 
 Changes
 -------
@@ -79,3 +82,5 @@ removing an unnecessary layer of parentheses.
 * implicit variables can help make programs more concise when the same
   variable doesn't need to be threaded through many layers of function
   calls
+
+* Arc reader implemented in Arc (though incremental reading isn't supported)
