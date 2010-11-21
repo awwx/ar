@@ -13,8 +13,9 @@ or, if you have rlwrap:
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
-Tests can be run by setting test* to #t in the source.  This is slow
-because the Arc compiler and Arc are loaded afresh for each test.
+Tests can be run by setting run-tests* to 'atend in the source, though
+it's slow because the Arc compiler and Arc are loaded afresh for each
+test.
 
 
 Changes
@@ -92,3 +93,7 @@ doesn't need to be threaded through many layers of function calls.
 
 
 * Arc reader implemented in Arc (though incremental reading isn't supported)
+
+* readline accepts CR-LF line endings
+
+which is useful for some Internet protocols.

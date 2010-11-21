@@ -1,12 +1,12 @@
 #lang scheme
 
-; Set to run-tests* to 'none, 'atend, or 'iteratively.
+; Set run-tests* to 'none, 'atend, or 'iteratively.
 ;
 ; 'iteratively runs all the tests at each step of building the
-; compiler.  This is slow, but good at finding out which step
-; broke an earlier test.
+; compiler.  This is especially slow, but good at finding out which
+; step broke an earlier test.
 
-(define run-tests* 'atend)
+(define run-tests* 'none)
 
 
 (require scheme/mpair)
@@ -651,7 +651,7 @@
        arc-tests)
   (void))
 
-(define test* #f)
+(define test* #t)
 
 (define (add-tests tests)
   (when test*
@@ -3366,17 +3366,19 @@ END
                         (write r)
                         (prn))
                       (read-eval it))))
-            (toy-repl))))
+            (toy-repl))
+        (prn)))
   
 END
 )
 
-((lambda ()
-   (trace-eval '( (toy-repl) ) (new-ac))
-   (void)))
+(define (run-toy-repl)
+  (trace-eval '( (toy-repl) ) (new-ac))
+  (void))
 
 
 ;;
 
-(when (eq? run-tests* 'atend)
-  (run-tests))
+(case run-tests*
+  ((atend)  (run-tests))
+  ((none)   (run-toy-repl)))
