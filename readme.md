@@ -1,4 +1,23 @@
-Under development, most of Arc is still unimplemented.
+My goals for this Arc runtime project are:
+
+* to fix bugs in the runtime
+
+* to make Arc more hackable
+
+* and to do that while (mostly...) avoiding changing the Arc language.
+
+The later two go together because when there's some change we'd like
+to make to Arc, we can make Arc more hackable instead, and then we can
+get the "different" Arc that we want as a library, instead of having
+to actually change Arc.
+
+I haven't completely managed to keep myself from making any changes to
+the language (see removal of parenthesis from the std ports
+below)... but since the runtime is designed to be very hackable, we
+should at least be able to have a version that's more compatible with
+Arc 3.1 for people who want that.
+
+This code is under development, most of Arc is still unimplemented.
 
 There's now a toy REPL.  It only reads one line and eval's that,
 instead of reading as many lines as are needed to complete the input.
@@ -30,7 +49,8 @@ which I hope will fix the [queue bug](http://awwx.ws/queue-test-summary).
 
 * implements quasiquotation with Alan Bawden's algorithm
 
-which I hope will fix list splicing in nested quasiquotes which was giving people trouble writing macro-defining macros.
+which I hope will fix list splicing in nested quasiquotes which was
+giving people trouble writing macro-defining macros.
 
 
 * Function rest arguments are 'nil terminated Arc lists
@@ -70,6 +90,11 @@ Thus (hypothetically):
     #<procedure:+>
 
 
+* Arc reader implemented in Arc, again to help make Arc more hackable
+
+though incremental reading isn't currently supported.
+
+
 * global variables are stored in an Arc table instead of in a Racket namespace
 
 as an experiment to see if the simpler data structure is sufficient.
@@ -85,14 +110,11 @@ removing an unnecessary layer of parentheses.
 * defvar allows global variables to be hacked to supply your own
   implementation for getting or setting the variable
 
-
 * implicit variables
 
 which can help make programs more concise when the same variable
 doesn't need to be threaded through many layers of function calls.
 
-
-* Arc reader implemented in Arc (though incremental reading isn't supported)
 
 * readline accepts CR-LF line endings
 
