@@ -36,6 +36,28 @@ Tests can be run by setting run-tests* to 'inline or 'atend in the
 source, though it's slow because the Arc compiler and Arc are loaded
 afresh for each test.
 
+Todo
+----
+
+* ac-nameit, ac-dbname
+* ((compose ...) ...)
+* ((complement ...) ...)
+* atstrings
+* ac-binaries
+* direct-calls
+* ar-funcallN optimizations
+* ac-macex
+* explicit-flush
+* printing and reading tables
+* incremental parsing
+* full REPL
+* declare
+* primitives
+* optional namespace argument to eval
+* Arc 3.1 calls ac-macex in ac-assignn... why?
+* rename "ac-fn-foo"
+* rename "this"
+
 
 Changes
 -------

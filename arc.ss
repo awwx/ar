@@ -13,7 +13,7 @@
 ; compiler.  This is especially slow, but good at finding out which
 ; step broke an earlier test.
 
-(define run-tests* 'none)
+(define run-tests* 'inline)
 
 
 (require scheme/mpair)
@@ -805,7 +805,17 @@
          #'(hash-ref globals* 'v))))))
 
 
+;; sig
+
+(add-ac-build-step
+ (lambda (globals*)
+   (hash-set! globals* 'sig (hash))))
+
 ;; The Arc compiler!
+
+(add-ac-build-step
+ (lambda (globals*)
+   (hash-set! (g sig) 'ac (arc-list 's 'env))))
 
 (ac-def ac (s env)
   ((g err) "Bad object in expression" s))
@@ -1227,9 +1237,34 @@
 ;; Eval Arc code as a step in building ac ^_^
 
 (define (ac-eval-impl forms)
-  (add-ac-build-step
-   (lambda (globals*)
-     (trace-eval forms globals*))))
+  (for-each (lambda (form)
+              (if (and (pair? form)
+                       (symbol? (car form))
+                       (let ((s (symbol->string (car form))))
+                         (and (>= (string-length s) 4)
+                              (equal? (substring s 0 4) "test"))))
+                   (add-test (lambda ()
+                               (let ((globals* (new-ac)))
+                                 (test-eval (list form) globals*))))
+                   (add-ac-build-step
+                    (lambda (globals*)
+                      (trace-eval (list form) globals*)))))
+            forms))
+
+  ;; (add-ac-build-step
+  ;;  (lambda (globals*)
+  ;;    (trace-eval forms globals*))))
+
+(define (readall)
+  (let ((x (read)))
+    (if (eof-object? x)
+         '()
+         (cons x (readall)))))
+
+(define (ac-eval-file filename)
+  (with-input-from-file filename
+    (lambda ()
+      (ac-eval-impl (readall)))))
 
 (define-syntax ac-eval
   (syntax-rules ()
@@ -1465,8 +1500,6 @@
 ;; def
 
 (ac-eval
- (assign sig (table))
-
  (assign def (annotate 'mac
                 (fn (name parms . body)
                   `(do (sref sig ',parms ',name)
@@ -1968,65 +2001,20 @@
 
 ;; unit tests written in Arc
 
-(ac-eval
- (def equal-wrt-testing (a b)
-   (if (and (isa a 'exception) (isa b 'exception))
-        (is (details a) (details b))
-        (iso a b))))
+(ac-eval-file "equal-wrt-testing.arc")
 
 (test-arc
   (( (equal-wrt-testing (on-err idfn (fn () (/ 1 0)))
                         (on-err idfn (fn () (/ 1 0)))) )
    't))
 
-(ac-eval
-
- ; todo not sure about these names
-
- (assign test-verbose* t)
-
- (def test-iso3 (desc result expected)
-   (if (equal-wrt-testing expected result)
-        (when test-verbose*
-          (do (pr "ok " desc " => ")
-              (write result)
-              (prn)))
-        (do (pr "FAIL " desc " => ")
-            (write result)
-            (pr ", not the expected result ")
-            (write expected)
-            (prn)
-            (err "test failed"))))
-
- (mac test-iso2 (expr expected)
-   `(test-iso3 ',expr ,expr ,expected))
-
- (mac test-iso args
-   (if (is (len args) 2)
-        `(test-iso2 ,(args 0) ,(args 1))
-        `(test-iso3 ,(args 0) ,(args 1) ,(args 2))))
-
- (mac catcherr body
-   `(on-err idfn (fn () ,@body)))
-
- (def makeerr (msg)
-   (catcherr (err msg)))
-
- (mac test (expr expected)
-   `(test-iso (tostring (write ',expr)) (catcherr ,expr) ,expected))
-
- (mac testf (input f qf expected)
-   (w/uniq (gexpected gresult)
-     `(with (,gexpected  ,expected
-             ,gresult (catcherr (,f ,input)))
-        (test-iso (tostring (write ',input) (pr " ") (write ',qf))
-                  ,gresult ,gexpected)))))
+(ac-eval-file "test.arc")
 
 (test-equal
  (let ((globals* (new-ac)))
    (tostringf
     (lambda ()
-      (test-eval '( (catcherr (test 4 5)) ) globals*))))
+      (test-eval '( (catcherr (testis 4 5)) ) globals*))))
  "FAIL 4 => 4, not the expected result 5\n")
 
 
@@ -2136,7 +2124,7 @@
                ,@body))))))
 
 (arc-test
- (test (point foo (foo 5) 6) 5))
+ (testis (point foo (foo 5) 6) 5))
 
 
 ;; catch
@@ -2146,7 +2134,7 @@
    `(point throw ,@body)))
 
 (arc-test
- (test (catch 1 2 (throw 3) 4 5) 3))
+ (testis (catch 1 2 (throw 3) 4 5) 3))
 
 
 ;; <=, >=
@@ -2165,7 +2153,7 @@
             (apply >= (cdr args))))))
 
 (arc-test
- (test (<= 1 2 3) t))
+ (testis (<= 1 2 3) t))
 
 
 ;; whitec .. punc
@@ -2186,8 +2174,8 @@
    (in c #\. #\, #\; #\: #\! #\?)))
 
 (arc-test
- (test (alphadig #\7) t)
- (test (alphadig #\:) nil))
+ (testis (alphadig #\7) t)
+ (testis (alphadig #\:) nil))
 
 
 ;; ret
@@ -2200,7 +2188,7 @@
         ,gval))))
 
 (arc-test
- (test (ret a '(1 2 3)
+ (testis (ret a '(1 2 3)
          (sref a 'X 0)
          4)
        '(X 2 3)))
@@ -2216,7 +2204,7 @@
    `(protect (fn () ,x) (fn () ,@ys))))
 
 (arc-test
- (test (let a 1
+ (testis (let a 1
          (catch (after (throw nil)
                        (assign a 2)))
          a)
@@ -2234,9 +2222,9 @@
       0))))
 
 (arc-test
- (test (headmatch "abc" "abcdef")  t)
- (test (headmatch "abc" "xxabc" 2) t)
- (test (headmatch "abc" "xxabc")   nil))
+ (testis (headmatch "abc" "abcdef")  t)
+ (testis (headmatch "abc" "xxabc" 2) t)
+ (testis (headmatch "abc" "xxabc")   nil))
 
 
 ;; len>
@@ -2245,8 +2233,8 @@
  (def len> (x n) (> (len x) n)))
 
 (arc-test
- (test (len> "abc" 3) nil)
- (test (len> "abc" 2) t))
+ (testis (len> "abc" 3) nil)
+ (testis (len> "abc" 2) t))
 
 
 ;; begins
@@ -2257,10 +2245,10 @@
      (headmatch pat seq start))))
 
 (arc-test
- (test (begins "abcdef" "ab") t)
- (test (begins "abcdef" "cd") nil)
- (test (begins "abcdef" "cd" 2) t)
- (test (begins '(#\a #\b #\c #\d) '(#\b #\c) 1) t))
+ (testis (begins "abcdef" "ab") t)
+ (testis (begins "abcdef" "cd") nil)
+ (testis (begins "abcdef" "cd" 2) t)
+ (testis (begins '(#\a #\b #\c #\d) '(#\b #\c) 1) t))
 
 ;; nthcdr
 
@@ -2271,7 +2259,7 @@
                xs)))
 
 (arc-test
- (test (nthcdr 4 '(a b c d e)) '(e)))
+ (testis (nthcdr 4 '(a b c d e)) '(e)))
 
 
 ;; xloop
@@ -2301,402 +2289,66 @@
         (rev ,gacc)))))
 
 (arc-test
- (test (accum a (a 1) (a 2) (a 3))
+ (testis (accum a (a 1) (a 2) (a 3))
        '(1 2 3)))
+
+;; loop
+
+(ac-eval
+ (mac loop (start test update . body)
+   (w/uniq (gfn gparm)
+     `(do ,start
+          ((rfn ,gfn (,gparm) 
+             (if ,gparm
+                 (do ,@body ,update (,gfn ,test))))
+           ,test)))))
+
+(arc-test
+ (testis (accum a (let x nil (loop (assign x 0) (< x 5) (assign x (+ x 1))
+                             (a x))))
+       '(0 1 2 3 4)))
+
+
+;; for
+
+(ac-eval
+ (mac for (v init max . body)
+   (w/uniq (gi gm)
+     `(with (,v nil ,gi ,init ,gm (+ ,max 1))
+        (loop (assign ,v ,gi) (< ,v ,gm) (assign ,v (+ ,v 1))
+          ,@body)))))
+
+(arc-test
+ (testis (accum a (for x 0 5 (a x))) '(0 1 2 3 4 5)))
+
+
+;; repeat
+
+(ac-eval
+ (mac repeat (n . body)
+   `(for ,(uniq) 1 ,n ,@body)))
+
+(arc-test
+ (testis (accum a (repeat 5 (a 7))) '(7 7 7 7 7)))
+
+
+;; n-of
+; don't have push yet
+
+(ac-eval
+ (mac n-of (n expr)
+   (w/uniq ga
+     `(let ,ga nil     
+        (repeat ,n (assign ,ga (cons ,expr ,ga)))
+        (rev ,ga)))))
+
+(arc-test
+ (testis (n-of 5 7) '(7 7 7 7 7)))
 
 
 ;; match
 
-(ac-eval
- (implicit pos*)
- (implicit fail)
-
- ; failf must be called *outside* the w/fail scope,
- ; thus the code to pass the normal/fail result of calling f
- ; out through the w/fail
-
- (def onmatch-impl (matcher successf failf)
-   (with (return-value nil failed nil)
-     (catch
-       (w/fail (fn ()
-                 (assign failed t)
-                 (throw nil))
-         (assign return-value (matcher))))
-     (if failed
-          (failf)
-          (successf return-value))))
-
- (mac onmatch (var matcher onsuccess onfail)
-  `(onmatch-impl (fn () ,matcher)
-                 (fn (,var) ,onsuccess)
-                 (fn () ,onfail)))
-
- (mac onfail (onfail . body)
-   (w/uniq gv
-     `(onmatch ,gv (do ,@body)
-        ,gv
-        ,onfail)))
-
- (def at-impl (matcher)
-   (let mark pos*
-     (after (matcher)
-            (assign pos* mark))))
-
- (mac at body
-   `(at-impl (fn () ,@body)))
-
- (def try-impl (matcher successf failf)
-   (let mark pos*
-     (onmatch r (matcher)
-       (successf r)
-       (do (assign pos* mark)
-           (failf)))))
-
- (mac try (v matcher successf failf)
-   `(try-impl (fn () ,matcher)
-              (fn (,v) ,successf)
-              (fn () ,failf)))
-
- (def ascons (x)
-   (if (or (no x) (acons x))
-        x
-       ; todo
-       ;(isa x 'input)
-       ; (drain (readc x))
-       (isa x 'string)
-        (coerce x 'cons)
-        (err "don't know how to parse" x)))
-
- (def fmatch (seq body)
-   (onfail nil
-     (w/pos* (ascons seq)
-       (body))))
-
- (mac match (s . body)
-   `(fmatch ,s (fn () ,@body)))
-
- (mac test-matchpos (input matcher expected)
-   `(test (ascons ,expected)
-          (match ,input (do ,matcher) pos*)))
-
- (mac test-match1 (str matcher expected)
-   `(testf ,str (fn (_)
-                  (match _ (onfail '<<parse-fail>> ,matcher)))
-           ,matcher
-           ,expected))
-
- (mac test-match (matcher . body)
-   `(do ,@(map1 (fn (a)
-                  (with (input (car a) expected (cadr a))
-                    `(test-match1 ,input ,matcher ,expected)))
-                (pair body))))
-
- ; todo fail this?
- (def at-end ()
-   (no pos*))
-
- ; todo rename?
- (def fail-at-end ()
-   (if (at-end) (fail)))
-
- (def next ()
-   (fail-at-end)
-   (do1 (car pos*)
-        (assign pos* (cdr pos*))))
-
- (def one (item)
-   (ret v (next)
-     (unless ((testify item) v) (fail)))))
-
-(arc-test
- (test-match (one #\a)
-   "abc" #\a
-   "xyz" '<<parse-fail>>)
-
- (test-match (one (fn (_) (is _ #\a)))
-   "abc" '#\a
-   "#bc" '<<parse-fail>>)
-
- (test-match (one (fn (x) t))
-   "" '<<parse-fail>>)
-
- (match "abcd"
-   (test-iso (at (one (fn (_) (is _ #\a)))) #\a)
-   (test-iso pos* '(#\a #\b #\c #\d)))
-
- ; don't have n-of yet
- #;(test-match (do (next)
-                 (try x (n-of 2 (one letter))
-                   'didnt-expect-success
-                   pos*))
-   "ab123" '(#\b #\1 #\2 #\3)))
-
-(ac-eval
- ; todo: confusing name
- (def onenot (item)
-   (ret v (next)
-     (unless ((complement (testify item)) v) (fail))))
-
- ; don't have [ _ ] yet
- (def oneof items
-   (ret v (next)
-     (unless (some (fn (_) ((testify _) v)) items) (fail)))))
-
-(arc-test
- (test-match (oneof #\a #\b #\c)
-   "a56" #\a
-   "c56" #\c
-   "56"  '<<parse-fail>>))
-
-(ac-eval
- (def falt2 (f1 f2)
-   (let mark pos*
-     (onfail
-      (do (assign pos* mark)
-          (f2))
-      (f1))))
-
- (mac alt2 (p1 p2)
-   `(falt2 (fn () ,p1) (fn () ,p2)))
-
- (mac alt ps
-   (if (no ps)
-        `(fail)
-       (no (cdr ps))
-        (car ps)
-        `(alt2 ,(car ps) (alt ,@(cdr ps))))))
-
-(arc-test
- (test-match (alt) "greetings" '<<parse-fail>>))
-
-(ac-eval
- (mac optional body
-   `(alt (do ,@body) nil))
-
- (def mliteral1 (pat val)
-   (let pat (ascons pat)
-     (if (begins pos* pat)
-          (do (assign pos* (nthcdr (len pat) pos*))
-              val)
-          (fail))))
-
- ; todo don't like the name "mliteral"
- (def mliteral args
-   (if (no args)
-        (fail)
-       (no (cdr args))
-        (mliteral1 (car args) (car args))
-        (alt (mliteral1 (car args) (cadr args))
-             (apply mliteral (cddr args))))))
-
-(arc-test
- (test-match (mliteral "xyz")
-   "greetings" '<<parse-fail>>)
- (test-match (mliteral "greet")
-   "greetings" "greet")
- (test-match (list (mliteral "greet")
-                   (mliteral "ings"))
-   "greetings" '("greet" "ings"))
- (test-match (list (mliteral "greetx") (mliteral "ings"))
-   "greetings" '<<parse-fail>>)
-
- (test-match  (list (mliteral "greet") (mliteral "xings"))
-   "greetings" '<<parse-fail>>)
-
- (test-match (alt (mliteral "greet")) "greeting" "greet")
-
- (test-match (alt (mliteral "greet")
-                  (mliteral "foo"))
-   "greetings" "greet")
-
- (test-match (alt (mliteral "foo")
-                  (mliteral "greet"))
-  "greetings" "greet")
-
- (test-match (alt (mliteral "foo")
-                  (mliteral "bar")
-                  (mliteral "greet"))
-  "greetings" "greet")
-
- (test-match (list (mliteral "greet")
-                   (optional (mliteral "ings")))
-  "greetings" '("greet" "ings"))
-
- (test-match (list (mliteral "greet")
-                   (optional (mliteral "xyz")))
-  "greetings" '("greet" nil)))
-
-(ac-eval
- (def rfmany (matchf acc)
-   (try v (matchf)
-     (rfmany matchf (cons v acc))
-     acc))
-
- (def fmany (matchf)
-   (rev (rfmany matchf nil)))
-
- (mac many body
-   `(fmany (fn () ,@body))))
-
-(arc-test
- (test-match (many (mliteral "x"))
-  "xxxyz" '("x" "x" "x"))
-
- (test-match (list (many (mliteral "x"))
-                   (mliteral "y"))
-   "xxxyz"   '(("x" "x" "x") "y")
-   "yzzz"    '(nil "y")
-   "xxxyzzz" '(("x" "x" "x") "y")))
-
-(ac-eval
- (def manyis (v)
-   (many (one v)))
-
- (def manyisnt (v)
-   (let test (complement (testify v))
-     (many (one test))))
-
- (mac many1 parser
-   `(cons (do ,@parser) (many (do ,@parser)))))
-
-(arc-test
- (test-match (list (many1 (mliteral "x"))
-                   (mliteral "y"))
-   "yzzz" '<<parse-fail>>))
-
-(ac-eval
- ;; todo don't like this name either
- (def many1is (v)
-   (let test (testify v)
-     (many1 (one test))))
-
- (mac must (errmsg . body)
-   `(onfail (err ,errmsg)
-      ,@body)))
-
-(arc-test
- (test-match (must "want cookie!" (mliteral "cookie"))
-   "xyzzy" (makeerr "want cookie!")))
-
-(ac-eval
- (mac parse-intersperse (separator parser must-message)
-   `(optional
-     (cons ,parser
-           (many ,separator
-                 (must ,must-message ,parser))))))
-
-(arc-test
- (test-match (parse-intersperse
-              (one #\,)
-              (one alphadig)
-              "comma must be followed by alphadig")
-   "a,b,c" '(#\a #\b #\c)))
-
-(ac-eval
- (def skipwhite ()
-   (manyis whitec)))
-
-(arc-test
- (test-match (do (skipwhite)
-                 (one #\a))
-   "  abc" #\a))
-
-(ac-eval
- (mac comma-separated (parser (o must-message "a comma must be followed by a value"))
-   `(parse-intersperse
-     (do (skipwhite) (one #\,))
-     ,parser
-     ,must-message)))
-
-(arc-test
- (test-match (comma-separated
-              (one #\a)
-              "comma must be followed by 'a'")
-   "a  ,b  ,c"
-   (makeerr "comma must be followed by 'a'"))
-
- (test-match (comma-separated
-              (one alphadig)
-              "comma must be followed by alphadig")
-   "a  ,b  ,c" '(#\a #\b #\c)))
-
-(ac-eval
- (mac entire body
-   `(do1 (do ,@body)
-         (unless (at-end) (fail)))))
-
-(arc-test
- (test-match (entire (mliteral "abc")) "abc" "abc")
- (test-match (entire (mliteral "ab"))  "abc" '<<parse-fail>>))
-
-(ac-eval
- (def fmatched-input (matcher)
-   (let mark pos*
-     (matcher)
-     (accum a
-       (xloop (p mark)
-         (when (and p (isnt p pos*))
-           (a (car p))
-           (next (cdr p)))))))
-
- (mac matched-input body
-   `(fmatched-input (fn () ,@body))))
-
-(arc-test
- (test-match (matched-input (one #\a) (one #\b) (one #\c))
-   "abcd" '(#\a #\b #\c)))
-
-(ac-eval
- (mac not body
-   (w/uniq v
-     `(try ,v (do ,@body)
-        (fail)
-        t))))
-
-(arc-test
- (test-match (do (mliteral "ab")
-                 (not (one #\!))
-                 (mliteral "c"))
-   "abc" "c")
-
- (test-match (do (mliteral "ab")
-                 (not (one #\!)))
-   "ab"   t
-   "ab!c" '<<parse-fail>>))
-
-(ac-eval
- (def fupto (n parser)
-   (if (< n 1)
-        '()
-       (try v (parser)
-         (cons v (fupto (- n 1) parser))
-         nil)))
-
- (mac upto (n . body)
-   `(fupto ,n (fn () ,@body))))
-
-(arc-test
- (test-match (upto 3 (one #\a))
-   "b"     '()
-   "ab"    '(#\a)
-   "aaab"  '(#\a #\a #\a)
-   "aaaab" '(#\a #\a #\a)))
-
-(ac-eval
- (def ffrom1upto (n parser)
-   (or (upto n (parser))
-       (fail)))
-
- (mac from1upto (n . body)
-   `(ffrom1upto ,n (fn () ,@body))))
-
-(arc-test
- (test-match (from1upto 3 (one #\a))
-   ""      '<<parse-fail>>
-   "b"     '<<parse-fail>>
-   "ab"    '(#\a)
-   "aaab"  '(#\a #\a #\a)
-   "aaaab" '(#\a #\a #\a)))
+(ac-eval-file "match.arc")
 
 
 ;; case
@@ -2715,12 +2367,13 @@
    `(caselet ,(uniq) ,expr ,@args)))
 
 (arc-test
- (test (case 2 1 7 2 8 3 9) 8))
+ (testis (case 2 1 7 2 8 3 9) 8))
 
 
 ;; defrule
+; todo move later
 
-#;(ac-eval
+(ac-eval
  (mac defrule (name test . body)
    (let arglist (sig name)
      (w/uniq (orig args)
@@ -2740,7 +2393,7 @@
                          nil)))
 
 (arc-test
- (test (firstn 3 '(1 2 3 4 5)) '(1 2 3)))
+ (testis (firstn 3 '(1 2 3 4 5)) '(1 2 3)))
 
 
 ;; tuples
@@ -2753,7 +2406,7 @@
              (tuples (nthcdr n xs) n)))))
 
 (arc-test
- (test (tuples '(1 2 3 4 5 6 7) 3) '((1 2 3) (4 5 6) (7))))
+ (testis (tuples '(1 2 3 4 5 6 7) 3) '((1 2 3) (4 5 6) (7))))
 
 
 ;;; Arc reader
@@ -2790,10 +2443,9 @@
 
 ;; char
 
-(ac-eval
- (def hexdigit (c)
-   (or (<= #\a c #\f) (<= #\A c #\F) (<= #\0 c #\9)))
+(ac-eval-file "hexdigit.arc")
 
+(ac-eval
  (def match-digit (base)
    (case base
      2  (oneof #\0 #\1)
@@ -2817,14 +2469,13 @@
    (aschar (int (coerce s 'string) b)))
 
  (def backslash-octal ()
-   (intchar 8 (from1upto 3 (match-digit 8)))))
-
+   (intchar 8 (n-of 3 (match-digit 8)))))
 
 (arc-test
  (test-match (backslash-octal)
-   "09"    #\nul
-   "41abc" #\!
-   "101"   #\A))
+   "0009"   #\nul
+   "041abc" #\!
+   "101"    #\A))
 
 (ac-eval
  (def backslash-hex2 ()
@@ -2887,6 +2538,7 @@
  (test-parses-like-racket (char-constant)
    "#\\null"
    "#\\space(a b c)"
+   "#\\1"
    "#\\167"
    ;; "#\\x41" not implemented in PLT 4.2.1
    "#\\u0041"
@@ -2897,16 +2549,6 @@
    "#\\nulx" (makeerr "invalid character constant")))
 
 (ac-eval
- (mac defalt (name . body)
-   (if (bound name)
-        (w/uniq orig
-          `(let ,orig ,name
-             (assign ,name
-               (fn ()
-                 (alt (do ,@body)
-                      (,orig))))))
-        `(def ,name () ,@body)))
-
  (defalt parse-value-here (char-constant)))
 
 (arc-test
@@ -3268,7 +2910,7 @@
    (match in (parse-value))))
 
 (arc-test
- (test (read1 "123") 123))
+ (testis (read1 "123") 123))
 
 
 ;; readall
@@ -3282,7 +2924,7 @@
                                 (coerce (firstn 30 pos*) 'string)))))))
 
 (arc-test
- (test (readall "1 2 3") '(1 2 3)))
+ (testis (readall "1 2 3") '(1 2 3)))
 
 
 ;; arc
@@ -3292,7 +2934,7 @@
    (map1 eval (readall in))))
 
 (arc-test
- (test (read-eval "1 (+ 2 3) 4") '(1 5 4)))
+ (testis (read-eval "1 (+ 2 3) 4") '(1 5 4)))
 
 (define (arc in)
   (add-ac-build-step
@@ -3317,7 +2959,7 @@ END
 
 (test-step #<<END
 
-(test ([+ 3 _] 4) 7)
+(testis ([+ 3 _] 4) 7)
 
 END
 )
@@ -3338,8 +2980,8 @@ END
 
 (test-step #<<END
 
-(test (aif 3 it) 3)
-(test (aif nil 3 nil 4 5 it) 5)
+(testis (aif 3 it) 3)
+(testis (aif nil 3 nil 4 5 it) 5)
 
 END
 )
@@ -3390,7 +3032,265 @@ END
   (void))
 
 
-;;
+;; string
+
+(arc #<<END
+
+ (def string args
+   (apply + "" (map1 [coerce _ 'string] args)))
+
+END
+)
+
+(test-step #<<END
+
+ (testis (string '(a (b (c d))) 4 5) "abcd45")
+
+END
+)
+
+
+;; ac-ssyntax?
+
+(arc #<<END
+
+ (def ac-ssyntax? (x)
+   (and (isa x 'sym)
+        (no (in x '+ '++ '_))
+        (some [in _ #\: #\~ #\& #\. #\!] (string x))))
+
+END
+)
+
+(test-step #<<END
+
+ (testis (ac-ssyntax? 'abc) nil)
+ (testis (ac-ssyntax? 'a:b) t)
+
+END
+)
+
+;; tokens
+
+(arc #<<END
+
+ (def ac-symbol->chars (x)
+   (coerce (coerce x 'string) 'cons))
+
+END
+)
+
+(test-step #<<END
+
+ (testis (ac-symbol->chars 'abc) '(#\a #\b #\c))
+
+END
+)
+
+(arc #<<END
+
+(def ac-tokens (testff source token acc keepsep?)
+  (if (no source)
+       (rev (if (acons token) 
+                 (cons (rev token) acc)
+                 acc))
+      (testff (car source))
+       (ac-tokens testff
+                  (cdr source)
+                  '()
+                  (let rec (if (no token)
+                                acc
+                                (cons (rev token) acc))
+                    (if keepsep?
+                         (cons (car source) rec)
+                         rec))
+                  keepsep?)
+       (ac-tokens testff
+                  (cdr source)
+                  (cons (car source) token)
+                  acc
+                  keepsep?)))
+
+END
+)
+
+(test-step #<<END
+
+ (testis (ac-tokens [is _ #\:] '(#\a #\: #\b #\c) nil nil nil)
+       '((#\a) (#\b #\c)))
+
+END
+)
+
+(arc #<<END
+
+ (def ac-chars->value (x)
+   (read1 (coerce x 'string)))
+
+END
+)
+
+(test-step #<<END
+
+ (testis (ac-chars->value '(#\1 #\2 #\3)) 123)
+
+END
+)
+
+
+(arc #<<END
+
+ (def expand-compose (sym)
+   (let elts (map1 (fn (tok)
+                     (if (is (car tok) #\~)
+                          (if (no (cdr tok))
+                              'no
+                              `(complement ,(ac-chars->value (cdr tok))))
+                          (ac-chars->value tok)))
+                   (ac-tokens [is _ #\:] (ac-symbol->chars sym) nil nil nil))
+     (if (no (cdr elts))
+          (car elts)
+          (cons 'compose elts))))
+
+END
+)
+
+(set! test* #t)
+
+(test-step #<<END
+
+ (testis (expand-compose 'abc:d:e) '(compose abc d e))
+ (testis (expand-compose '~:a) '(compose no a))
+ (testis (expand-compose '~abc:def) '(compose (complement abc) def))
+
+END
+)
+
+(arc #<<END
+
+ (def ac-expand-ssyntax (sym)
+   (err "Unknown ssyntax" sym))
+
+ (defrule ac (ac-ssyntax? s)
+   (ac (ac-expand-ssyntax s) env))
+
+ (def ac-insym? (char sym)
+   (mem char (ac-symbol->chars sym)))
+
+ (defrule ac-expand-ssyntax (or (ac-insym? #\: sym) (ac-insym? #\~ sym))
+   (expand-compose sym))
+
+END
+)
+
+(test-step #<<END
+ (testis (car:+ '(1 2) '(3 4)) 1)
+ (testis (~acons 3) t)
+END
+)
+
+;; build-sexpr
+
+(arc #<<END
+ (def ac-build-sexpr (toks orig)
+   (if (no toks)
+        'get
+       (no (cdr toks))
+        (ac-chars->value (car toks))
+        (list (ac-build-sexpr (cddr toks) orig)
+              (if (is (cadr toks) #\!)
+                   (list 'quote (ac-chars->value (car toks)))
+                   (if (in (car toks) #\. #\!)
+                        (err "Bad ssyntax" orig)
+                        (ac-chars->value (car toks)))))))
+END
+)
+
+(test-step #<<END
+ (testis (ac-build-sexpr '((#\a #\b)) nil) 'ab)
+ (testis (ac-build-sexpr '((#\a) #\!) nil) '(get 'a))
+ (testis (ac-build-sexpr '((#\a) #\! (#\b)) nil) '(b 'a))
+ (testis (ac-build-sexpr '((#\a) #\. (#\b)) nil) '(b a))
+END
+)
+
+;; ac-expand-sexpr
+
+(arc #<<END
+ (def ac-expand-sexpr (sym)
+   (ac-build-sexpr (rev (ac-tokens [in _ #\. #\!] (ac-symbol->chars sym) nil nil t))
+                sym))
+END
+)
+
+(test-step #<<END
+ (testis (ac-expand-sexpr 'ab!cde) '(ab 'cde))
+END
+)
+
+(arc #<<END
+ (defrule ac-expand-ssyntax (or (ac-insym? #\. sym) (ac-insym? #\! sym))
+   (ac-expand-sexpr sym))
+END
+)
+
+(test-step #<<END
+ (testis acons!a nil)
+ (testis type.cons 'fn)
+END
+)
+
+;; ac-andf
+
+(arc #<<END
+ (def cdar (x) (cdr:car x))
+ (def ac-andf (s env)
+   (ac (let gs (map1 [uniq] (cdr s))
+         `((fn ,gs
+             (and ,@(map1 (fn (f) `(,f ,@gs))
+                          (cdar s))))
+           ,@(cdr s)))
+       env))
+ (def xcar (x) (and (acons x) (car x)))
+ (defrule ac (is (xcar:xcar s) 'andf) (ac-andf s env))
+END
+)
+
+
+(test-step #<<END
+ (testis ((andf acons cdr) '(1 . 2)) 2)
+END
+)
+
+;; ac-expand-and
+
+(arc #<<END
+ (def ac-expand-and (sym)
+   (let elts (map1 ac-chars->value
+                   (ac-tokens [is _ #\&] (ac-symbol->chars sym) nil nil nil))
+     (if (no (cdr elts))
+          (car elts)
+          (cons 'andf elts))))
+END
+)
+
+(test-step #<<END
+ (testis (ac-expand-and 'acons&cdr) '(andf acons cdr))
+END
+)
+
+(arc #<<END
+ (defrule ac (ac-ssyntax? (xcar s))
+   (ac (cons (ac-expand-ssyntax (car s)) (cdr s)) env))
+
+ (defrule ac-expand-ssyntax (ac-insym? #\& sym) (ac-expand-and sym))
+END
+)
+
+(test-step #<<END
+ (testis (acons&cdr '(1 . 2)) 2)
+END
+)
 
 (case run-tests*
   ((atend)  (run-tests))
