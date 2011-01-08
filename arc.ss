@@ -13,7 +13,7 @@
 ; compiler.  This is especially slow, but good at finding out which
 ; step broke an earlier test.
 
-(define run-tests* 'inline)
+(define run-tests* 'none)
 
 
 (require scheme/mpair)
