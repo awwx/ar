@@ -141,3 +141,9 @@ doesn't need to be threaded through many layers of function calls.
 * readline accepts CR-LF line endings
 
 which is useful for some Internet protocols.
+
+* string literals can contain newlines
+
+This was unintentional (I wrote the reader and later noticed that it
+permitted unescaped newlines), but then I couldn't think of a reason
+to forbid it.

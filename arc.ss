@@ -1,5 +1,31 @@
 #lang scheme
 
+(define run-repl         (make-parameter #t))
+(define test-atend       (make-parameter #f))
+(define test-inline      (make-parameter #f))
+(define test-iteratively (make-parameter #f))
+
+(command-line
+ #:program "arc"
+
+ #:once-any
+
+ (("--test-atend")
+    "run tests once after all of Arc is loaded"
+    (test-atend #t)
+    (run-repl #f))
+
+ (("--test-inline")
+    "run tests as Arc is loaded"
+    (test-inline #t)
+    (run-repl #f))
+
+ (("--test-iteratively")
+    "run all tests defined so far at each step of building the compiler"
+    (test-iteratively #t)
+    (run-repl #f))
+ )
+
 ; Set run-tests* to 'none, 'inline, 'atend, or 'iteratively.
 ;
 ;
@@ -663,9 +689,9 @@
 (define (add-tests tests)
   (when test*
     (set! arc-tests (append arc-tests tests))
-    (when (eq? run-tests* 'inline)
+    (when (test-inline)
       (map (lambda (test) (test)) tests))
-    (when (eq? run-tests* 'iteratively)
+    (when (test-iteratively)
       (run-tests))))
 
 (define (add-test test)
@@ -771,7 +797,7 @@
 ; globals (car, +, etc.) and whatever Arc compiler globals that have
 ; been defined so far (ac, ac-literal?, etc.)  Note that a fresh copy
 ; of the compiler is created each time (new-ac) is called, including
-; the compiler building steps have been defined so far.
+; the compiler building steps defined so far.
 
 (define (new-ac . args)
   (let ((globals* (new-ar)))
@@ -1032,11 +1058,8 @@
 
 ;; eval
 
-; todo: an optional second argument specifying the global namespace to
-; eval in.
-
-(ac-def eval (x)
-  (eval (deep-fromarc ((g ac) x 'nil))))
+(ac-def eval (form (namespace 'nil))
+  (eval (deep-fromarc ((hash-ref (ar-or namespace globals*) 'ac) form 'nil))))
 
 (test-arc
  (( (eval 3)        ) 3)
@@ -1050,14 +1073,12 @@
 ; code, when evaled by Arc, will construct an Arc list, the
 ; expansion of the quasiquotation expression.
 
-; Alan Bawden's quasiquotation expansion algorithm from
-; "Quasiquotation in Lisp"
+; This implementation is Alan Bawden's quasiquotation expansion
+; algorithm from "Quasiquotation in Lisp"
 ; http://repository.readscheme.org/ftp/papers/pepm99/bawden.pdf
 
-(ac-def qq-expand-pair (x)
-  (arc-list 'join
-            ((g qq-expand-list) (mcar x))
-            ((g qq-expand) (mcdr x))))
+; You can redefine qq-expand in Arc if you want to implement a
+; different expansion algorithm.
 
 (ac-def qq-expand (x)
   (cond ((true? (ar-caris x 'unquote))
@@ -1070,6 +1091,11 @@
          ((g qq-expand-pair) x))
         (else
          (arc-list 'quote x))))
+
+(ac-def qq-expand-pair (x)
+  (arc-list 'join
+            ((g qq-expand-list) (mcar x))
+            ((g qq-expand) (mcdr x))))
 
 (ac-def qq-expand-list (x)
   (cond ((true? (ar-caris x 'unquote))
@@ -1236,13 +1262,16 @@
 
 ;; Eval Arc code as a step in building ac ^_^
 
+(define (test-form? form)
+  (and (pair? form)
+       (symbol? (car form))
+       (let ((s (symbol->string (car form))))
+         (and (>= (string-length s) 4)
+              (equal? (substring s 0 4) "test")))))
+  
 (define (ac-eval-impl forms)
   (for-each (lambda (form)
-              (if (and (pair? form)
-                       (symbol? (car form))
-                       (let ((s (symbol->string (car form))))
-                         (and (>= (string-length s) 4)
-                              (equal? (substring s 0 4) "test"))))
+              (if (test-form? form)
                    (add-test (lambda ()
                                (let ((globals* (new-ac)))
                                  (test-eval (list form) globals*))))
@@ -1250,10 +1279,6 @@
                     (lambda (globals*)
                       (trace-eval (list form) globals*)))))
             forms))
-
-  ;; (add-ac-build-step
-  ;;  (lambda (globals*)
-  ;;    (trace-eval forms globals*))))
 
 (define (readall)
   (let ((x (read)))
@@ -2936,37 +2961,37 @@
 (arc-test
  (testis (read-eval "1 (+ 2 3) 4") '(1 5 4)))
 
+; Using the current compiler, read the input.
+; Then, for each form, either add an ac-build-step or
+; a test step.
+; Test steps are identified by the magic symbol "JJMJ1vihRL".
+; todo This is closer, but should allow the reader to be
+; extended in the middle.
+
 (define (arc in)
-  (add-ac-build-step
-   (lambda (globals*)
-     ((g read-eval) in))))
+  (let ((forms ((hash-ref (new-ac) 'readall) in)))
+    (for-each (lambda (form)
+                (if (and (mpair? form) (eq? (mcar form) 'JJMJ1vihRL))
+                     (add-test (lambda ()
+                                 (let ((globals* (new-ac)))
+                                   ((g read-eval) (arc-cadr form)))))
+                     (add-ac-build-step
+                      (lambda (globals*)
+                        ((g eval) form)))))
+              (list-fromarc forms))))
 
-(define (test-step in)
-  (add-test (lambda ()
-              (let ((globals* (new-ac)))
-                ((g read-eval) in)))))
-
-
-;; [ _ ]
 
 (arc #<<END
+
+;; [ _ ]
 
 (mac square-bracket body
   `(fn (_) (,@body)))
 
-END
-)
+(JJMJ1vihRL "(testis ([+ 3 _] 4) 7)")
 
-(test-step #<<END
-
-(testis ([+ 3 _] 4) 7)
-
-END
-)
 
 ;; aif
-
-(arc #<<END
 
 (mac aif (expr . body)
   `(let it ,expr
@@ -2975,20 +3000,12 @@ END
                `(,(car body) (aif ,@(cdr body)))
                body))))
 
-END
-)
+(JJMJ1vihRL
+ "(testis (aif 3 it) 3)
+  (testis (aif nil 3 nil 4 5 it) 5)")
 
-(test-step #<<END
-
-(testis (aif 3 it) 3)
-(testis (aif nil 3 nil 4 5 it) 5)
-
-END
-)
 
 ;; readline
-
-(arc #<<END
 
 (def readline ((o s stdin))
   (aif (readc s)
@@ -3005,12 +3022,8 @@ END
                         (next it))))))
      'string)))
 
-END
-)
 
 ;; toy repl
-
-(arc #<<END
 
 (def toy-repl ()
   (disp "arc> ")
@@ -3032,62 +3045,34 @@ END
   (void))
 
 
-;; string
-
 (arc #<<END
 
- (def string args
-   (apply + "" (map1 [coerce _ 'string] args)))
+;; string
 
-END
-)
+(def string args
+  (apply + "" (map1 [coerce _ 'string] args)))
 
-(test-step #<<END
-
- (testis (string '(a (b (c d))) 4 5) "abcd45")
-
-END
-)
+(JJMJ1vihRL "(testis (string '(a (b (c d))) 4 5) \"abcd45\")")
 
 
 ;; ac-ssyntax?
 
-(arc #<<END
+(def ac-ssyntax? (x)
+  (and (isa x 'sym)
+       (no (in x '+ '++ '_))
+       (some [in _ #\: #\~ #\& #\. #\!] (string x))))
 
- (def ac-ssyntax? (x)
-   (and (isa x 'sym)
-        (no (in x '+ '++ '_))
-        (some [in _ #\: #\~ #\& #\. #\!] (string x))))
+(JJMJ1vihRL "(testis (ac-ssyntax? 'abc) nil)
+             (testis (ac-ssyntax? 'a:b) t)")
 
-END
-)
-
-(test-step #<<END
-
- (testis (ac-ssyntax? 'abc) nil)
- (testis (ac-ssyntax? 'a:b) t)
-
-END
-)
 
 ;; tokens
 
-(arc #<<END
+(def ac-symbol->chars (x)
+  (coerce (coerce x 'string) 'cons))
 
- (def ac-symbol->chars (x)
-   (coerce (coerce x 'string) 'cons))
+(JJMJ1vihRL "(testis (ac-symbol->chars 'abc) '(#\\a #\\b #\\c))")
 
-END
-)
-
-(test-step #<<END
-
- (testis (ac-symbol->chars 'abc) '(#\a #\b #\c))
-
-END
-)
-
-(arc #<<END
 
 (def ac-tokens (testff source token acc keepsep?)
   (if (no source)
@@ -3111,187 +3096,138 @@ END
                   acc
                   keepsep?)))
 
-END
-)
-
-(test-step #<<END
-
- (testis (ac-tokens [is _ #\:] '(#\a #\: #\b #\c) nil nil nil)
-       '((#\a) (#\b #\c)))
-
-END
-)
-
-(arc #<<END
-
- (def ac-chars->value (x)
-   (read1 (coerce x 'string)))
-
-END
-)
-
-(test-step #<<END
-
- (testis (ac-chars->value '(#\1 #\2 #\3)) 123)
-
-END
-)
+(JJMJ1vihRL
+ "(testis (ac-tokens [is _ #\\:] '(#\\a #\\: #\\b #\\c) nil nil nil)
+          '((#\\a) (#\\b #\\c)))")
 
 
-(arc #<<END
+(def ac-chars->value (x)
+  (read1 (coerce x 'string)))
 
- (def expand-compose (sym)
-   (let elts (map1 (fn (tok)
-                     (if (is (car tok) #\~)
-                          (if (no (cdr tok))
-                              'no
-                              `(complement ,(ac-chars->value (cdr tok))))
-                          (ac-chars->value tok)))
-                   (ac-tokens [is _ #\:] (ac-symbol->chars sym) nil nil nil))
-     (if (no (cdr elts))
-          (car elts)
-          (cons 'compose elts))))
+(JJMJ1vihRL "(testis (ac-chars->value '(#\\1 #\\2 #\\3)) 123)")
 
-END
-)
 
-(set! test* #t)
+(def expand-compose (sym)
+  (let elts (map1 (fn (tok)
+                    (if (is (car tok) #\~)
+                         (if (no (cdr tok))
+                             'no
+                             `(complement ,(ac-chars->value (cdr tok))))
+                         (ac-chars->value tok)))
+                  (ac-tokens [is _ #\:] (ac-symbol->chars sym) nil nil nil))
+    (if (no (cdr elts))
+         (car elts)
+         (cons 'compose elts))))
 
-(test-step #<<END
+(JJMJ1vihRL
+ "(testis (expand-compose 'abc:d:e) '(compose abc d e))
+  (testis (expand-compose '~:a) '(compose no a))
+  (testis (expand-compose '~abc:def) '(compose (complement abc) def))")
 
- (testis (expand-compose 'abc:d:e) '(compose abc d e))
- (testis (expand-compose '~:a) '(compose no a))
- (testis (expand-compose '~abc:def) '(compose (complement abc) def))
 
-END
-)
+(def ac-expand-ssyntax (sym)
+  (err "Unknown ssyntax" sym))
 
-(arc #<<END
+(defrule ac (ac-ssyntax? s)
+  (ac (ac-expand-ssyntax s) env))
 
- (def ac-expand-ssyntax (sym)
-   (err "Unknown ssyntax" sym))
+(def ac-insym? (char sym)
+  (mem char (ac-symbol->chars sym)))
 
- (defrule ac (ac-ssyntax? s)
-   (ac (ac-expand-ssyntax s) env))
+(defrule ac-expand-ssyntax (or (ac-insym? #\: sym) (ac-insym? #\~ sym))
+  (expand-compose sym))
 
- (def ac-insym? (char sym)
-   (mem char (ac-symbol->chars sym)))
+(JJMJ1vihRL
+ "(testis (car:+ '(1 2) '(3 4)) 1)
+  (testis (~acons 3) t)")
 
- (defrule ac-expand-ssyntax (or (ac-insym? #\: sym) (ac-insym? #\~ sym))
-   (expand-compose sym))
-
-END
-)
-
-(test-step #<<END
- (testis (car:+ '(1 2) '(3 4)) 1)
- (testis (~acons 3) t)
-END
-)
 
 ;; build-sexpr
 
-(arc #<<END
- (def ac-build-sexpr (toks orig)
-   (if (no toks)
-        'get
-       (no (cdr toks))
-        (ac-chars->value (car toks))
-        (list (ac-build-sexpr (cddr toks) orig)
-              (if (is (cadr toks) #\!)
-                   (list 'quote (ac-chars->value (car toks)))
-                   (if (in (car toks) #\. #\!)
-                        (err "Bad ssyntax" orig)
-                        (ac-chars->value (car toks)))))))
-END
-)
+(def ac-build-sexpr (toks orig)
+  (if (no toks)
+       'get
+      (no (cdr toks))
+       (ac-chars->value (car toks))
+       (list (ac-build-sexpr (cddr toks) orig)
+             (if (is (cadr toks) #\!)
+                  (list 'quote (ac-chars->value (car toks)))
+                  (if (in (car toks) #\. #\!)
+                       (err "Bad ssyntax" orig)
+                       (ac-chars->value (car toks)))))))
 
-(test-step #<<END
- (testis (ac-build-sexpr '((#\a #\b)) nil) 'ab)
- (testis (ac-build-sexpr '((#\a) #\!) nil) '(get 'a))
- (testis (ac-build-sexpr '((#\a) #\! (#\b)) nil) '(b 'a))
- (testis (ac-build-sexpr '((#\a) #\. (#\b)) nil) '(b a))
-END
-)
+(JJMJ1vihRL
+ "(testis (ac-build-sexpr '((#\\a #\\b)) nil) 'ab)
+  (testis (ac-build-sexpr '((#\\a) #\\!) nil) '(get 'a))
+  (testis (ac-build-sexpr '((#\\a) #\\! (#\\b)) nil) '(b 'a))
+  (testis (ac-build-sexpr '((#\\a) #\\. (#\\b)) nil) '(b a))")
+
 
 ;; ac-expand-sexpr
 
-(arc #<<END
- (def ac-expand-sexpr (sym)
-   (ac-build-sexpr (rev (ac-tokens [in _ #\. #\!] (ac-symbol->chars sym) nil nil t))
-                sym))
-END
-)
+(def ac-expand-sexpr (sym)
+  (ac-build-sexpr (rev (ac-tokens [in _ #\. #\!] (ac-symbol->chars sym) nil nil t))
+               sym))
 
-(test-step #<<END
- (testis (ac-expand-sexpr 'ab!cde) '(ab 'cde))
-END
-)
+(JJMJ1vihRL
+ "(testis (ac-expand-sexpr 'ab!cde) '(ab 'cde))")
 
-(arc #<<END
- (defrule ac-expand-ssyntax (or (ac-insym? #\. sym) (ac-insym? #\! sym))
-   (ac-expand-sexpr sym))
-END
-)
 
-(test-step #<<END
- (testis acons!a nil)
- (testis type.cons 'fn)
-END
-)
+(defrule ac-expand-ssyntax (or (ac-insym? #\. sym) (ac-insym? #\! sym))
+  (ac-expand-sexpr sym))
+
+(JJMJ1vihRL
+ "(testis acons!a nil)
+  (testis type.cons 'fn)")
+
 
 ;; ac-andf
 
-(arc #<<END
- (def cdar (x) (cdr:car x))
- (def ac-andf (s env)
-   (ac (let gs (map1 [uniq] (cdr s))
-         `((fn ,gs
-             (and ,@(map1 (fn (f) `(,f ,@gs))
-                          (cdar s))))
-           ,@(cdr s)))
-       env))
- (def xcar (x) (and (acons x) (car x)))
- (defrule ac (is (xcar:xcar s) 'andf) (ac-andf s env))
-END
-)
+(def cdar (x) (cdr:car x))
 
+(def ac-andf (s env)
+  (ac (let gs (map1 [uniq] (cdr s))
+        `((fn ,gs
+            (and ,@(map1 (fn (f) `(,f ,@gs))
+                         (cdar s))))
+          ,@(cdr s)))
+      env))
 
-(test-step #<<END
- (testis ((andf acons cdr) '(1 . 2)) 2)
-END
-)
+(def xcar (x) (and (acons x) (car x)))
+
+(defrule ac (is (xcar:xcar s) 'andf) (ac-andf s env))
+
+(JJMJ1vihRL
+ "(testis ((andf acons cdr) '(1 . 2)) 2)")
+
 
 ;; ac-expand-and
 
-(arc #<<END
- (def ac-expand-and (sym)
-   (let elts (map1 ac-chars->value
-                   (ac-tokens [is _ #\&] (ac-symbol->chars sym) nil nil nil))
-     (if (no (cdr elts))
-          (car elts)
-          (cons 'andf elts))))
+(def ac-expand-and (sym)
+  (let elts (map1 ac-chars->value
+                  (ac-tokens [is _ #\&] (ac-symbol->chars sym) nil nil nil))
+    (if (no (cdr elts))
+         (car elts)
+         (cons 'andf elts))))
+
+(JJMJ1vihRL
+ "(testis (ac-expand-and 'acons&cdr) '(andf acons cdr))")
+
+
+(defrule ac (ac-ssyntax? (xcar s))
+  (ac (cons (ac-expand-ssyntax (car s)) (cdr s)) env))
+
+(defrule ac-expand-ssyntax (ac-insym? #\& sym) (ac-expand-and sym))
+
+
+(JJMJ1vihRL
+ "(testis (acons&cdr '(1 . 2)) 2)")
+
 END
 )
 
-(test-step #<<END
- (testis (ac-expand-and 'acons&cdr) '(andf acons cdr))
-END
-)
+(when (test-atend)
+  (run-tests))
 
-(arc #<<END
- (defrule ac (ac-ssyntax? (xcar s))
-   (ac (cons (ac-expand-ssyntax (car s)) (cdr s)) env))
-
- (defrule ac-expand-ssyntax (ac-insym? #\& sym) (ac-expand-and sym))
-END
-)
-
-(test-step #<<END
- (testis (acons&cdr '(1 . 2)) 2)
-END
-)
-
-(case run-tests*
-  ((atend)  (run-tests))
-  ((none)   (run-toy-repl)))
+(when (run-repl)
+  (run-toy-repl))
