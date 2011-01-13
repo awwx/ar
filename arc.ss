@@ -925,9 +925,8 @@
              (arc-list 'x 'y 'z))))
 
 (define (global-ref-err globals* v)
-  (let ((message (string-append "reference to global variable \""
-                                (symbol->string v)
-                                "\" which hasn't been set")))
+  (let ((message (string-append "undefined global variable: "
+                                (symbol->string v))))
     (lambda ()
       ((g err) message))))
 
@@ -954,7 +953,7 @@
 (test-expect-error
  ; todo: should clear trace here
  (trace-eval '( foo ) (new-ac))
- "reference to global variable \"foo\" which hasn't been set")
+ "undefined global variable: foo")
 
 (test-arc
  (( car ) arc-car))
