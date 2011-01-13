@@ -2963,7 +2963,7 @@
 ; Using the current compiler, read the input.
 ; Then, for each form, either add an ac-build-step or
 ; a test step.
-; Test steps are identified by the magic symbol "JJMJ1vihRL".
+; Test steps are identified by the ugly magic symbol "JJMJ1vihRL".
 ; todo This is closer, but should allow the reader to be
 ; extended in the middle.
 
@@ -3218,9 +3218,14 @@ END
 
 (defrule ac-expand-ssyntax (ac-insym? #\& sym) (ac-expand-and sym))
 
-
 (JJMJ1vihRL
  "(testis (acons&cdr '(1 . 2)) 2)")
+
+
+; in Arc3.1, (and:or 3) => ((compose and or) 3) => (and (or 3))
+
+(JJMJ1vihRL
+ "(testis (and:or 3) 3)")
 
 END
 )
