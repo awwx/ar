@@ -40,8 +40,6 @@ Todo
 ----
 
 * ac-nameit, ac-dbname
-* ((compose ...) ...)
-* ((complement ...) ...)
 * atstrings
 * ac-binaries
 * direct-calls

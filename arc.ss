@@ -3106,7 +3106,7 @@ END
 (JJMJ1vihRL "(testis (ac-chars->value '(#\\1 #\\2 #\\3)) 123)")
 
 
-(def expand-compose (sym)
+(def ac-expand-compose (sym)
   (let elts (map1 (fn (tok)
                     (if (is (car tok) #\~)
                          (if (no (cdr tok))
@@ -3119,9 +3119,9 @@ END
          (cons 'compose elts))))
 
 (JJMJ1vihRL
- "(testis (expand-compose 'abc:d:e) '(compose abc d e))
-  (testis (expand-compose '~:a) '(compose no a))
-  (testis (expand-compose '~abc:def) '(compose (complement abc) def))")
+ "(testis (ac-expand-compose 'abc:d:e) '(compose abc d e))
+  (testis (ac-expand-compose '~:a) '(compose no a))
+  (testis (ac-expand-compose '~abc:def) '(compose (complement abc) def))")
 
 
 (def ac-expand-ssyntax (sym)
@@ -3134,7 +3134,7 @@ END
   (mem char (ac-symbol->chars sym)))
 
 (defrule ac-expand-ssyntax (or (ac-insym? #\: sym) (ac-insym? #\~ sym))
-  (expand-compose sym))
+  (ac-expand-compose sym))
 
 (JJMJ1vihRL
  "(testis (car:+ '(1 2) '(3 4)) 1)
@@ -3219,13 +3219,38 @@ END
 (defrule ac-expand-ssyntax (ac-insym? #\& sym) (ac-expand-and sym))
 
 (JJMJ1vihRL
- "(testis (acons&cdr '(1 . 2)) 2)")
+ "(testis (acons&cdr '(1 . 2)) 2)
+  (testis (and&or 3) 3)")
 
 
-; in Arc3.1, (and:or 3) => ((compose and or) 3) => (and (or 3))
+; (and:or 3) => ((compose and or) 3) => (and (or 3))
+
+(def ac-decompose (fns args)
+  (if (no fns)
+       `((fn vals (car vals)) ,@args)
+      (no (cdr fns))
+       (cons (car fns) args)
+       (list (car fns) (ac-decompose (cdr fns) args))))
 
 (JJMJ1vihRL
+ "(testis (ac-decompose '(and or) '(3)) '(and (or 3)))")
+
+(defrule ac (and (acons s) (acons (car s)) (is (caar s) 'compose))
+  (ac (ac-decompose (cdar s) (cdr s)) env))
+  
+(JJMJ1vihRL
  "(testis (and:or 3) 3)")
+
+
+; (~and 3 nil) => ((complement and) 3 nil) => (no (and 3 nil))
+
+(def cadar (x) (car (cdar x)))
+
+(defrule ac (and (acons s) (acons (car s)) (is (caar s) 'complement))
+  (ac (list 'no (cons (cadar s) (cdr s))) env))
+
+(JJMJ1vihRL
+ "(testis (~and 3 nil) t)")
 
 END
 )
