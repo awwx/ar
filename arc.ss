@@ -791,21 +791,12 @@
     (add-to-hash globals* args)
     globals*))
 
-(define-syntax ac-assign
-  (lambda (stx)
-    (syntax-case stx ()
-      ((ac-assign name expr)
-       (with-syntax ((globals* (datum->syntax #'name 'globals*)))
-         #'(add-ac-build-step
-            (lambda (globals*)
-              (hash-set! globals* 'name expr))))))))
-    
-(define-syntax ac-def
-  (syntax-rules ()
-    ((ac-def name args body ...)
-     (ac-assign name
-       (let ((name (lambda args body ...)))
-         name)))))
+
+;; sig
+
+(add-ac-build-step
+ (lambda (globals*)
+   (hash-set! globals* 'sig (hash))))
 
 (define-syntax g
   (lambda (stx)
@@ -814,23 +805,24 @@
        (with-syntax ((globals* (datum->syntax #'v 'globals*)))
          #'(hash-ref globals* 'v))))))
 
+(define-syntax ac-def
+  (lambda (stx)
+    (syntax-case stx ()
+      ((ac-def name args body ...)
+       (with-syntax ((globals* (datum->syntax #'name 'globals*)))
+         #'(add-ac-build-step
+             (lambda (globals*)
+               (hash-set! (hash-ref globals* 'sig) 'name (toarc 'args))
+               (hash-set! globals* 'name (lambda args body ...)))))))))
 
-;; sig
-
-(add-ac-build-step
- (lambda (globals*)
-   (hash-set! globals* 'sig (hash))))
 
 ;; The Arc compiler!
-
-(add-ac-build-step
- (lambda (globals*)
-   (hash-set! (g sig) 'ac (arc-list 's 'env))))
 
 (ac-def ac (s env)
   ((g err) "Bad object in expression" s))
 
 ; ...which is extended to do more below :-)
+
 
 (test-expect-error
  (let ((globals* (new-ac)))

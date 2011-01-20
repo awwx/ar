@@ -34,8 +34,6 @@ and Arc are loaded afresh for each test.
 Todo
 ----
 
-* runtime functions reflected into Arc with ac-def need to add their
-  arguments to sig for defrule to work
 * ac-nameit, ac-dbname
 * atstrings
 * ac-binaries
@@ -96,8 +94,7 @@ applying join to the pieces will result in the original list.
 >>     nil
 >>     arc> (eval +)
 >>     err: Bad object in expression #<procedure:ar-+>
->>     arc> (def ac-literal? (x) (in (type x) 'str 'number 'int 'char 'fn))
->>     *** redefining ac-literal?
+>>     arc> (defrule ac-literal? (isa x 'fn) t)
 >>     #<procedure:g1444>
 >>     arc> (ac-literal? +)
 >>     t
