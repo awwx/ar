@@ -26,22 +26,6 @@
     (run-repl #f))
  )
 
-; Set run-tests* to 'none, 'inline, 'atend, or 'iteratively.
-;
-;
-; 'inline runs tests immediately, which helps catch things being used
-; before they're defined.
-;
-; 'atend runs all the tests at the end, which helps catch things that
-; got broken by later code.
-;
-; 'iteratively runs all the tests at each step of building the
-; compiler.  This is especially slow, but good at finding out which
-; step broke an earlier test.
-
-(define run-tests* 'none)
-
-
 (require scheme/mpair)
 
 (current-namespace (make-base-namespace))
