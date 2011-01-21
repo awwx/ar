@@ -1288,10 +1288,12 @@
         (else
          'nil)))
 
-; todo a better name than ac-fn-foo
+; The implementation of "ac-fn-rest" turned out to be a lot easier to
+; write in Arc.
+
 (add-ac-build-step
  (lambda (globals*)
-   (hash-set! globals* 'ac-fn-foo
+   (hash-set! globals* 'ac-fn-rest-impl
      (trace-eval
       '( (fn (args r/rest rest body env)
            `(lambda ,(join args r/rest)
@@ -1300,11 +1302,12 @@
       globals*))))
 
 (ac-def ac-fn-rest (args body env)
-  ((g ac-fn-foo) ((g ac-args-without-rest) args)
-                 (gensym)
-                 ((g ac-rest-param) args)
-                 body
-                 env))
+  ((g ac-fn-rest-impl)
+     ((g ac-args-without-rest) args)
+     (gensym)
+     ((g ac-rest-param) args)
+     body
+     env))
 
 (test-arc
  (( ((fn args (car args)) 1 2)             ) 1)

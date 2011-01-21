@@ -27,8 +27,8 @@ or, if you have rlwrap:
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
 Tests can be run by using "--test-inline" or "--test-atend" command
-line arguments, though running tests is slow because the Arc compiler
-and Arc are loaded afresh for each test.
+line arguments (though it's slow because the Arc compiler and Arc are
+loaded afresh for each test).
 
 
 Todo
@@ -48,7 +48,6 @@ Todo
 * primitives
 * optional namespace argument to eval
 * Arc 3.1 calls ac-macex in ac-assignn... why?
-* rename "ac-fn-foo"
 
 
 Changes
