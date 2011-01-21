@@ -18,16 +18,24 @@ instead of reading as many lines as are needed to complete the input).
 
 To run:
 
+    racket arc.ss
+
+or
+
     mzscheme arc.ss
 
-or, if you have rlwrap:
+or, (if you have rlwrap):
+
+    rlwrap -q \" racket arc.ss
+
+or
 
     rlwrap -q \" mzscheme arc.ss
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
 Tests can be run by using "--test-inline" or "--test-atend" command
-line arguments (though it's slow because the Arc compiler and Arc are
+line arguments.  (Tests are slow because the Arc compiler and Arc are
 loaded afresh for each test).
 
 
@@ -47,7 +55,7 @@ Todo
 * declare
 * primitives
 * optional namespace argument to eval
-* Arc 3.1 calls ac-macex in ac-assignn... why?
+* Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
 
 
 Changes
@@ -62,7 +70,7 @@ This version of the Arc runtime:
 
 * implements quasiquotation with Alan Bawden's algorithm
 
->> which I hope will fix list splicing in nested quasiquotes which was
+>> which I hope will fix list splicing in nested quasiquotes, which was
 giving people trouble writing macro-defining macros.
 
 
@@ -100,7 +108,7 @@ applying join to the pieces will result in the original list.
 >>     #<procedure:ar-+>
 
 
-* Arc reader implemented in Arc, again to help make Arc more hackable
+* Arc reader implemented in Arc
 
 
 * global variables are stored in an Arc table instead of in a Racket namespace

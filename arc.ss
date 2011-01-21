@@ -3232,6 +3232,97 @@ END
 END
 )
 
+
+(ac-def racket-fn (module name)
+  (dynamic-require (deep-fromarc module) name))
+
+(arc #<<END
+
+(JJMJ1vihRL
+  "(testis ((racket-fn 'mzscheme '+) 2 3) 5)")
+
+(assign newstring (racket-fn 'mzscheme 'make-string))
+(sref sig '(k (o char)) 'newstring)
+
+(JJMJ1vihRL
+  "(testis (newstring 5 #\\A) \"AAAAA\")")
+
+
+;; each
+
+(mac each (var expr . body)
+  (w/uniq (gseq gf gv)
+    `(let ,gseq ,expr
+       (if (alist ,gseq)
+            ((rfn ,gf (,gv)
+               (when (acons ,gv)
+                 (let ,var (car ,gv) ,@body)
+                 (,gf (cdr ,gv))))
+             ,gseq)
+           (isa ,gseq 'table)
+            (maptable (fn ,var ,@body)
+                      ,gseq)
+            (for ,gv 0 (- (len ,gseq) 1)
+              (let ,var (,gseq ,gv) ,@body))))))
+
+;; best, min, max
+
+; no = yet
+(def best (f seq)
+  (if (no seq)
+      nil
+      (let wins (car seq)
+        (each elt (cdr seq)
+          (if (f elt wins) (assign wins elt)))
+        wins)))
+              
+(def max args (best > args))
+(def min args (best < args))
+
+(JJMJ1vihRL
+ "(testis (max) nil)
+  (testis (max 1 3 6 3 7 2) 7)")
+
+
+;; map
+
+(def map (f . seqs)
+  (if (some [isa _ 'string] seqs) 
+       (withs (n   (apply min (map len seqs))
+               new (newstring n))
+         ((afn (i)
+            (if (is i n)
+                new
+                (do (sref new (apply f (map [_ i] seqs)) i)
+                    (self (+ i 1)))))
+          0))
+      (no (cdr seqs)) 
+       (map1 f (car seqs))
+      ((afn (seqs)
+        (if (some no seqs)  
+            nil
+            (cons (apply f (map1 car seqs))
+                  (self (map1 cdr seqs)))))
+       seqs)))
+
+(JJMJ1vihRL
+ "(testis (map [coerce (+ (coerce _ 'int) 1) 'char] \"ABC\") \"BCD\")")
+
+
+;; warn
+
+(def warn (msg . args)
+  (disp (+ "Warning: " msg ". "))
+  (map [do (write _) (disp " ")] args)
+  (disp #\newline))
+
+(JJMJ1vihRL
+ "(testis (tostring (warn \"foo\" 1 2)) \"Warning: foo. 1 2 \\n\")")
+
+
+END
+)
+
 (when (test-atend)
   (run-tests))
 
