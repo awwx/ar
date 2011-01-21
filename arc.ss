@@ -2747,9 +2747,7 @@
  (( (racket-string->number "abc") ) 'nil))
 
 (ac-eval
- ; don't have ~ yet
- ; todo ouch
- (def this ()
+ (def upto-terminator ()
    (coerce (many1is (complement terminator)) 'string))
 
  (def parse-unquoted-sym-or-number ()
@@ -2759,12 +2757,12 @@
 
    (alt (do (at (one #\#)
                 (oneof #\b #\B #\o #\O #\x #\X))
-            (let this (this)
+            (let this (upto-terminator)
               (or (racket-string->number this)
                   (err "invalid number" this))))
 
         (do (not (at (oneof #\# #\\)))
-            (let this (this)
+            (let this (upto-terminator)
               (when (is this ".") (fail))
               (or (racket-string->number this)
                   (coerce this 'sym)))))))

@@ -49,7 +49,6 @@ Todo
 * optional namespace argument to eval
 * Arc 3.1 calls ac-macex in ac-assignn... why?
 * rename "ac-fn-foo"
-* rename "this"
 
 
 Changes
