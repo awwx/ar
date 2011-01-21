@@ -58,6 +58,16 @@ Todo
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
 
 
+Idea: Testing each definition immediately after it's been defined is a
+useful discipline for ensuring that we don't have any forward
+references, which in turn makes hacking and rebasing the code easy.
+But the tests are particularly ugly right now, in part because we
+don't have much of Arc implemented yet at the time we want to test.
+Since we can now create new Arc runtimes with new-ac, perhaps we could
+create a complete version of Arc which could then incrementally test
+the Arc under construction.
+
+ 
 Changes
 -------
 

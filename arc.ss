@@ -310,6 +310,8 @@
         ((tcp-listener? x)  'socket)
         ((exn? x)           'exception)
         ((thread? x)        'thread)
+        ((thread-cell? x)   'thread-cell)
+        ((semaphore? x)     'semaphore)
         (else               (err "Type: unknown type" x))))
 
 (define (ar-tag type rep)
@@ -805,6 +807,10 @@
        (with-syntax ((globals* (datum->syntax #'v 'globals*)))
          #'(hash-ref globals* 'v))))))
 
+(define (ac-def-fn globals* name signature fn)
+  (hash-set! (hash-ref globals* 'sig) name (toarc signature))
+  (hash-set! globals* name fn))
+
 (define-syntax ac-def
   (lambda (stx)
     (syntax-case stx ()
@@ -812,8 +818,7 @@
        (with-syntax ((globals* (datum->syntax #'name 'globals*)))
          #'(add-ac-build-step
              (lambda (globals*)
-               (hash-set! (hash-ref globals* 'sig) 'name (toarc 'args))
-               (hash-set! globals* 'name (lambda args body ...)))))))))
+               (ac-def-fn globals* 'name 'args (lambda args body ...)))))))))
 
 
 ;; The Arc compiler!
@@ -1500,13 +1505,26 @@
   "abMd"))
 
 
+(ac-eval
+ (assign assign-fn
+   (annotate 'mac
+     (fn (name signature func)
+       `(do (sref sig ',signature ',name)
+            (safeset ,name ,func))))))
+
+(test-arc
+ (( (assign-fn foo () (fn () 123))
+    (foo))
+  123))
+
+
 ;; def
 
 (ac-eval
- (assign def (annotate 'mac
-                (fn (name parms . body)
-                  `(do (sref sig ',parms ',name)
-                       (safeset ,name (fn ,parms ,@body)))))))
+ (assign def
+   (annotate 'mac
+     (fn (name parms . body)
+       `(assign-fn ,name ,parms (fn ,parms ,@body))))))
 
 (test-arc
  (( (def a () 123) (a) ) 123))
@@ -3233,16 +3251,20 @@ END
 )
 
 
-(ac-def racket-fn (module name)
-  (dynamic-require (deep-fromarc module) name))
+(ac-def nil->racket-false (x)
+  (if (no? x) #f x))
+
 
 (arc #<<END
 
-(JJMJ1vihRL
-  "(testis ((racket-fn 'mzscheme '+) 2 3) 5)")
+(def racket-fn (name (o module 'mzscheme))
+  ((racket-module module) name))
 
-(assign newstring (racket-fn 'mzscheme 'make-string))
-(sref sig '(k (o char)) 'newstring)
+(JJMJ1vihRL
+  "(testis ((racket-fn '+) 2 3) 5)")
+
+
+(assign-fn newstring (k (o char)) (racket-fn 'make-string))
 
 (JJMJ1vihRL
   "(testis (newstring 5 #\\A) \"AAAAA\")")
@@ -3306,7 +3328,8 @@ END
        seqs)))
 
 (JJMJ1vihRL
- "(testis (map [coerce (+ (coerce _ 'int) 1) 'char] \"ABC\") \"BCD\")")
+ "(testis (map [coerce (+ (coerce _ 'int) 1) 'char] \"ABC\") \"BCD\")
+  (testis (map + '(1 2 3) '(4 5 6)) '(5 7 9))")
 
 
 ;; warn
@@ -3320,8 +3343,68 @@ END
  "(testis (tostring (warn \"foo\" 1 2)) \"Warning: foo. 1 2 \\n\")")
 
 
+;; inline
+
+(mac inline (x)
+  `',(eval x))
+
+
+;; semaphores
+
+(assign-fn make-semaphore ((o init)) (racket-fn 'make-semaphore))
+
+;; Might want to support the optional arguments to call-with-semaphore,
+;; but not using them at the moment.
+
+(def call-with-semaphore (sema func)
+  ((inline (racket-fn 'call-with-semaphore))
+   sema (fn () (func))))
+
+
+;; thread cells
+
+(def make-thread-cell (v (o preserved))
+  ((inline (racket-fn 'make-thread-cell))
+   v
+   (nil->racket-false preserved)))
+
+(JJMJ1vihRL
+ "(testis (type (make-thread-cell 5)) 'thread-cell)")
+
+(assign-fn thread-cell-ref (cell)   (racket-fn 'thread-cell-ref))
+(assign-fn thread-cell-set (cell v) (racket-fn 'thread-cell-set!))
+
+
+;; atomic
+
+; make sure only one thread at a time executes anything
+; inside an atomic-invoke. atomic-invoke is allowed to
+; nest within a thread; the thread-cell keeps track of
+; whether this thread already holds the lock.
+
+(assign ar-the-sema (make-semaphore 1))
+
+(assign ar-sema-cell (make-thread-cell nil))
+
+(def atomic-invoke (f)
+  (if (thread-cell-ref ar-sema-cell)
+       (f)
+       (do (thread-cell-set ar-sema-cell t)
+           (after
+             (call-with-semaphore ar-the-sema f)
+             (thread-cell-set ar-sema-cell nil)))))
+
+;; not sure how to test this adequately
+
+(JJMJ1vihRL
+  "(testis (atomic-invoke (fn () 123)) 123)
+   (testis (atomic-invoke (fn ()
+                            (atomic-invoke (fn () 123))))
+           123)")
+
 END
 )
+
 
 (when (test-atend)
   (run-tests))
