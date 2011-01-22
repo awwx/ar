@@ -89,7 +89,7 @@
 
 (testis (accum a (each c "abc" (a c))) '(#\a #\b #\c))
 
-; test for whilet?
+; todo test for whilet
 
 (testis (last '(1 2 3 4 5 6)) 6)
 
@@ -175,3 +175,15 @@
     (set (cadr x) y)
     (testis x '(1 t 3 4))
     (testis y t))
+
+; todo test for awhen
+
+(testis (aand (+ 3 4) (+ it 5)) 12)
+
+(testis (let x 5 (drain (-- x) 0)) '(4 3 2 1))
+
+; todo test for whiler
+
+; todo test for consif
+
+(testis (flat '(1 (2 (3 4 (5) 6) 7) 8 9)) '(1 2 3 4 5 6 7 8 9))

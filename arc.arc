@@ -576,3 +576,43 @@
 
 (mac whenlet (var expr . body)
   `(iflet ,var ,expr (do ,@body)))
+
+(mac awhen (expr . body)
+  `(let it ,expr (if it (do ,@body))))
+
+(mac aand args
+  (if (no args)
+      't 
+      (no (cdr args))
+       (car args)
+      `(let it ,(car args) (and it (aand ,@(cdr args))))))
+
+; Repeatedly evaluates its body till it returns nil, then returns vals.
+
+(mac drain (expr (o eof nil))
+  (w/uniq (gacc gdone gres)
+    `(with (,gacc nil ,gdone nil)
+       (while (no ,gdone)
+         (let ,gres ,expr
+           (if (is ,gres ,eof)
+               (= ,gdone t)
+               (push ,gres ,gacc))))
+       (rev ,gacc))))
+
+; For the common C idiom while x = snarfdata != stopval.
+; Rename this if use it often.
+
+(mac whiler (var expr endval . body)
+  (w/uniq gf
+    `(withs (,var nil ,gf (testify ,endval))
+       (while (no (,gf (= ,var ,expr)))
+         ,@body))))
+
+(def consif (x y) (if x (cons x y) y))
+
+(def flat x
+  ((afn (x acc)
+     (if (no x)   acc
+         (atom x) (cons x acc)
+                  (self (car x) (self (cdr x) acc))))
+   x nil))
