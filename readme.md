@@ -122,8 +122,8 @@ This version of the Arc runtime:
 
 * replaces (stdin), (stdout), (stderr) with stdin, stdout, stderr
 
-  removing an unnecessary layer of parentheses; though violating goal
-  3.
+  removing an unnecessary layer of parentheses; though violating
+  goal #3.
 
 
 * uniq implemented using Racket's gensym
