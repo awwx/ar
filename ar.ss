@@ -2399,20 +2399,6 @@
  (testis (case 2 1 7 2 8 3 9) 8))
 
 
-;; defrule
-; todo move later
-
-(ac-eval
- (mac defrule (name test . body)
-   (let arglist (sig name)
-     (w/uniq (orig args)
-       `(let ,orig ,name
-          (assign ,name
-            (fn ,args
-              (aif (apply (fn ,arglist ,test) ,args)
-                    (apply (fn ,arglist ,@body) ,args)
-                    (apply ,orig ,args)))))))))
-
 ;; firstn
 
 (ac-eval

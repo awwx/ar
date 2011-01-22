@@ -88,3 +88,90 @@
 (testis (accum a (each (x y) '((1 2) (3 4) (5 6)) (a (+ x y)))) '(3 7 11))
 
 (testis (accum a (each c "abc" (a c))) '(#\a #\b #\c))
+
+; test for whilet?
+
+(testis (last '(1 2 3 4 5 6)) 6)
+
+(testis (rem 3 '(1 2 3 4 5 6)) '(1 2 4 5 6))
+
+(testis (keep 3 '(1 2 3 4 5 6)) '(3))
+
+(testis (trues acons '(1 2 '(3 4) 5 '(6))) '(t t))
+
+(do (= x '(1 2 3))
+    (push 4 x)
+    (testis x '(4 1 2 3)))
+
+(do (= x 'one)
+    (= y 'two)
+    (swap x y)
+    (testis x 'two)
+    (testis y 'one))
+
+(do (= x '(1 2 3 4 5))
+    (swap (car x) (cadr x))
+    (testis x '(2 1 3 4 5)))
+
+(do (= x '(1 2 3 4))
+    (rotate (car x) (cadr x))
+    (testis x '(2 1 3 4)))
+
+(do (= x '(1 2 3 4))
+    (= y 5)
+    (rotate (car x) (cadr x) y)
+    (testis x '(2 5 3 4))
+    (testis y 1))
+
+(do (= x '(1 2 3 4))
+    (testis (pop x) 1)
+    (testis x '(2 3 4)))
+
+(testis (adjoin 1 '(2 3 4)) '(1 2 3 4))
+(testis (adjoin 3 '(2 3 4)) '(2 3 4))
+
+(do (= x '(1 2 3 4))
+    (pushnew 0 x)
+    (testis x '(0 1 2 3 4)))
+
+(do (= x '(1 2 3 4))
+    (pushnew 3 x)
+    (testis x '(1 2 3 4)))
+
+(do (= x '(a (1 2 3 4) b))
+    (pull 3 (cadr x))
+    (testis x '(a (1 2 4) b)))
+
+(do (= x '(1 2 3 4))
+    (togglemem 5 x)
+    (testis x '(5 1 2 3 4)))
+
+(do (= x '(1 2 3 4))
+    (togglemem 3 x)
+    (testis x '(1 2 4)))
+
+(do (= x '(0 1 2 3 4))
+    (++ (x 3))
+    (testis x '(0 1 2 4 4)))
+
+(do (= x 7)
+    (-- x)
+    (testis x 6))
+
+(do (= x 7) 
+    (zap + x 1)
+    (testis x 8))
+
+(testis (tostring (prt 1 2 nil 3)) "123")
+
+(do (= x '(1 2 3 4))
+    (= y 5)
+    (wipe (cadr x) y)
+    (testis x '(1 nil 3 4))
+    (testis y nil))
+
+(do (= x '(1 nil 3 4))
+    (= y nil)
+    (set (cadr x) y)
+    (testis x '(1 t 3 4))
+    (testis y t))

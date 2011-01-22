@@ -86,6 +86,16 @@
 (def ac-expand-ssyntax (sym)
   (err "Unknown ssyntax" sym))
 
+(mac defrule (name test . body)
+  (let arglist (sig name)
+    (w/uniq (orig args)
+      `(let ,orig ,name
+         (assign ,name
+           (fn ,args
+             (aif (apply (fn ,arglist ,test) ,args)
+                   (apply (fn ,arglist ,@body) ,args)
+                   (apply ,orig ,args))))))))
+
 (defrule ac (ssyntax s)
   (ac (ac-expand-ssyntax s) env))
 
@@ -415,3 +425,154 @@
             (= (s2 i) (seq (+ start i))))
           s2)
         (firstn (- end start) (nthcdr start seq)))))
+
+(mac whilet (var test . body)
+  (w/uniq (gf gp)
+    `((rfn ,gf (,gp)
+        (let ,var ,gp
+          (when ,var ,@body (,gf ,test))))
+      ,test)))
+
+(def last (xs)
+  (if (cdr xs)
+      (last (cdr xs))
+      (car xs)))
+
+(def rem (test seq)
+  (let f (testify test)
+    (if (alist seq)
+        ((afn (s)
+           (if (no s)       nil
+               (f (car s))  (self (cdr s))
+                            (cons (car s) (self (cdr s)))))
+          seq)
+        (coerce (rem test (coerce seq 'cons)) 'string))))
+
+; Seems like keep doesn't need to testify-- would be better to
+; be able to use tables as fns.  But rem does need to, because
+; often want to rem a table from a list.  So maybe the right answer
+; is to make keep the more primitive, not rem.
+
+(def keep (test seq) 
+  (rem (complement (testify test)) seq))
+
+;(def trues (f seq) 
+;  (rem nil (map f seq)))
+
+(def trues (f xs)
+  (and xs
+      (let fx (f (car xs))
+        (if fx
+            (cons fx (trues f (cdr xs)))
+            (trues f (cdr xs))))))
+
+(mac push (x place)
+  (w/uniq gx
+    (let (binds val setter) (setforms place)
+      `(let ,gx ,x
+         (atwiths ,binds
+           (,setter (cons ,gx ,val)))))))
+
+(mac swap (place1 place2)
+  (w/uniq (g1 g2)
+    (with ((binds1 val1 setter1) (setforms place1)
+           (binds2 val2 setter2) (setforms place2))
+      `(atwiths ,(+ binds1 (list g1 val1) binds2 (list g2 val2))
+         (,setter1 ,g2)
+         (,setter2 ,g1)))))
+
+(mac rotate places
+  (with (vars (map [uniq] places)
+         forms (map setforms places))
+    `(atwiths ,(mappend (fn (g (binds val setter))
+                          (+ binds (list g val)))
+                        vars
+                        forms)
+       ,@(map (fn (g (binds val setter))
+                (list setter g))
+              (+ (cdr vars) (list (car vars)))
+              forms))))
+
+(mac pop (place)
+  (w/uniq g
+    (let (binds val setter) (setforms place)
+      `(atwiths ,(+ binds (list g val))
+         (do1 (car ,g) 
+              (,setter (cdr ,g)))))))
+
+; todo fix need to rename "test" as "testff"
+
+(def adjoin (x xs (o testff iso))
+  (if (some [testff x _] xs)
+      xs
+      (cons x xs)))
+
+(mac pushnew (x place . args)
+  (w/uniq gx
+    (let (binds val setter) (setforms place)
+      `(atwiths ,(+ (list gx x) binds)
+         (,setter (adjoin ,gx ,val ,@args))))))
+
+(mac pull (test place)
+  (w/uniq g
+    (let (binds val setter) (setforms place)
+      `(atwiths ,(+ (list g test) binds)
+         (,setter (rem ,g ,val))))))
+
+(mac togglemem (x place . args)
+  (w/uniq gx
+    (let (binds val setter) (setforms place)
+      `(atwiths ,(+ (list gx x) binds)
+         (,setter (if (mem ,gx ,val)
+                      (rem ,gx ,val)
+                      (adjoin ,gx ,val ,@args)))))))
+
+(mac ++ (place (o i 1))
+  (if (isa place 'sym)
+      `(= ,place (+ ,place ,i))
+      (w/uniq gi
+        (let (binds val setter) (setforms place)
+          `(atwiths ,(+ binds (list gi i))
+             (,setter (+ ,val ,gi)))))))
+
+(mac -- (place (o i 1))
+  (if (isa place 'sym)
+      `(= ,place (- ,place ,i))
+      (w/uniq gi
+        (let (binds val setter) (setforms place)
+          `(atwiths ,(+ binds (list gi i))
+             (,setter (- ,val ,gi)))))))
+
+; E.g. (++ x) equiv to (zap + x 1)
+
+(mac zap (op place . args)
+  (with (gop    (uniq)
+         gargs  (map [uniq] args)
+         mix    (afn seqs 
+                  (if (some no seqs)
+                      nil
+                      (+ (map car seqs)
+                         (apply self (map cdr seqs))))))
+    (let (binds val setter) (setforms place)
+      `(atwiths ,(+ binds (list gop op) (mix gargs args))
+         (,setter (,gop ,val ,@gargs))))))
+
+(def prt args
+  (map1 [if _ (disp _)] args)
+  (car args))
+
+(mac wipe args
+  `(do ,@(map (fn (a) `(= ,a nil)) args)))
+
+(mac set args
+  `(do ,@(map (fn (a) `(= ,a t)) args)))
+
+; Destructuring means ambiguity: are pat vars bound in else? (no)
+
+(mac iflet (var expr then . rest)
+  (w/uniq gv
+    `(let ,gv ,expr
+       (if ,gv (let ,var ,gv ,then) ,@rest))))
+
+(mac whenlet (var expr . body)
+  `(iflet ,var ,expr (do ,@body)))

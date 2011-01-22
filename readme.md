@@ -50,7 +50,9 @@ Todo
 * primitives
 * optional namespace argument to eval
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
-
+* either need not to have a macro called "test", or not have macro
+  names take priority over lexical variables, to avoid renames such as
+  "testff" for test.
 
 Idea: Testing each definition immediately after it's been defined is a
 useful discipline for ensuring that we don't have any forward
