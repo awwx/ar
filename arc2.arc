@@ -1,3 +1,40 @@
+(mac square-bracket body
+  `(fn (_) (,@body)))
+
+(mac aif (expr . body)
+  `(let it ,expr
+     (if it
+         ,@(if (cddr body)
+               `(,(car body) (aif ,@(cdr body)))
+               body))))
+
+(def readline ((o s stdin))
+  (aif (readc s)
+    (coerce
+     (accum a
+       (xloop (c it)
+         (if (is c #\return)
+              (if (is (peekc s) #\newline)
+                   (readc s))
+             (is c #\newline)
+              nil
+              (do (a c)
+                  (aif (readc s)
+                        (next it))))))
+     'string)))
+
+(def toy-repl ()
+  (disp "arc> ")
+  (aif (readline)
+        (do (on-err (fn (e) (prn "err: " (details e)))
+              (fn ()
+                (map1 (fn (r)
+                        (write r)
+                        (prn))
+                      (read-eval it))))
+            (toy-repl))
+        (prn)))
+
 (def string args
   (apply + "" (map1 [coerce _ 'string] args)))
 

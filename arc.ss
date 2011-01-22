@@ -4,6 +4,7 @@
 (define test-atend       (make-parameter #f))
 (define test-inline      (make-parameter #f))
 (define test-iteratively (make-parameter #f))
+(define args #f)
 
 (command-line
  #:program "arc"
@@ -28,6 +29,8 @@
  (("--no-repl")
   "don't start the REPL"
   (run-repl #f))
+
+ #:args remaining (set! args remaining)
  )
 
 (require scheme/mpair)
@@ -2951,97 +2954,12 @@
  (testis (readall "1 2 3") '(1 2 3)))
 
 
-;; arc
-
 (ac-eval
  (def read-eval (in)
    (map1 eval (readall in))))
 
 (arc-test
  (testis (read-eval "1 (+ 2 3) 4") '(1 5 4)))
-
-; Using the current compiler, read the input.
-; Then, for each form, either add an ac-build-step or
-; a test step.
-; Test steps are identified by the ugly magic symbol "JJMJ1vihRL".
-; todo This is closer, but should allow the reader to be
-; extended in the middle.
-
-(define (arc in)
-  (let ((forms ((hash-ref (new-ac) 'readall) in)))
-    (for-each (lambda (form)
-                (if (and (mpair? form) (eq? (mcar form) 'JJMJ1vihRL))
-                     (add-test (lambda ()
-                                 (let ((globals* (new-ac)))
-                                   ((g read-eval) (arc-cadr form)))))
-                     (add-ac-build-step
-                      (lambda (globals*)
-                        ((g eval) form)))))
-              (list-fromarc forms))))
-
-
-(arc #<<END
-
-;; [ _ ]
-
-(mac square-bracket body
-  `(fn (_) (,@body)))
-
-(JJMJ1vihRL "(testis ([+ 3 _] 4) 7)")
-
-
-;; aif
-
-(mac aif (expr . body)
-  `(let it ,expr
-     (if it
-         ,@(if (cddr body)
-               `(,(car body) (aif ,@(cdr body)))
-               body))))
-
-(JJMJ1vihRL
- "(testis (aif 3 it) 3)
-  (testis (aif nil 3 nil 4 5 it) 5)")
-
-
-;; readline
-
-(def readline ((o s stdin))
-  (aif (readc s)
-    (coerce
-     (accum a
-       (xloop (c it)
-         (if (is c #\return)
-              (if (is (peekc s) #\newline)
-                   (readc s))
-             (is c #\newline)
-              nil
-              (do (a c)
-                  (aif (readc s)
-                        (next it))))))
-     'string)))
-
-
-;; toy repl
-
-(def toy-repl ()
-  (disp "arc> ")
-  (aif (readline)
-        (do (on-err (fn (e) (prn "err: " (details e)))
-              (fn ()
-                (map1 (fn (r)
-                        (write r)
-                        (prn))
-                      (read-eval it))))
-            (toy-repl))
-        (prn)))
-  
-END
-)
-
-(define (run-toy-repl)
-  (trace-eval '( (toy-repl) ) (new-ac))
-  (void))
 
 
 (ac-def nil->racket-false (x)
@@ -3066,32 +2984,15 @@ END
 (ac-def aload (filename)
   ((g read-eval) (toarc (filechars-list filename))))
 
-(arc #<<END
-(aload "arc2.arc")
-END
-)
-
-(define (arc-readfile filename)
-  (let ((in (toarc (filechars-list filename))))
-    (let ((globals* (new-ac)))
-      ((g readall) in))))
-
-; Runs each test independently in its own copy of the Arc runtime,
-; but too slow right now.
-;(for-each (lambda (forms)
-;             (add-test (lambda ()
-;                         (let ((globals* (new-ac)))
-;                           ((g map1) (g eval) forms)))))
-;          (list-fromarc (arc-readfile "arc2t.arc")))
-
-(add-test (lambda ()
-            (let ((globals* (new-ac)))
-              (for-each (lambda (forms)
-                          ((g map1) (g eval) forms))
-                        (list-fromarc (arc-readfile "arc2t.arc"))))))
+(ac-eval (aload "arc2.arc"))
 
 (when (test-atend)
   (run-tests))
 
-(when (run-repl)
-  (run-toy-repl))
+(let ((globals* (new-ac)))
+  (for-each (lambda (arg)
+              ((g eval) (arc-list 'aload arg)))
+            args)
+  (when (run-repl)
+    ((g eval) (arc-list 'toy-repl)))
+  (void))
