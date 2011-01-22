@@ -24,6 +24,10 @@
     "run all tests defined so far at each step of building the compiler"
     (test-iteratively #t)
     (run-repl #f))
+
+ (("--no-repl")
+  "don't start the REPL"
+  (run-repl #f))
  )
 
 (require scheme/mpair)
@@ -1481,7 +1485,8 @@
         ((mpair? com)
          (set-mcar! (mlist-tail com ind) val))
         (else
-         (err "Can't set reference" com ind val))))
+         (err "Can't set reference" com ind val)))
+  val)
 
 (test-arc
  (( (assign a '(x y z))
@@ -3049,15 +3054,15 @@ END
 (JJMJ1vihRL "(testis (string '(a (b (c d))) 4 5) \"abcd45\")")
 
 
-;; ac-ssyntax?
+;; ssyntax
 
-(def ac-ssyntax? (x)
+(def ssyntax (x)
   (and (isa x 'sym)
        (no (in x '+ '++ '_))
        (some [in _ #\: #\~ #\& #\. #\!] (string x))))
 
-(JJMJ1vihRL "(testis (ac-ssyntax? 'abc) nil)
-             (testis (ac-ssyntax? 'a:b) t)")
+(JJMJ1vihRL "(testis (ssyntax 'abc) nil)
+             (testis (ssyntax 'a:b) t)")
 
 
 ;; tokens
@@ -3122,7 +3127,7 @@ END
 (def ac-expand-ssyntax (sym)
   (err "Unknown ssyntax" sym))
 
-(defrule ac (ac-ssyntax? s)
+(defrule ac (ssyntax s)
   (ac (ac-expand-ssyntax s) env))
 
 (def ac-insym? (char sym)
@@ -3208,7 +3213,7 @@ END
  "(testis (ac-expand-and 'acons&cdr) '(andf acons cdr))")
 
 
-(defrule ac (ac-ssyntax? (xcar s))
+(defrule ac (ssyntax (xcar s))
   (ac (cons (ac-expand-ssyntax (car s)) (cdr s)) env))
 
 (defrule ac-expand-ssyntax (ac-insym? #\& sym) (ac-expand-and sym))
@@ -3401,6 +3406,57 @@ END
    (testis (atomic-invoke (fn ()
                             (atomic-invoke (fn () 123))))
            123)")
+
+
+(def macex (e (o once))
+  (if (acons e)
+       (let m (ac-macro? (car e))
+         (if m
+              (let expansion (apply m (cdr e))
+                (if (no once) (macex expansion) expansion))
+              e))
+       e))
+                
+(def scar (x val)
+  (sref x val 0))
+
+END
+)
+
+(ac-def scdr (x val)
+  (set-mcdr! x val)
+  val)
+
+
+(define (readchars-list)
+  (let ((c (read-char)))
+    (if (eof-object? c)
+         '()
+         (cons c (readchars-list)))))
+
+(define (filechars-list filename)
+  (with-input-from-file filename
+    (lambda ()
+      (readchars-list))))
+
+(ac-def aload (filename)
+  ((g read-eval) (toarc (filechars-list filename))))
+
+(arc #<<END
+(aload "arc2.arc")
+END
+)
+
+(arc #<<END
+
+(JJMJ1vihRL
+  "(= x '(1 2 3))
+   (= (car x) 'one)
+   (testis x '(one 2 3))
+   (= (cadr x) 'two)
+   (testis x '(one two 3))
+   (= (cdr x) 'blam)
+   (testis x '(one . blam))")
 
 END
 )
