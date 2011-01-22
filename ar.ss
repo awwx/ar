@@ -2984,7 +2984,7 @@
 (ac-def aload (filename)
   ((g read-eval) (toarc (filechars-list filename))))
 
-(ac-eval (aload "arc2.arc"))
+(ac-eval (aload "arc.arc"))
 
 (when (test-atend)
   (run-tests))

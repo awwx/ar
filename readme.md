@@ -18,19 +18,13 @@ instead of reading as many lines as are needed to complete the input).
 
 To run:
 
-    racket arc.ss
+    racket ar.ss
 
-or
+or, if you have rlwrap:
 
-    mzscheme arc.ss
+    rlwrap -q \" racket ar.ss
 
-or, (if you have rlwrap):
-
-    rlwrap -q \" racket arc.ss
-
-or
-
-    rlwrap -q \" mzscheme arc.ss
+You can also use "mzscheme" instead of "racket".
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
