@@ -187,3 +187,44 @@
 ; todo test for consif
 
 (testis (flat '(1 (2 (3 4 (5) 6) 7) 8 9)) '(1 2 3 4 5 6 7 8 9))
+
+; todo test for check
+
+(testis (pos 'c '(a b c d)) 2)
+(testis (pos #\c "abcd") 2)
+
+(testis (even 0) t)
+(testis (even 1) nil)
+(testis (odd 1) t)
+
+(testis (tostring (system "echo hello")) "hello\n")
+
+(do (system "echo abc >/tmp/foo")
+    (w/infile s "/tmp/foo"
+      (testis (readc s) #\a)
+      (testis (readc s) #\b)))
+
+(do (w/outfile s "/tmp/foo" (disp "hi" s))
+    (testis (tostring (system "cat /tmp/foo")) "hi"))
+
+(testis (let s (outstring) (disp "foo" s) (inside s)) "foo")
+(testis (w/outstring s (disp "foo" s) (inside s)) "foo")
+
+(do (w/outfile s "/tmp/foo" (disp "hello" s))
+    (w/appendfile s "/tmp/foo" (disp " there" s))
+    (testis (tostring (system "cat /tmp/foo")) "hello there"))
+
+(do (w/outfile s "/tmp/foo"
+      (w/stdout s
+        (disp "xyzzy")))
+    (testis (tostring (system "cat /tmp/foo")) "xyzzy"))
+
+(testis (fromstring "abc" (readc)) #\a)
+
+(testis (w/instring s "abc" (allchars s)) "abc")
+
+(do (w/outfile s "/tmp/foo" (disp "1 2 3" s))
+    (testis (readfile "/tmp/foo") '(1 2 3)))
+
+(do (w/outfile s "/tmp/foo" (disp "123 456" s))
+    (testis (readfile1 "/tmp/foo") 123))

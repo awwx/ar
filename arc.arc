@@ -169,7 +169,7 @@
 (defrule ac (is (xcar:xcar s) 'complement)
   (ac (list 'no (cons (cadar s) (cdr s))) env))
 
-(def racket-fn (name (o module 'mzscheme))
+(def racket-fn (name (o module 'scheme))
   ((racket-module module) name))
 
 (mac each (var expr . body)
@@ -616,3 +616,93 @@
          (atom x) (cons x acc)
                   (self (car x) (self (cdr x) acc))))
    x nil))
+
+(mac check (x test (o alt))
+  (w/uniq gx
+    `(let ,gx ,x
+       (if (,test ,gx) ,gx ,alt))))
+
+(def pos (test seq (o start 0))
+  (let f (testify test)
+    (if (alist seq)
+        ((afn (seq n)
+           (if (no seq)   
+                nil
+               (f (car seq)) 
+                n
+               (self (cdr seq) (+ n 1))))
+         (nthcdr start seq) 
+         start)
+        (recstring [if (f (seq _)) _] seq start))))
+
+(assign-fn mod (x) (racket-fn 'modulo))
+
+(def even (n) (is (mod n 2) 0))
+
+(def odd (n) (no (even n)))
+
+(def system (cmd)
+  ((inline (racket-fn 'system 'scheme/system)) cmd)
+  nil)
+
+(def close ports
+  (map (fn (port)
+         (case (type port)
+           input  ((inline (racket-fn 'close-input-port)) port)
+           output ((inline (racket-fn 'close-output-port)) port)
+           socket ((inline (racket-fn 'tcp-close)) port)
+                  (err "Can't close " port)))
+       ports)
+  ;; todo try-custodian
+  nil)
+
+(defrule ac (is (xcar s) 'racket-code)
+  ((inline (racket-fn 'read))
+   ((inline (racket-fn 'open-input-string)) (cadr s))))
+
+(assign-fn infile (name) (racket-fn 'open-input-file))
+
+(def outfile (filename (o append))
+   (let flag (if append 'append 'truncate)
+     (racket-code "(open-output-file filename #:mode 'text #:exists flag)")))
+
+(let expander 
+     (fn (f var name body)
+       `(let ,var (,f ,name)
+          (after (do ,@body) (close ,var))))
+
+  (mac w/infile (var name . body)
+    (expander 'infile var name body))
+
+  (mac w/outfile (var name . body)
+    (expander 'outfile var name body))
+
+  (mac w/instring (var str . body)
+    (expander 'instring var str body))
+
+  (mac w/socket (var port . body)
+    (expander 'open-socket var port body))
+  )
+
+(mac w/appendfile (var name . body)
+  `(let ,var (outfile ,name 'append)
+     (after (do ,@body) (close ,var))))
+
+(mac fromstring (str . body)
+  (w/uniq gv
+   `(w/instring ,gv ,str
+      (w/stdin ,gv ,@body))))
+
+(def allchars (str)
+  (tostring (whiler c (readc str nil) no
+              (writec c))))
+
+;; todo no incremental reading yet...
+; (def read ((o x (stdin))) ...)
+
+(def readfile (name)
+  (w/infile s name (readall (coerce (allchars s) 'cons))))
+
+(def readfile1 (name)
+  ;; bogus :)
+  (car (readfile name)))

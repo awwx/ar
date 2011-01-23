@@ -139,20 +139,8 @@
          (string-copy x))
         (else x)))
 
-(define-struct tunnel (x))
-
 (define (deep-fromarc x)
-  (cond ((tunnel? x)
-         (tunnel-x x))
-
-        ;; While I usually dislike being pedantic, this turned out to
-        ;; be helpful in tracking down bugs.
-        ;; Can have a more relaxed version for the runtime once the
-        ;; compiler is working.
-        ((or (pair? x) (null? x))
-         (error "oops, a Racket list snuck in here!"))
-
-        ;; nil in the car position isn't a list terminator, and so can
+  (cond ;; nil in the car position isn't a list terminator, and so can
         ;; be left alone.
         ((mpair? x)
          (cons (let ((a (mcar x)))
@@ -560,9 +548,9 @@
   (write-char c port))
 
 
-(define (arc-readc (port (current-input-port)))
+(define (arc-readc (port (current-input-port)) (eof 'nil))
   (let ((c (read-char port)))
-    (if (eof-object? c) 'nil c)))
+    (if (eof-object? c) eof c)))
 
 (define (arc-peekc (port (current-input-port)))
   (let ((c (peek-char port)))
