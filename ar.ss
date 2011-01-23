@@ -970,9 +970,13 @@
 
 ;; quote
 
-(extend ac (s env)
-  ((g caris) s 'quote)
-  ((g list) 'quote (make-tunnel (arc-cadr s))))
+; The goal here is to get the quoted value tunneled through Racket's
+; compiler unscathed.  This trick uses rocketnia's method: Racket
+; doesn't copy function values.
+
+(extend ac (s env) ((g caris) s 'quote)
+  (let ((v (arc-cadr s)))
+    ((g list) ((g list) 'quote (lambda () v)))))
 
 (test-arc
  (( 'abc     ) 'abc)

@@ -85,6 +85,34 @@ This version of the Arc runtime:
          (cdr ((fn args args) 1)) => nil
 
 
+* quote passes its value unchanged through the compiler, instead of
+  copying it
+
+  This isn't noticeable when just using quote to quote literal values
+  in the usual way like '(a b c); because the original value isn't
+  accessible to the program we can't tell if it was copied or not.
+
+  However the behavior of quote is visible when using macros, since
+  they can insert arbitrary values inside the quote expression.
+
+  Choosing not to copy the quoted value means we can define inline
+  like this:
+
+         (mac inline (x)
+           `',(eval x))
+
+  and we'll get the same value out of inline that we put in:
+
+         arc> (= x '(a b c))
+         (a b c)
+         arc> (is x (inline x))
+         t
+
+  I'm not sure if I understand all the ramifications of this change;
+  but that we can define inline so simply is at least suggestive that
+  this may be the right axiomatic approach.
+
+
 * join can accept a non-list as its last argument
 
          (join '(1 2) 3) => (1 2 . 3)
@@ -130,8 +158,10 @@ This version of the Arc runtime:
 
 * uniq implemented using Racket's gensym
 
+
 * defvar allows global variables to be hacked to supply your own
   implementation for getting or setting the variable
+
 
 * implicit variables
 
@@ -142,3 +172,17 @@ This version of the Arc runtime:
 * readline accepts CR-LF line endings
 
   which is useful for Internet protocols such as HTTP.
+
+
+Acknowledgments
+---------------
+
+This project is derived from Paul Graham and Robert Morris's [Arc 3.1
+release](http://arclanguage.org/item?id=10254); indeed, I've
+incorporated as much of the original code with the least changes as I
+could manage.
+
+This work was inspired by rntz's [Arc compiler written in
+Arc](https://github.com/nex3/arc/tree/arcc).
+
+Rocketnia contributed the patch to make quote not copy its value.
