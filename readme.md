@@ -178,11 +178,17 @@ Acknowledgments
 ---------------
 
 This project is derived from Paul Graham and Robert Morris's [Arc 3.1
-release](http://arclanguage.org/item?id=10254); indeed, I've
-incorporated as much of the original code with the least changes as I
-could manage.
+release](http://arclanguage.org/item?id=10254); indeed, a goal is to
+incorporate as much of the original code with the fewest changes as
+possible.
 
-This work was inspired by rntz's [Arc compiler written in
-Arc](https://github.com/nex3/arc/tree/arcc).
+Kartik Agaram discovered the queue bug (and provided a runnable
+example!), which was the original motivation for implementing Arc
+lists using Racket mpair's.
 
-Rocketnia contributed the patch to make quote not copy its value.
+Reflecting the Arc compiler into Arc was inspired by rntz's [Arc
+compiler written in Arc](https://github.com/nex3/arc/tree/arcc).
+
+Rocketnia explained why my definition of inline was broken by quote
+copying its value, and contributed the patch to make quote not do
+that.
