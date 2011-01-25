@@ -249,3 +249,17 @@
 (testis (tostring (w/rand (fn (n) 1)
                     (rand-choice (pr "a") (pr "b") (pr "c"))))
         "b")
+
+(testis (aracket-false (racket-code "(> 1 2)")) t)
+(testis (aracket-false (racket-code "(< 1 2)")) nil)
+
+(fromstring "λ"
+  (testis (readb) 206)
+  (testis (readb) 187)
+  (testis (readb) nil))
+
+(testis (dlet infile (fn (name)
+                       ;; a not very random /dev/urandom :-)
+                       (instring "\u0000\u0001\u0002"))
+          (rand-string 3))
+        "012")

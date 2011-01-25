@@ -660,7 +660,8 @@
   ((inline (racket-fn 'read))
    ((inline (racket-fn 'open-input-string)) (cadr s))))
 
-(assign-fn infile (name) (racket-fn 'open-input-file))
+(dynamic infile (racket-fn 'open-input-file))
+(= (sig 'infile) '(name))
 
 (def outfile (filename (o append))
    (let flag (if append 'append 'truncate)
@@ -732,3 +733,31 @@
      ,@(let key -1 
          (mappend [list (++ key) _]
                   exprs))))
+
+(= racket-false (racket-code "#f"))
+
+(def aracket-false (x)
+  (is x racket-false))
+
+(def aracket-true (x)
+  (no (aracket-false x)))
+
+(def aracket-eof (x)
+  (aracket-true (racket-code "(eof-object? x)")))
+
+(def readb ((o str stdin))
+  (let c ((inline (racket-fn 'read-byte)) str)
+    (if (aracket-eof c) nil c)))
+
+; rejects bytes >= 248 lest digits be overrepresented
+
+(def rand-string (n)
+  (let c "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    (with (nc 62 s (newstring n) i 0)
+      (w/infile str "/dev/urandom"
+        (while (< i n)
+          (let x (readb str)
+             (unless (> x 247)
+               (= (s i) (c (mod x nc)))
+               (++ i)))))
+      s)))

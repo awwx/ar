@@ -1918,7 +1918,7 @@
  (( (int "123") ) 123))
 
 
-;; implicit
+;; parameters
 
 (ac-def parameter (init)
   (make-parameter init))
@@ -1927,13 +1927,82 @@
  (( (type (parameter 3)) ) 'parameter))
 
 (ac-eval
- (mac make-implicit (name param)
+ (mac parameterize (param val . body)
+   `(racket-parameterize ,param ,val (fn () ,@body))))
+
+(test-arc
+ (( (assign foo (parameter 33))
+    (parameterize foo 77 (foo)))
+  77))
+
+
+;; dynamic
+
+(ac-eval
+ (assign dynamic-parameter* (table))
+
+ (mac make-dynamic (name param)
+   (w/uniq paramval
+     `(let ,paramval ,param
+        (sref dynamic-parameter* ,paramval ',name)
+        (defvar ,name (fn () (,paramval)) (fn (val) (,paramval val)))))))
+
+(test-arc
+ (( (make-dynamic foo (parameter 36))
+    foo)
+  36))
+
+(ac-eval
+  (mac paramfor (name)
+    `(dynamic-parameter* ',name)))
+
+(test-arc
+ (( (make-dynamic foo (parameter 36))
+    (type (paramfor foo)))
+  'parameter))
+
+(ac-eval
+ (mac dlet (name val . body)
+   `(racket-parameterize (paramfor ,name) ,val (fn () ,@body))))
+
+(test-arc
+ (( (make-dynamic foo (parameter 36))
+    (dlet foo 77 foo))
+  77))
+
+(ac-eval
+ ; no optional args yet
+ ; (mac dynamic (name (o init)) ...)
+ (mac dynamic args
+   (with (name (car args)
+          init (cadr args))
+     `(make-dynamic ,name (parameter ,init)))))
+
+(test-arc
+ (( (dynamic foo 33)
+    (dlet foo 77 foo))
+  77))
+
+
+;; implicit
+
+(ac-eval
+ (mac make-w/ (name)
    (let w/name (sym (+ "w/" name))
-     (w/uniq paramval
-       `(let ,paramval ,param
-          (defvar ,name (fn () (,paramval)) (fn (val) (,paramval val)))
-          (mac ,w/name (val . body)
-            `(racket-parameterize ',,paramval ,val (fn () ,@body))))))))
+     `(mac ,w/name (val . body)
+        `(dlet ,',name ,val ,@body)))))
+
+(test-arc
+ (( (dynamic foo 33)
+    (make-w/ foo)
+    (w/foo 77 foo))
+  77))
+
+
+(ac-eval
+ (mac make-implicit (name param)
+   `(do (make-dynamic ,name ,param)
+        (make-w/ ,name))))
 
 (test-arc
  (( (make-implicit foo (parameter 3))
