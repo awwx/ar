@@ -228,3 +228,24 @@
 
 (do (w/outfile s "/tmp/foo" (disp "123 456" s))
     (testis (readfile1 "/tmp/foo") 123))
+
+(do (system "echo '1 2 (3 4)' >/tmp/foo")
+    (testis (w/infile s "/tmp/foo" (readall s)) '(1 2 (3 4))))
+
+(testis (readall "1 2 (3 4)") '(1 2 (3 4)))
+
+(do (system "echo xyzzy >/tmp/foo")
+    (testis (filechars "/tmp/foo") "xyzzy\n"))
+
+(do (system "echo abc >/tmp/foo")
+    (mvfile "/tmp/foo" "/tmp/bar")
+    (testis (filechars "/tmp/bar") "abc\n"))
+
+(do (writefile '(a b "cd" 5 6) "/tmp/foo")
+    (testis (filechars "/tmp/foo") "(a b \"cd\" 5 6)"))
+
+(testis (rand 1) 0)
+
+(testis (tostring (w/rand (fn (n) 1)
+                    (rand-choice (pr "a") (pr "b") (pr "c"))))
+        "b")

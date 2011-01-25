@@ -294,6 +294,7 @@
   (cond ((tagged? x)        (vector-ref x 1))
         ((mpair? x)         'cons)
         ((symbol? x)        'sym)
+        ((parameter? x)     'parameter)
         ((procedure? x)     'fn)
         ((char? x)          'char)
         ((string? x)        'string)
@@ -1919,24 +1920,41 @@
 
 ;; implicit
 
+(ac-def parameter (init)
+  (make-parameter init))
+
+(test-arc
+ (( (type (parameter 3)) ) 'parameter))
+
 (ac-eval
- ; mac implicit (name (o param (make-parameter...)))
+ (mac make-implicit (name param)
+   (let w/name (sym (+ "w/" name))
+     (w/uniq paramval
+       `(let ,paramval ,param
+          (defvar ,name (fn () (,paramval)) (fn (val) (,paramval val)))
+          (mac ,w/name (val . body)
+            `(racket-parameterize ',,paramval ,val (fn () ,@body))))))))
+
+(test-arc
+ (( (make-implicit foo (parameter 3))
+    foo)
+  3)
+ (( (make-implicit foo (parameter 3))
+    (w/foo 4 foo))
+  4))
+
+(ac-eval
+ ; (mac implicit (name (o init)) ...)
+ ; no optional arguments yet
  (mac implicit args
    (with (name (car args)
-          param (if (cdr args)
-                     (cadr args)
-                     (((racket-module 'scheme) 'make-parameter) nil)))
-     (withs (get    (fn () (param))
-             set    (fn (val) (param val))
-             w/name (sym (+ "w/" name)))
-       `(do (defvar ,name ',get ',set)
-            (mac ,w/name (val . body)
-              `(racket-parameterize ',',param ,val (fn () ,@body))))))))
+          init (cadr args))
+     `(make-implicit ,name (parameter ,init)))))
 
-;(test-arc
-; (( (implicit foo 3)
-;    foo )
-;  3))
+(test-arc
+ (( (implicit foo 3)
+    foo )
+  3))
 
 (test-arc
  (( (implicit foo)
@@ -1953,9 +1971,9 @@
 ; std ports
 
 (ac-eval
- (eval `(do (implicit stdin  ,racket-stdin)
-            (implicit stdout ,racket-stdout)
-            (implicit stderr ,racket-stderr))))
+ (make-implicit stdin  racket-stdin)
+ (make-implicit stdout racket-stdout)
+ (make-implicit stderr racket-stderr))
 
 
 ;; on-err, details
@@ -2921,7 +2939,7 @@
 ;; readall
 
 (ac-eval
- (def readall (in)
+ (def primitive-readall (in)
    (match in
      (do1 (many (parse-value))
           (skip-comments-and-whitespace)
@@ -2929,12 +2947,12 @@
                                 (coerce (firstn 30 pos*) 'string)))))))
 
 (arc-test
- (testis (readall "1 2 3") '(1 2 3)))
+ (testis (primitive-readall "1 2 3") '(1 2 3)))
 
 
 (ac-eval
  (def read-eval (in)
-   (map1 eval (readall in))))
+   (map1 eval (primitive-readall in))))
 
 (arc-test
  (testis (read-eval "1 (+ 2 3) 4") '(1 5 4)))

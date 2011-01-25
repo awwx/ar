@@ -701,8 +701,34 @@
 ; (def read ((o x (stdin))) ...)
 
 (def readfile (name)
-  (w/infile s name (readall (coerce (allchars s) 'cons))))
+  (w/infile s name (primitive-readall (coerce (allchars s) 'cons))))
 
 (def readfile1 (name)
   ;; bogus :)
   (car (readfile name)))
+
+; todo eof
+(def readall (src)
+  (primitive-readall (coerce (if (isa src 'string) src (allchars src)) 'cons)))
+
+(def filechars (name)
+  (w/infile s name (allchars s)))
+
+(def mvfile (old new)
+  (racket-code "(rename-file-or-directory old new #t)")
+  nil)
+
+(def writefile (val file)
+  (let tmpfile (+ file ".tmp")
+    (w/outfile o tmpfile (write val o))
+    (mvfile tmpfile file))
+  val)
+
+(implicit rand (racket-fn 'random))
+(= (sig 'rand) '((o n)))
+
+(mac rand-choice exprs
+  `(case (rand ,(len exprs))
+     ,@(let key -1 
+         (mappend [list (++ key) _]
+                  exprs))))
