@@ -1,4 +1,4 @@
-My goals for this Arc runtime project are:
+The goals for this Arc runtime project are:
 
 * to fix bugs in the runtime
 
@@ -28,9 +28,70 @@ You can also use "mzscheme" instead of "racket".
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
-Tests can be run by using "--test-inline" or "--test-atend" command
+Runtime tests can be run by using "--test-inline" or "--test-atend" command
 line arguments.  (Tests are slow because the Arc compiler and Arc are
 loaded afresh for each test).
+Ways to Help
+------------
+
+### Write tests for Arc
+
+Writing tests is often easy.  A test is just an example that throws
+an error if an expression doesn't return the expected result or do the
+expected thing. Here's a test for `sort`:
+
+    (unless (iso (sort < '(5 3 7)) '(3 5 7)) (err "nope"))
+
+If you find it convenient, you can use the unit testing library at
+[test.arc](https://github.com/awwx/ar/blob/master/test.arc), with that
+the above example can be written as:
+
+    (testis (sort < '(5 3 7)) '(3 5 7))
+
+or you can use your own unit testing library... write tests in
+whatever way is most convenient for you.
+
+You don't need to run this new runtime at all, just write tests for
+Arc 3.1.  You also don't have to figure out exactly what the result of
+an expression will be; instead, type the expression into the Arc 3.1
+REPL, and copy the answer.
+
+Tests for Arc will be valuable for far more than just this runtime.
+They can be used for all the other runtimes that people work on
+(implementations of Arc on top of Java, Javascript, etc. etc.)  And
+they serve as illustrative examples.  People wondering what `sort`
+does and how to use it can look at your example and see.
+
+Which tests should you write? First naturally you should look at the
+existing [test files](https://github.com/awwx/ar) to make sure that
+the test you're thinking of hasn't already been written.  After that,
+test the things that your own Arc programs use.  Does your Arc program
+call `sort`, or `begins`, or `img`?  Add a couple of debugging lines
+to find out with what arguments your programs call the function and
+what it returns, and make a test for that.
+
+
+### Pick a to-do item
+
+There's a list of to-do's below, you can pick one and do it :-).  You
+can fork the github project and push changes to me that way, or just
+send me an email with your patches.
+
+
+### Address code quality issues
+
+My primary focus so far has been getting things to work, with less
+attention on readable code.  A fresh pair of eyes can see duplicate
+code, awkward names, less confusing ways of doing things.
+
+### Find bugs
+
+Running the runtime right now is pretty slow because none of the Arc
+optimizations have been written yet (they're on the to-do list...)
+However, if you can stand it and find a bug, bug reports are *greatly*
+appreciated :D.
+
+
 
 
 Todo
@@ -71,13 +132,13 @@ This version of the Arc runtime:
 
 * Implements Arc lists using Racket's mutable pairs (mpair's)
 
-  which I hope will fix the [queue bug](http://awwx.ws/queue-test-summary).
+  as a fix for the [queue bug](http://awwx.ws/queue-test-summary).
 
 
 * implements quasiquotation with Alan Bawden's algorithm
 
-  which I hope will fix list splicing in nested quasiquotes, which was
-  giving people trouble writing macro-defining macros.
+  as a fix for list splicing in nested quasiquotes, which was giving
+  people trouble writing macro-defining macros.
 
 
 * Function rest arguments are 'nil terminated Arc lists
@@ -185,6 +246,12 @@ possible.
 Kartik Agaram discovered the queue bug (and provided a runnable
 example!), which was the original motivation for implementing Arc
 lists using Racket mpair's.
+
+Waterhouse [investigated the queue
+bug](http://arclanguage.org/item?id=13518), determining that it is a
+garbage collection issue; this in turn gives us confidence that
+implementing Arc lists with Racket mpair's is in fact one way to
+fix the bug.
 
 Reflecting the Arc compiler into Arc was inspired by rntz's [Arc
 compiler written in Arc](https://github.com/nex3/arc/tree/arcc).
