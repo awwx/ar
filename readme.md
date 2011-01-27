@@ -1,4 +1,4 @@
-The goals for this Arc runtime project are:
+The goals of this Arc runtime project are:
 
 * to fix bugs in the runtime
 
@@ -31,6 +31,13 @@ Note that you don't use the "-f" option like you would with Arc 3.1.
 Runtime tests can be run by using "--test-inline" or "--test-atend" command
 line arguments.  (Tests are slow because the Arc compiler and Arc are
 loaded afresh for each test).
+
+Running all tests (both the runtime tests and the Arc tests) can be
+done with:
+
+    racket ar.ss --test-inline ar.t arc.t
+
+
 Ways to Help
 ------------
 
@@ -67,8 +74,13 @@ existing [test files](https://github.com/awwx/ar) to make sure that
 the test you're thinking of hasn't already been written.  After that,
 test the things that your own Arc programs use.  Does your Arc program
 call `sort`, or `begins`, or `img`?  Add a couple of debugging lines
-to find out with what arguments your programs call the function and
+to find out with what arguments your program calls the function and
 what it returns, and make a test for that.
+
+Tests are enormously helpful.  I don't *know* how your program uses
+Arc, I'm just guessing.  With a test I can immediately see what's not
+working, or if a change I've made has broken something -- that in turn
+would break your program.
 
 
 ### Pick a to-do item
@@ -77,19 +89,24 @@ There's a list of to-do's below, you can pick one and do it :-).  You
 can fork the github project and push changes to me that way, or just
 send me an email with your patches.
 
+Note that patches to the runtime itself need to be released under the
+Perl Artistic License, as the code is derived from Arc 3.1.  (You can
+*also* release your contributions under whatever other license you
+want, as long as you dual-licence with the Perl Artistic License).
 
+ 
 ### Address code quality issues
 
 My primary focus so far has been getting things to work, with less
 attention on readable code.  A fresh pair of eyes can see duplicate
-code, awkward names, less confusing ways of doing things.
+code, awkward names, and notice less confusing ways of doing things.
 
 ### Find bugs
 
 Running the runtime right now is pretty slow because none of the Arc
 optimizations have been written yet (they're on the to-do list...)
-However, if you can stand it and find a bug, bug reports are *greatly*
-appreciated :D.
+However, if you can stand it and do find a bug, bug reports are
+*greatly* appreciated :D.
 
 
 
