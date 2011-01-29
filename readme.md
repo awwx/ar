@@ -251,6 +251,8 @@ This version of the Arc runtime:
 
   which is useful for Internet protocols such as HTTP.
 
+Note that most of these choices are very easily reversed if they turn
+out to be a bad idea.
 
 Acknowledgments
 ---------------

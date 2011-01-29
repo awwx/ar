@@ -109,7 +109,7 @@
 (test-match (one (fn (x) t))
   "" '<<parse-fail>>)
 
-(test
+(test-marker
  (match "abcd"
    (test-iso (at (one (fn (_) (is _ #\a)))) #\a)
    (test-iso pos* '(#\a #\b #\c #\d))))

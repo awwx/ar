@@ -761,3 +761,33 @@
                (= (s i) (c (mod x nc)))
                (++ i)))))
       s)))
+
+(mac forlen (var s . body)
+  `(for ,var 0 (- (len ,s) 1) ,@body))
+
+(mac on (var s . body)
+  (if (is var 'index)
+      (err "Can't use index as first arg to on.")
+      (w/uniq gs
+        `(let ,gs ,s
+           (forlen index ,gs
+             (let ,var (,gs index)
+               ,@body))))))
+
+(def most (f seq) 
+  (unless (no seq)
+    (withs (wins (car seq) topscore (f wins))
+      (each elt (cdr seq)
+        (let score (f elt)
+          (if (> score topscore) (= wins elt topscore score))))
+      wins)))
+
+(def insert-sorted (test elt seq)
+  (if (no seq)
+       (list elt) 
+      (test elt (car seq)) 
+       (cons elt seq)
+      (cons (car seq) (insert-sorted test elt (cdr seq)))))
+
+(mac insort (test elt seq)
+  `(zap [insert-sorted ,test ,elt _] ,seq))

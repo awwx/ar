@@ -263,3 +263,17 @@
                        (instring "\u0000\u0001\u0002"))
           (rand-string 3))
         "012")
+
+(testis (accum a (forlen i '(a b c) (a i))) '(0 1 2))
+
+(testis (accum a (on x '(a b c) (a (list index x))))
+        '((0 a) (1 b) (2 c)))
+
+(testis (most - '(5 9 2 7 3)) 2)
+
+(testis (insert-sorted < 4 '(1 5 6)) '(1 4 5 6))
+
+(testis (let x '(a b (1 5 6) c d)
+          (insort < 4 (x 2))
+            x)
+        '(a b (1 4 5 6) c d))

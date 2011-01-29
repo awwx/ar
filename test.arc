@@ -31,7 +31,7 @@
 
 ; lexical marker to run code as a test instead of
 ; including in the runtime
-(mac test body
+(mac test-marker body
   `(do ,@body))
 
 (mac testis (expr expected)
