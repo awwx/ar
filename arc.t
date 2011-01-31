@@ -277,3 +277,50 @@
           (insort < 4 (x 2))
             x)
         '(a b (1 4 5 6) c d))
+
+; todo test for reinsert-sorted, insortnew
+
+; todo test for memo, defmemo
+
+(fromstring ""
+  (testis (readline) nil)
+  (testis (readc) nil))
+(fromstring "\n"
+  (testis (readline) "")
+  (testis (readc) nil))
+(fromstring "\r\n"
+  (testis (readline) "")
+  (testis (readc) nil))
+(fromstring "one"
+  (testis (readline) "one")
+  (testis (readc) nil))
+(fromstring "one\n"
+  (testis (readline) "one")
+  (testis (readc) nil))
+(fromstring "one\r\n"
+  (testis (readline) "one")
+  (testis (readc) nil))
+(fromstring "one\ntwo"
+  (testis (readline) "one")
+  (testis (readc) #\t))
+(fromstring "one\r\ntwo"
+  (testis (readline) "one")
+  (testis (readc) #\t))
+
+(testis (summing p (p nil) (p t) (p t) (p nil)) 2)
+
+(testis (sum [* _ 2] '(1 2 3)) 12)
+
+(testis (treewise cons [if _ (+ _ 1)] '(1 2 (3 (4 5) 6 7) 8)) '(2 3 (4 (5 6) 7 8) 9))
+
+; todo test for prall, prs
+
+(testis (tree-subst 3 'X '(1 (2 3 (4 5) 6))) '(1 (2 X (4 5) 6)))
+
+(testis (accum a
+          (ontree a '(1 . (2 . 3))))
+        '((1 . (2 . 3)) 1 (2 . 3) 2 3))
+
+(testis (dotted 'a) nil)
+(testis (dotted '(a b)) nil)
+(testis (dotted '(a . b)) t)

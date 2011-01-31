@@ -791,3 +791,75 @@
 
 (mac insort (test elt seq)
   `(zap [insert-sorted ,test ,elt _] ,seq))
+
+(def reinsert-sorted (test elt seq)
+  (if (no seq) 
+       (list elt) 
+      (is elt (car seq))
+       (reinsert-sorted test elt (cdr seq))
+      (test elt (car seq)) 
+       (cons elt (rem elt seq))
+      (cons (car seq) (reinsert-sorted test elt (cdr seq)))))
+
+(mac insortnew (test elt seq)
+  `(zap [reinsert-sorted ,test ,elt _] ,seq))
+
+(def memo (f)
+  (with (cache (table) nilcache (table))
+    (fn args
+      (or (cache args)
+          (and (no (nilcache args))
+               (aif (apply f args)
+                    (= (cache args) it)
+                    (do (set (nilcache args))
+                        nil)))))))
+
+(mac defmemo (name parms . body)
+  `(safeset ,name (memo (fn ,parms ,@body))))
+
+(mac summing (sumfn . body)
+  (w/uniq (gc gt)
+    `(let ,gc 0
+       (let ,sumfn (fn (,gt) (if ,gt (++ ,gc)))
+         ,@body)
+       ,gc)))
+
+(def sum (f xs)
+  (let n 0
+    (each x xs (++ n (f x)))
+    n))
+
+(def treewise (f base tree)
+  (if (atom tree)
+      (base tree)
+      (f (treewise f base (car tree)) 
+         (treewise f base (cdr tree)))))
+
+(def prall (elts (o init "") (o sep ", "))
+  (when elts
+    (pr init (car elts))
+    (map [pr sep _] (cdr elts))
+    elts))
+             
+(def prs args     
+  (prall args "" #\space))
+
+(def tree-subst (old new tree)
+  (if (is tree old)
+       new
+      (atom tree)
+       tree
+      (cons (tree-subst old new (car tree))
+            (tree-subst old new (cdr tree)))))
+
+(def ontree (f tree)
+  (f tree)
+  (unless (atom tree)
+    (ontree f (car tree))
+    (ontree f (cdr tree))))
+
+(def dotted (x)
+  (if (atom x)
+      nil
+      (and (cdr x) (or (atom (cdr x))
+                       (dotted (cdr x))))))
