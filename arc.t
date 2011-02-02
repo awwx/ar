@@ -1,8 +1,5 @@
 (testis ([+ 3 _] 4) 7)
 
-(testis (aif 3 it) 3)
-(testis (aif nil 3 nil 4 5 it) 5)
-
 (testis (string '(a (b (c d))) 4 5) "abcd45")
 
 (testis (ssyntax 'abc) nil)
@@ -278,6 +275,11 @@
             x)
         '(a b (1 4 5 6) c d))
 
+(testis (let x nil
+          (each i '(6 4 9 2 5 1 2) (insort < i x))
+          x)
+        '(1 2 2 4 5 6 9))
+
 ; todo test for reinsert-sorted, insortnew
 
 ; todo test for memo, defmemo
@@ -324,3 +326,24 @@
 (testis (dotted 'a) nil)
 (testis (dotted '(a b)) nil)
 (testis (dotted '(a . b)) t)
+
+(testis (accum a (each (k v) (fill-table (table) '(a 1)) (a (list k v))))
+        '((a 1)))
+
+(def dumbsort (xs)
+  (let r nil
+    (each x xs (insort < x r))
+    r))
+
+(testis (with (h (listtab '((a 1) (b 2) (c 3) (d 4) (e 5)))
+               ks nil)
+          (each k (keys h) (insort < k ks))
+          ks)
+        '(a b c d e))
+
+(testis (tostring (write (listtab '((a 1))))) "#table((a 1))")
+
+(testis (tablist (car (readall "#table((a 1))"))) '((a 1)))
+
+(testis (dumbsort (keys '#table((a 1) (b 2) (c 3) (d 4))))
+        '(a b c d))

@@ -38,34 +38,6 @@
 (current-namespace (make-base-namespace))
 
 
-(define (printwith-list port f xs)
-  (cond ((eq? (mcdr xs) 'nil)
-         (printwith port f (mcar xs))
-         (display ")" port))
-        ((mpair? (mcdr xs))
-         (printwith port f (mcar xs))
-         (display " " port)
-         (printwith-list port f (mcdr xs)))
-        (else
-         (printwith port f (mcar xs))
-         (display " . " port)
-         (printwith port f (mcdr xs))
-         (display ")" port))))
-
-(define (printwith port f x)
-  (cond ((mpair? x)
-         (display "(" port)
-         (printwith-list port f x))
-        ; todo
-        ((hash? x)
-         (display "#table()" port))
-        (else
-         (f x port)))
-  (flush-output port))
-
-(define (print x)
-  (printwith (current-output-port) write x))
-
 (define (pair xs)
   (cond ((null? xs)
          '())
@@ -615,14 +587,13 @@
 
 (define (display-trace)
   (map (lambda (trace)
-         (let ((w (if (eq? (car trace) 'racket) write print)))
-           (display (cadr trace))
-           (display ": ")
-           (map (lambda (arg)
-                  (w arg)
-                  (display " "))
-                (cddr trace))
-           (newline)))
+         (display (cadr trace))
+         (display ": ")
+         (map (lambda (arg)
+                (write arg)
+                (display " "))
+              (cddr trace))
+         (newline))
        traces))
        
 ; Trace each step of reading, compiling, eval'ing an Arc program, with
@@ -1362,31 +1333,33 @@
       (f))
     (get-output-string port)))
 
-(ac-def disp (x (port (current-output-port)))
-  (printwith port display x))
+(ac-def primitive-disp (x (port (current-output-port)))
+  (display x port)
+  (flush-output port))
 
-(ac-def write (x (port (current-output-port)))
-  (printwith port write x))
+(ac-def primitive-write (x (port (current-output-port)))
+  (write x port)
+  (flush-output port))
 
 (test-equal
  (let ((port (open-output-string))
        (globals* (new-ac)))
    (hash-set! globals* 'port port)
-   (test-eval '( (disp '("a" b 3) port) ) globals*)
+   (test-eval '( (primitive-disp "a" port) ) globals*)
    (get-output-string port))
- "(a b 3)")
+ "a")
 
 (test-equal
  (let ((globals* (new-ac)))
    (tostringf (lambda ()
-                (test-eval '( (disp '("a" b 3)) ) globals*))))
- "(a b 3)")
+                (test-eval '( (primitive-disp "abc") ) globals*))))
+ "abc")
 
 (test-equal
  (let ((globals* (new-ac)))
    (tostringf (lambda ()
-                (test-eval '( (write '("a" b 3)) ) globals*))))
- "(\"a\" b 3)")
+                (test-eval '( (primitive-write "a") ) globals*))))
+ "\"a\"")
 
 
 ;; defvar impl
@@ -1442,9 +1415,9 @@
  (assign safeset (annotate 'mac
                    (fn (var val)
                      `(do (if (bound ',var)
-                              (do (disp "*** redefining " (racket-stderr))
-                                  (disp ',var (racket-stderr))
-                                  (disp #\newline (racket-stderr))))
+                              (do (primitive-disp "*** redefining " (racket-stderr))
+                                  (primitive-disp ',var (racket-stderr))
+                                  (primitive-disp #\newline (racket-stderr))))
                           (assign ,var ,val))))))
 
 (test-arc (( (safeset a 123) a ) 123))
@@ -2059,6 +2032,26 @@
    "/: division by zero"))
 
 
+;; disp, write
+; no optional arguments yet
+
+(ac-eval
+ (def print (primitive x port)
+   (primitive x port))
+
+ (def disp args
+   (with (x (car args)
+          port (or (cadr args) stdout))
+     (print primitive-disp x port)))
+ (sref sig '(x (o port)) 'disp)
+
+ (def write args
+   (with (x (car args)
+          port (or (cadr args) stdout))
+     (print primitive-write x port)))
+ (sref sig '(x (o port)) 'write))
+
+
 ;; pr
 
 (ac-eval
@@ -2452,6 +2445,77 @@
 
 (arc-test
  (testis (n-of 5 7) '(7 7 7 7 7)))
+
+
+(ac-eval
+ (mac aif (expr . body)
+   `(let it ,expr
+      (if it
+          ,@(if (cddr body)
+                `(,(car body) (aif ,@(cdr body)))
+                body)))))
+
+(arc-test
+ (testis (aif 3 it) 3)
+ (testis (aif nil 3 nil 4 5 it) 5))
+
+(ac-eval
+ (mac defrule (name test . body)
+   (let arglist (sig name)
+     (w/uniq (orig args)
+       `(let ,orig ,name
+          (assign ,name
+            (fn ,args
+              (aif (apply (fn ,arglist ,test) ,args)
+                    (apply (fn ,arglist ,@body) ,args)
+                    (apply ,orig ,args)))))))))
+
+(arc-test
+ (def foo (x)
+   0)
+
+ (defrule foo (is x 4)
+   (* 2 x))
+
+ (testis (foo 3) 0)
+ (testis (foo 4) 8))
+
+(arc-test
+ (def foo (a (o b 3))
+   b)
+
+ (testis (foo 1) 3)
+
+ (defrule foo (is a 5)
+   (* b 2))
+
+ (testis (foo 1) 3)
+ (testis (foo 5) 6))
+
+(ac-eval
+ (def printwith-list (primitive x port)
+   (if (no (cdr x))
+        (do (print primitive (car x) port)
+            (disp ")" port))
+       (acons (cdr x))
+        (do (print primitive (car x) port)
+            (disp " " port)
+            (printwith-list primitive (cdr x) port))
+        (do (print primitive (car x) port)
+            (disp " . " port)
+            (print primitive (cdr x) port)
+            (disp ")" port))))
+              
+ (defrule print (isa x 'cons)
+   (disp "(" port)
+   (printwith-list primitive x port)))
+
+(arc-test
+ (tostring (disp '(a "b" 3)) "(a b 3)")
+ (tostring (disp '(a . b)) "(a . b)")
+ (tostring (disp '(a ((b (c))))) "(a ((b (c))))")
+
+ (tostring (write '(a "b" 3)) "(a \"b\" 3)"))
 
 
 ;; match

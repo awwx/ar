@@ -1,13 +1,6 @@
 (mac square-bracket body
   `(fn (_) (,@body)))
 
-(mac aif (expr . body)
-  `(let it ,expr
-     (if it
-         ,@(if (cddr body)
-               `(,(car body) (aif ,@(cdr body)))
-               body))))
-
 (def readline ((o s stdin))
   (aif (readc s)
     (coerce
@@ -86,16 +79,6 @@
 (def ac-expand-ssyntax (sym)
   (err "Unknown ssyntax" sym))
 
-(mac defrule (name test . body)
-  (let arglist (sig name)
-    (w/uniq (orig args)
-      `(let ,orig ,name
-         (assign ,name
-           (fn ,args
-             (aif (apply (fn ,arglist ,test) ,args)
-                   (apply (fn ,arglist ,@body) ,args)
-                   (apply ,orig ,args))))))))
-
 (defrule ac (ssyntax s)
   (ac (ac-expand-ssyntax s) env))
 
@@ -172,6 +155,13 @@
 (def racket-fn (name (o module 'scheme))
   ((racket-module module) name))
 
+(mac inline (x)
+  `',(eval x))
+
+(def maptable (f table)
+  ((inline (racket-fn 'hash-for-each)) table f)
+  table)
+
 (mac each (var expr . body)
   (w/uniq (gseq gf gv)
     `(let ,gseq ,expr
@@ -224,9 +214,6 @@
   (disp (+ "Warning: " msg ". "))
   (map [do (write _) (disp " ")] args)
   (disp #\newline))
-
-(mac inline (x)
-  `',(eval x))
 
 (assign-fn make-semaphore ((o init)) (racket-fn 'make-semaphore))
 
@@ -863,3 +850,30 @@
       nil
       (and (cdr x) (or (atom (cdr x))
                        (dotted (cdr x))))))
+
+(def fill-table (table data)
+  (each (k v) (pair data) (= (table k) v))
+  table)
+
+(def keys (h) 
+  (accum a (each (k v) h (a k))))
+
+(def vals (h) 
+  (accum a (each (k v) h (a v))))
+
+(def tablist (h)
+  (accum a (maptable (fn args (a args)) h)))
+
+(def listtab (al)
+  (let h (table)
+    (map (fn ((k v)) (= (h k) v))
+         al)
+    h))
+
+(defrule print (isa x 'table)
+  (disp "#table" port)
+  (print primitive (tablist x) port))
+
+(defalt parse-value-here
+  (mliteral "#table")
+  (listtab (parse-value)))
