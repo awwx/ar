@@ -60,7 +60,8 @@
               (when (< (len x) index)
                 (list ((do x) index) (next (+ 1 x)))))))
       (isa x 'input)
-    (xloop () (memo (fn () (list (readc x) ((do next))))))
+    (xloop () (memo (fn () (awhen (readc x)
+                             (list it ((do next)))))))
     (err "don't know how to parse" x)))
 
 (def seq->cons (seq)
