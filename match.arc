@@ -1,4 +1,3 @@
-
 (implicit pos*)
 (implicit fail)
 
@@ -66,7 +65,7 @@
 
 (def seq->cons (seq)
   (awhen ((do seq))
-    (cons (car seq) (seq->cons (cadr seq)))))
+    (cons (car it) (seq->cons (cadr it)))))
 
 (def seq-begins (seq beginning-list)
   (or (no beginning-list)
