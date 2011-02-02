@@ -1,3 +1,4 @@
+
 (implicit pos*)
 (implicit fail)
 
@@ -47,27 +48,45 @@
              (fn (,v) ,successf)
              (fn () ,failf)))
 
-(def ascons (x)
-  (if (or (no x) (acons x))
-       x
-      ; todo
-      ;(isa x 'input)
-      ; (drain (readc x))
+; The functions are memoized so that the "rest" they return
+; can be identified using 'is.
+(def seqify (x)
+  (if (no x)
+    (fn () nil)
+      (acons x)
+    (memo (fn () (list (car x) (seqify (cdr x)))))
       (isa x 'string)
-       (coerce x 'cons)
-       (err "don't know how to parse" x)))
+    (xloop (index 0)
+      (memo (fn ()
+              (when (< (len x) index)
+                (list ((do x) index) (next (+ 1 x)))))))
+      (isa x 'input)
+    (xloop () (memo (fn () (list (readc x) ((do next))))))
+    (err "don't know how to parse" x)))
+
+(def seq->cons (seq)
+  (awhen ((do seq))
+    (cons (car seq) (seq->cons (cadr seq)))))
+
+(def seq-begins (seq beginning-list)
+  (or (no beginning-list)
+    (awhen ((do seq))
+      (and (is (car it) (car beginning-list))
+           (seq-begins (cadr it) (cdr beginning-list))))))
+
+(def seq-nthcdr (n seq)
+  (case n 0 seq
+    (aif ((do seq))
+      (seq-nthcdr (- n 1) (cadr it))
+      (fn () nil))))
 
 (def fmatch (seq body)
   (onfail nil
-    (w/pos* (ascons seq)
+    (w/pos* (seqify seq)
       (body))))
 
 (mac match (s . body)
   `(fmatch ,s (fn () ,@body)))
-
-(mac test-matchpos (input matcher expected)
-  `(testis (ascons ,expected)
-         (match ,input (do ,matcher) pos*)))
 
 (mac test-match1 (str matcher expected)
   `(testf ,str (fn (_)
@@ -83,7 +102,7 @@
 
 ; todo fail this?
 (def at-end ()
-  (no pos*))
+  (no ((do pos*))))
 
 ; todo rename?
 (def fail-at-end ()
@@ -91,8 +110,9 @@
 
 (def next ()
   (fail-at-end)
-  (do1 (car pos*)
-       (assign pos* (cdr pos*))))
+  (let first-and-rest ((do pos*))
+    (do1 (car first-and-rest)
+         (assign pos* (cadr first-and-rest)))))
 
 (def one (item)
   (ret v (next)
@@ -112,12 +132,12 @@
 (test-marker
  (match "abcd"
    (test-iso (at (one (fn (_) (is _ #\a)))) #\a)
-   (test-iso pos* '(#\a #\b #\c #\d))))
+   (test-iso (seq->cons pos*) '(#\a #\b #\c #\d))))
 
 (test-match (do (next)
                 (try x (n-of 2 (one letter))
                   'didnt-expect-success
-                  pos*))
+                  (seq->cons pos*)))
   "ab123" '(#\b #\1 #\2 #\3))
 
 ; todo: confusing name
@@ -158,9 +178,9 @@
   `(alt (do ,@body) nil))
 
 (def mliteral1 (pat val)
-  (let pat (ascons pat)
-    (if (begins pos* pat)
-         (do (assign pos* (nthcdr (len pat) pos*))
+  (let pat (seq->cons (seqify pat))
+    (if (seq-begins pos* pat)
+         (do (assign pos* (seq-nthcdr (len pat) pos*))
              val)
          (fail))))
 
@@ -303,9 +323,9 @@
     (matcher)
     (accum a
       (xloop (p mark)
-        (when (and p (isnt p pos*))
-          (a (car p))
-          (next (cdr p)))))))
+        (awhen (and (isnt p pos*) ((do p)))
+          (a (car it))
+          (next (cadr it)))))))
 
 (mac matched-input body
   `(fmatched-input (fn () ,@body)))
