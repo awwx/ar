@@ -121,7 +121,6 @@ Todo
 * ar-funcallN optimizations
 * ac-macex
 * explicit-flush
-* printing and reading tables
 * incremental parsing
 * full REPL
 * declare
@@ -251,8 +250,12 @@ This version of the Arc runtime:
 
   which is useful for Internet protocols such as HTTP.
 
+* tables read and print as "#table" followed by the tablist of the
+  table
+
 Note that most of these choices are very easily reversed if they turn
 out to be a bad idea.
+
 
 Acknowledgments
 ---------------
