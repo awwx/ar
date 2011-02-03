@@ -2701,7 +2701,7 @@
    ;; "#\\x41" not implemented in PLT 4.2.1
    "#\\u0041"
    "#\\U00000041"
-   "#\\?")
+   "#\\λ")
 
  (test-match (char-constant)
    "#\\nulx" (makeerr "invalid character constant")))
