@@ -61,7 +61,7 @@
                 (list ((do x) index) (next (+ 1 x)))))))
       (isa x 'input)
     (xloop () (memo (fn () (awhen (readc x)
-                             (list it ((do next)))))))
+                             (list it (next))))))
     (err "don't know how to parse" x)))
 
 (def seq->cons (seq)
@@ -102,7 +102,7 @@
 
 ; todo fail this?
 (def at-end ()
-  (no ((do pos*))))
+  (no (pos*)))
 
 ; todo rename?
 (def fail-at-end ()
@@ -110,7 +110,7 @@
 
 (def next ()
   (fail-at-end)
-  (let first-and-rest ((do pos*))
+  (let first-and-rest (pos*)
     (do1 (car first-and-rest)
          (assign pos* (cadr first-and-rest)))))
 
