@@ -1175,8 +1175,8 @@
 
 ;; macro
 
-(ac-def ac-macro? (fn env)
-  (if (and (symbol? fn) (not (ac-lex? fn env)))
+(ac-def ac-macro? (fn)
+  (if (symbol? fn)
       (let ((v (hash-ref globals* fn 'nil)))
         (if (and (tagged? v)
                  (eq? (arc-type v) 'mac))
@@ -1185,15 +1185,15 @@
       'nil))
 
 (test-arc
- (( (ac-macro? 5 'nil)    ) 'nil)
- (( (ac-macro? 'foo 'nil) ) 'nil)
+ (( (ac-macro? 5)    ) 'nil)
+ (( (ac-macro? 'foo) ) 'nil)
 
  (( (assign foo 5)
-    (ac-macro? 'foo 'nil) )
+    (ac-macro? 'foo) )
   'nil)
 
  (( (assign foo (annotate 'mac 123))
-    (ac-macro? 'foo 'nil) )
+    (ac-macro? 'foo) )
   123))
 
 (ac-def ac-mac-call (m args env)
@@ -1202,7 +1202,7 @@
       x2)))
 
 (extend ac-call (fn args env)
-  ((g ac-macro?) fn env)
+  ((g ac-macro?) fn)
   ((g ac-mac-call) it args env))
 
 (test-arc
