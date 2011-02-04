@@ -26,3 +26,7 @@
 (testis (digit #\a) nil)
 (testis (digit #\0) t)
 (testis (punc #\;) t)
+
+(mac achtung (x) `(+ ,x 2))
+(let achtung [+ _ 5]
+  (testis (achtung 0) 5))

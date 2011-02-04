@@ -162,6 +162,13 @@ This version of the Arc runtime:
          (cdr ((fn args args) 1)) => nil
 
 
+* lexical identifiers take precedence over macros
+
+         arc> (mac achtung (x) `(+ ,x 2))
+         #(tagged mac #<procedure>)
+         arc> (let achtung [+ _ 5] (achtung 0))
+         5
+
 * quote passes its value unchanged through the compiler, instead of
   copying it
 
@@ -227,7 +234,13 @@ This version of the Arc runtime:
   as an experiment to see if the simpler data structure is sufficient.
 
 
-* replaces (stdin), (stdout), (stderr) with stdin, stdout, stderr
+* implicit variables
+
+  which can help make programs more concise when the same variable
+  doesn't need to be threaded through many layers of function calls.
+
+
+* implements stdin, stdout, stderr as implicit variables
 
   removing an unnecessary layer of parentheses; though violating
   goal #3.
@@ -240,15 +253,10 @@ This version of the Arc runtime:
   implementation for getting or setting the variable
 
 
-* implicit variables
-
-  which can help make programs more concise when the same variable
-  doesn't need to be threaded through many layers of function calls.
-
-
 * readline accepts CR-LF line endings
 
   which is useful for Internet protocols such as HTTP.
+
 
 * tables read and print as "#table" followed by the tablist of the
   table
@@ -257,8 +265,8 @@ Note that most of these choices are very easily reversed if they turn
 out to be a bad idea.
 
 
-Acknowledgments
----------------
+Contributors
+------------
 
 This project is derived from Paul Graham and Robert Morris's [Arc 3.1
 release](http://arclanguage.org/item?id=10254); indeed, a goal is to
@@ -278,6 +286,9 @@ fix the bug.
 Reflecting the Arc compiler into Arc was inspired by rntz's [Arc
 compiler written in Arc](https://github.com/nex3/arc/tree/arcc).
 
-Rocketnia explained why my definition of inline was broken by quote
+rocketnia explained why my definition of inline was broken by quote
 copying its value, and contributed the patch to make quote not do
 that.
+
+rocketnia provided the patch to make lexical variables take precedence
+over macros with the same name; waterhouse contributed the test.

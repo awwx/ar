@@ -1202,7 +1202,9 @@
       x2)))
 
 (extend ac-call (fn args env)
-  ((g ac-macro?) fn)
+  (if (true? ((g ac-lex?) fn env))
+       'nil
+       ((g ac-macro?) fn))
   ((g ac-mac-call) it args env))
 
 (test-arc
