@@ -330,9 +330,9 @@
 (testis (accum a (each (k v) (fill-table (table) '(a 1)) (a (list k v))))
         '((a 1)))
 
-(def dumbsort (xs)
+(def dumbsort (xs (o f <))
   (let r nil
-    (each x xs (insort < x r))
+    (each x xs (insort f x r))
     r))
 
 (testis (with (h (listtab '((a 1) (b 2) (c 3) (d 4) (e 5)))
@@ -347,3 +347,13 @@
 
 (testis (dumbsort (keys '#table((a 1) (b 2) (c 3) (d 4))))
         '(a b c d))
+
+(def assoc-key-sort (xs)
+  (dumbsort xs (fn (a b)
+                 (< (car a) (car b)))))
+
+(testis (assoc-key-sort '((b 2) (d 4) (a 1) (c 3)))
+        '((a 1) (b 2) (c 3) (d 4)))
+
+(testis (assoc-key-sort (obj b 2 d 4 a 1 c 3))
+        '((a 1) (b 2) (c 3) (d 4)))

@@ -877,3 +877,8 @@
 (defalt parse-value-here
   (mliteral "#table")
   (listtab (parse-value)))
+
+(mac obj args
+  `(listtab (list ,@(map (fn ((k v))
+                           `(list ',k ,v))
+                         (pair args)))))
