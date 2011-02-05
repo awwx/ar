@@ -43,3 +43,23 @@
             ,gresult (catcherr (,f ,input)))
        (test-iso (tostring (write ',input) (pr " ") (write ',qf))
                  ,gresult ,gexpected))))
+
+(mac testt (expr)
+  `(if ,expr
+        (do (pr "ok ")
+            (write ',expr)
+            (pr " is true\n"))
+        (do (pr "FAIL ")
+            (write ',expr)
+            (pr " is nil\n")
+            (err "test failed"))))
+
+(mac testnil (expr)
+  `(if (no ,expr)
+        (do (pr "ok ")
+            (write ',expr)
+            (pr " is nil\n"))
+        (do (pr "FAIL ")
+            (write ',expr)
+            (pr " is not nil\n")
+            (err "test failed"))))

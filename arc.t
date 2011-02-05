@@ -220,6 +220,9 @@
 
 (testis (w/instring s "abc" (allchars s)) "abc")
 
+(do (w/outfile s "/tmp/foo" (disp "(a b (c)) 3 4" s))
+    (w/infile s "/tmp/foo" (testis (read1 s) '(a b (c)))))
+
 (do (w/outfile s "/tmp/foo" (disp "1 2 3" s))
     (testis (readfile "/tmp/foo") '(1 2 3)))
 
@@ -330,11 +333,6 @@
 (testis (accum a (each (k v) (fill-table (table) '(a 1)) (a (list k v))))
         '((a 1)))
 
-(def dumbsort (xs (o f <))
-  (let r nil
-    (each x xs (insort f x r))
-    r))
-
 (testis (with (h (listtab '((a 1) (b 2) (c 3) (d 4) (e 5)))
                ks nil)
           (each k (keys h) (insort < k ks))
@@ -357,3 +355,37 @@
 
 (testis (assoc-key-sort (obj b 2 d 4 a 1 c 3))
         '((a 1) (b 2) (c 3) (d 4)))
+
+(do (writefile (obj a 1 b 2) "/tmp/foo")
+    (testis (assoc-key-sort (tablist (w/infile s "/tmp/foo" (read-table s))))
+            '((a 1) (b 2))))
+
+(testis (fromstring "((a 1) (b 2))" (read-table))
+        (obj a 1 b 2))
+
+(do (writefile (obj a 1 b 2) "/tmp/foo")
+    (testis (w/infile s "/tmp/foo" (read-table s))
+            (obj a 1 b 2)))
+
+(testt (iso (obj a 1) (obj a 1)))
+(testnil (iso (obj a 1) (obj a 2)))
+(testnil (iso (obj a 1) (obj)))
+(testt (iso (obj a 1 b 2 c 3 d 4) (obj a 1 b 2 c 3 d 4)))
+
+(testis (do (writefile (obj a 1 b 2 c 3) "/tmp/foo")
+            (load-table "/tmp/foo"))
+        (obj a 1 b 2 c 3))
+
+(testis (do (save-table (obj a 1 b 2 c 3) "/tmp/foo")
+            (listtab (readfile1 "/tmp/foo")))
+        (obj a 1 b 2 c 3))
+
+(testis (listtab (read1 (tostring (write-table (obj a 1 b 2 c 3 d 4 e 5)))))
+        (obj a 1 b 2 c 3 d 4 e 5))
+
+(testis (copy 'abc) 'abc)
+(testis (copy '(a b c d)) '(a b c d))
+(testis (copy "hello") "hello")
+(testis (copy (obj a 1 b 2 c 3 d 4 e 5)) (obj a 1 b 2 c 3 d 4 e 5))
+
+(testis (copy "hello" 2 #\X 3 #\X) "heXXo")

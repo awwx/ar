@@ -1335,6 +1335,8 @@
       (f))
     (get-output-string port)))
 
+; todo these need to not return void
+
 (ac-def primitive-disp (x (port (current-output-port)))
   (display x port)
   (flush-output port))

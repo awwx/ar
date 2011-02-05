@@ -688,12 +688,14 @@
 ;; todo no incremental reading yet...
 ; (def read ((o x (stdin))) ...)
 
+(defrule ascons (isa x 'input)
+  (drain (readc x)))
+
 (def readfile (name)
   (w/infile s name (primitive-readall (coerce (allchars s) 'cons))))
 
 (def readfile1 (name)
-  ;; bogus :)
-  (car (readfile name)))
+  (w/infile s name (read1 s)))
 
 ; todo eof
 (def readall (src)
@@ -882,3 +884,49 @@
   `(listtab (list ,@(map (fn ((k v))
                            `(list ',k ,v))
                          (pair args)))))
+
+; todo remove
+(def dumbsort (xs (o f <))
+  (let r nil
+    (each x xs (insort f x r))
+    r))
+
+; todo do better
+; todo doesn't work for tables with compound keys
+(defrule iso (and (isa x 'table) (isa y 'table))
+  (with (kx (keys x) ky (keys y))
+    (and (is (len kx) (len ky))
+         (iso (dumbsort kx) (dumbsort ky))
+         (all [iso x._ y._] kx))))
+
+; todo eof
+(def read-table ((o i stdin))
+  (let e (read1 i)
+    (if (alist e) (listtab e) e)))
+
+; todo eof
+(def load-table (file)
+  (w/infile i file (read-table i)))
+
+(def save-table (h file)
+  (writefile (tablist h) file))
+
+(def write-table (h (o o stdout))
+  (write (tablist h) o))
+
+(def copy (x . args)
+  (let x2 (case (type x)
+            sym    x
+            cons   (apply (fn args args) x)
+            string (let new (newstring (len x))
+                     (forlen i x
+                       (= (new i) (x i)))
+                     new)
+            table  (let new (table)
+                     (each (k v) x 
+                       (= (new k) v))
+                     new)
+                   (err "Can't copy " x))
+    (map (fn ((k v)) (= (x2 k) v))
+         (pair args))
+    x2))
