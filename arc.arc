@@ -949,3 +949,77 @@
     (if (>= rem 1/2)
         ((if (> n 0) + -) base 1)
         base)))
+
+(def nearest (n quantum)
+  (* (roundup (/ n quantum)) quantum))
+
+(def avg (ns) (/ (apply + ns) (len ns)))
+
+(def med (ns (o test >))
+  ((sort test ns) (round (/ (len ns) 2))))
+
+; Use mergesort on assumption that mostly sorting mostly sorted lists
+; benchmark: (let td (n-of 10000 (rand 100)) (time (sort < td)) 1) 
+
+(def sort (test seq)
+  (if (alist seq)
+      (mergesort test (copy seq))
+      (coerce (mergesort test (coerce seq 'cons)) (type seq))))
+
+; Destructive stable merge-sort, adapted from slib and improved 
+; by Eli Barzilay for MzLib; re-written in Arc.
+
+(def mergesort (less? lst)
+  (with (n (len lst))
+    (if (<= n 1) lst
+        ; ; check if the list is already sorted
+        ; ; (which can be a common case, eg, directory lists).
+        ; (let loop ([last (car lst)] [next (cdr lst)])
+        ;   (or (null? next)
+        ;       (and (not (less? (car next) last))
+        ;            (loop (car next) (cdr next)))))
+        ; lst
+        ((afn (n)
+           (if (> n 2)
+                ; needs to evaluate L->R
+                (withs (j (/ (if (even n) n (- n 1)) 2) ; faster than round
+                        a (self j)
+                        b (self (- n j)))
+                  (merge less? a b))
+               ; the following case just inlines the length 2 case,
+               ; it can be removed (and use the above case for n>1)
+               ; and the code still works, except a little slower
+               (is n 2)
+                (with (x (car lst) y (cadr lst) p lst)
+                  (= lst (cddr lst))
+                  (when (less? y x) (scar p y) (scar (cdr p) x))
+                  (scdr (cdr p) nil)
+                  p)
+               (is n 1)
+                (with (p lst)
+                  (= lst (cdr lst))
+                  (scdr p nil)
+                  p)
+               nil))
+         n))))
+
+; Also by Eli.
+
+(def merge (less? x y)
+  (if (no x) y
+      (no y) x
+      (let lup nil
+        (assign lup
+                (fn (r x y r-x?) ; r-x? for optimization -- is r connected to x?
+                  (if (less? (car y) (car x))
+                    (do (if r-x? (scdr r y))
+                        (if (cdr y) (lup y x (cdr y) nil) (scdr y x)))
+                    ; (car x) <= (car y)
+                    (do (if (no r-x?) (scdr r x))
+                        (if (cdr x) (lup x (cdr x) y t) (scdr x y))))))
+        (if (less? (car y) (car x))
+          (do (if (cdr y) (lup y x (cdr y) nil) (scdr y x))
+              y)
+          ; (car x) <= (car y)
+          (do (if (cdr x) (lup x (cdr x) y t) (scdr x y))
+              x)))))

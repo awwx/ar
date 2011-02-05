@@ -417,3 +417,13 @@
 (testis (roundup -3.01) -3)
 (testis (roundup -3.5) -4)
 (testis (roundup -4.5) -5)
+
+(testis (nearest 13 10) 10)
+(testis (nearest 18 10) 20)
+
+(testis (avg '(2 20 8)) 10)
+
+(testis (med '(3 30000 5 30001 4 30002 2 1)) 4)
+
+(testis (sort < '(7 9 13 42 193 -50)) '(-50 7 9 13 42 193))
+(testis (sort < "cbfdaeg") "abcdefg")
