@@ -930,3 +930,22 @@
     (map (fn ((k v)) (= (x2 k) v))
          (pair args))
     x2))
+
+(def abs (n)
+  (if (< n 0) (- n) n))
+
+(def trunc (x)
+  (racket-code "(inexact->exact (truncate x))"))
+
+(def round (n)
+  (withs (base (trunc n) rem (abs (- n base)))
+    (if (> rem 1/2) ((if (> n 0) + -) base 1)
+        (< rem 1/2) base
+        (odd base)  ((if (> n 0) + -) base 1)
+                    base)))
+
+(def roundup (n)
+  (withs (base (trunc n) rem (abs (- n base)))
+    (if (>= rem 1/2)
+        ((if (> n 0) + -) base 1)
+        base)))

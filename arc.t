@@ -389,3 +389,31 @@
 (testis (copy (obj a 1 b 2 c 3 d 4 e 5)) (obj a 1 b 2 c 3 d 4 e 5))
 
 (testis (copy "hello" 2 #\X 3 #\X) "heXXo")
+
+(testis (abs -33) 33)
+
+(testis (trunc 3) 3)
+(testis (trunc 3.0) 3)
+(testis (trunc 3.3) 3)
+(testis (trunc 3.999) 3)
+
+(testis (round 3) 3)
+(testis (round 3.01) 3)
+(testis (round 3.49) 3)
+(testis (round 3.50) 4)
+(testis (round 3.51) 4)
+(testis (round 3.99) 4)
+
+(testis (round 4.5) 4)
+(testis (round -4.5) -4)
+
+(testis (round -3.5) -4)
+
+(testis (roundup 3.0) 3)
+(testis (roundup 3.01) 3)
+(testis (roundup 3.5) 4)
+(testis (roundup 3.99) 4)
+(testis (roundup 4.5) 5)
+(testis (roundup -3.01) -3)
+(testis (roundup -3.5) -4)
+(testis (roundup -4.5) -5)
