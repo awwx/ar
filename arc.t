@@ -427,3 +427,23 @@
 
 (testis (sort < '(7 9 13 42 193 -50)) '(-50 7 9 13 42 193))
 (testis (sort < "cbfdaeg") "abcdefg")
+
+(testis (bestn 3 < '(9 13 11 5 78 4 0)) '(0 4 5))
+
+(testis (split '(a b c d e f g) 3) '((a b c) (d e f g)))
+
+(def stream (xs)
+  (fn ()
+    (if xs
+         (do1 (car xs)
+              (= xs (cdr xs))))))
+
+(let s (stream '(a b c))
+  (testis (s) 'a)
+  (testis (s) 'b)
+  (testis (s) 'c)
+  (testis (s) nil))
+
+(w/msec (stream '(-205086062 -205086061))
+  (testis (tostring (time (+ 8 90)))
+          "time: 1 msec.\n"))

@@ -1023,3 +1023,19 @@
           ; (car x) <= (car y)
           (do (if (cdr x) (lup x (cdr x) y t) (scdr x y))
               x)))))
+
+(def bestn (n f seq)
+  (firstn n (sort f seq)))
+
+(def split (seq pos)
+  (list (cut seq 0 pos) (cut seq pos)))
+
+(implicit msec (racket-fn 'current-milliseconds))
+(= (sig 'msec nil))
+
+(mac time (expr)
+  (w/uniq (t1 t2)
+    `(let ,t1 (msec)
+       (do1 ,expr
+            (let ,t2 (msec)
+              (prn "time: " (- ,t2 ,t1) " msec."))))))
