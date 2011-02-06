@@ -1039,3 +1039,111 @@
        (do1 ,expr
             (let ,t2 (msec)
               (prn "time: " (- ,t2 ,t1) " msec."))))))
+
+(mac jtime (expr)
+  `(do1 'ok (time ,expr)))
+
+(mac time10 (expr)
+  `(time (repeat 10 ,expr)))
+
+(def union (f xs ys)
+  (+ xs (rem (fn (y) (some [f _ y] xs))
+             ys)))
+
+(= templates* (table))
+
+(mac deftem (tem . fields)
+  (withs (name (carif tem) includes (if (acons tem) (cdr tem)))
+    `(= (templates* ',name) 
+        (+ (mappend templates* ',(rev includes))
+           (list ,@(map (fn ((k v)) `(list ',k (fn () ,v)))
+                        (pair fields)))))))
+
+(mac addtem (name . fields)
+  `(= (templates* ',name) 
+      (union (fn (x y) (is (car x) (car y)))
+             (list ,@(map (fn ((k v)) `(list ',k (fn () ,v)))
+                          (pair fields)))
+             (templates* ',name))))
+
+(def inst (tem . args)
+  (let x (table)
+    (each (k v) (if (acons tem) tem (templates* tem))
+      (unless (no v) (= (x k) (v))))
+    (each (k v) (pair args)
+      (= (x k) v))
+    x))
+
+; To write something to be read by temread, (write (tablist x))
+
+(def temread (tem (o str (stdin)))
+  (templatize tem (read str)))
+
+; Converts alist to inst; ugly; maybe should make this part of coerce.
+; Note: discards fields not defined by the template.
+
+(def templatize (tem raw)
+  (with (x (inst tem) fields (if (acons tem) tem (templates* tem)))
+    (each (k v) raw
+      (when (assoc k fields)
+        (= (x k) v)))
+    x))
+
+(def temload (tem file)
+  (w/infile i file (temread tem i)))
+
+(def temloadall (tem file)
+  (map (fn (pairs) (templatize tem pairs))       
+       (w/infile in file (readall in))))
+
+(def number (n) (in (type n) 'int 'num))
+
+(implicit seconds (racket-fn 'current-seconds))
+(= (sig 'seconds nil))
+
+(def since (t1) (- (seconds) t1))
+
+(def minutes-since (t1) (/ (since t1) 60))
+(def hours-since (t1)   (/ (since t1) 3600))
+(def days-since (t1)    (/ (since t1) 86400))
+
+; could use a version for fns of 1 arg at least
+
+(def cache (timef valf)
+  (with (cached nil gentime nil)
+    (fn ()
+      (unless (and cached (< (since gentime) (timef)))
+        (= cached  (valf)
+           gentime (seconds)))
+      cached)))
+
+(mac defcache (name lasts . body)
+  `(safeset ,name (cache (fn () ,lasts)
+                         (fn () ,@body))))
+
+(mac errsafe (expr)
+  `(on-err (fn (c) nil)
+           (fn () ,expr)))
+
+(def saferead (arg) (errsafe:read1 arg))
+
+(def safe-load-table (filename) 
+  (or (errsafe:load-table filename)
+      (table)))
+
+(def dir-exists (path)
+  (if (racket->tnil (racket-code "(directory-exists? path)")) path))
+                    
+(def ensure-dir (path)
+  (unless (dir-exists path)
+    (system (string "mkdir -p " path))))
+
+;; todo something less ugly
+(def timedate ((o seconds (seconds)))
+  (let d (racket-code "(seconds->date seconds)")
+    (list (racket-code "(date-second d)")
+          (racket-code "(date-minute d)")
+          (racket-code "(date-hour d)")
+          (racket-code "(date-day d)")
+          (racket-code "(date-month d)")
+          (racket-code "(date-year d)"))))

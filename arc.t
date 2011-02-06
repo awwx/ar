@@ -447,3 +447,40 @@
 (w/msec (stream '(-205086062 -205086061))
   (testis (tostring (time (+ 8 90)))
           "time: 1 msec.\n"))
+
+(testis (union is '(a b c d e) '(x y c z)) '(a b c d e x y z))
+
+; todo test templates
+
+(testis (number 123) t)
+(testis (number 10.5) t)
+(testis (number "foo") nil)
+
+(w/seconds (fn () 1000500)
+  (testis (since 1000000) 500))
+
+; todo tests for cache, defcache
+
+(testis (errsafe (/ 1 0)) nil)
+
+(testis (saferead "123") 123)
+(testis (saferead "#abc") nil)
+
+(do (racket-code "(delete-file \"/tmp/foo\")")
+    (testis (safe-load-table "/tmp/foo") (obj))
+    (writefile (obj a 1 b 2) "/tmp/foo")
+    (testis (safe-load-table "/tmp/foo") (obj a 1 b 2)))
+
+(do (system "rm -rf /tmp/bar /tmp/bar2")
+    (system "mkdir /tmp/bar")
+    (testis (dir-exists "/tmp/bar") "/tmp/bar")
+    (testis (dir-exists "/tmp/bar2") nil)
+    (system "rm -rf /tmp/bar"))
+
+(do (system "rm -rf /tmp/foo")
+    (ensure-dir "/tmp/foo/a/b/c")
+    (testis (dir-exists "/tmp/foo/a/b/c") "/tmp/foo/a/b/c")
+    (system "rm -rf /tmp/foo"))
+
+(w/seconds (fn () 1296961475)
+  (testis (timedate) '(35 4 19 5 2 2011)))

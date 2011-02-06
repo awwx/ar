@@ -280,7 +280,7 @@
         ((thread? x)        'thread)
         ((thread-cell? x)   'thread-cell)
         ((semaphore? x)     'semaphore)
-        (else               (err "Type: unknown type" x))))
+        (else               'unknown)))
 
 (define (ar-tag type rep)
   (cond ((eqv? (arc-type rep) type) rep)
@@ -3097,6 +3097,9 @@
 
 (ac-def nil->racket-false (x)
   (if (no? x) #f x))
+
+(ac-def racket->tnil (x)
+  (if x 't 'nil))
 
 (ac-def scdr (x val)
   (set-mcdr! x val)
