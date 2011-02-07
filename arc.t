@@ -482,5 +482,17 @@
     (testis (dir-exists "/tmp/foo/a/b/c") "/tmp/foo/a/b/c")
     (system "rm -rf /tmp/foo"))
 
-(w/seconds (fn () 1296961475)
-  (testis (timedate) '(35 4 19 5 2 2011)))
+(testis (timedate 1296961475) '(35 4 19 5 2 2011))
+
+(testis (date 1296961475) '(2011 2 5))
+
+(testis (datestring 1296961475) "2011-02-05")
+
+(testis (count even '(1 2 3 4 5 6)) 3)
+(testis (count 'a '(a b c a b c a a)) 4)
+
+(testis (ellipsize "hello" 10) "hello")
+(testis (ellipsize "hello there" 10) "hello ther...")
+
+(w/rand (fn (x) 2)
+  (testis (rand-elt '(a b c d e)) 'c))

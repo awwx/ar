@@ -1147,3 +1147,24 @@
           (racket-code "(date-day d)")
           (racket-code "(date-month d)")
           (racket-code "(date-year d)"))))
+
+(def date ((o s (seconds)))
+  (rev (nthcdr 3 (timedate s))))
+
+(def datestring ((o s (seconds)))
+  (let (y m d) (date s)
+    (string y "-" (if (< m 10) "0") m "-" (if (< d 10) "0") d)))
+
+(def count (test x)
+  (with (n 0 testf (testify test))
+    (each elt x
+      (if (testf elt) (++ n)))
+    n))
+
+(def ellipsize (str (o limit 80))
+  (if (<= (len str) limit)
+      str
+      (+ (cut str 0 limit) "...")))
+
+(def rand-elt (seq) 
+  (seq (rand (len seq))))
