@@ -1203,3 +1203,23 @@
 
 (def only (f) 
   (fn args (if (car args) (apply f args))))
+
+(def retrieve (n f xs)
+  (if (no n)                 (keep f xs)
+      (or (<= n 0) (no xs))  nil
+      (f (car xs))           (cons (car xs) (retrieve (- n 1) f (cdr xs)))
+                             (retrieve n f (cdr xs))))
+
+(def dedup (xs)
+  (with (h (table) acc nil)
+    (each x xs
+      (unless (h x)
+        (push x acc)
+        (set (h x))))
+    (rev acc)))
+
+(def single (x) (and (acons x) (no (cdr x))))
+
+(def intersperse (x ys)
+  (and ys (cons (car ys)
+                (mappend [list x _] (cdr ys)))))

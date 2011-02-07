@@ -522,3 +522,13 @@
 
 (testis (only.avg '(3 2 3 4)) 3)
 (testis (only.avg '()) nil)
+
+(testis (retrieve 3 even '(1 2 3 4 5 6 7)) '(2 4 6))
+
+(testis (dedup '(a b c a c d e e f a)) '(a b c d e f))
+
+(testis (single '()) nil)
+(testis (single '(a)) t)
+(testis (single '(a b)) nil)
+
+(testis (intersperse 'x '(a b c d)) '(a x b x c x d))
