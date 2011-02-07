@@ -496,3 +496,15 @@
 
 (w/rand (fn (x) 2)
   (testis (rand-elt '(a b c d e)) 'c))
+
+; todo test for until
+
+(testis (before 'c 'e '(a b c d e f g)) t)
+(testis (before even [> _ 10] '(3 7 2 11 4)) t)
+(testis (before even [> _ 10] '(3 11 7 2 4)) nil)
+
+(testis ((orf letter digit) #\6) t)
+(testis ((orf letter digit) #\*) nil)
+
+(testis ((andf even [> _ 0]) -4) nil)
+(testis ((andf even [> _ 0]) 4) t)

@@ -1168,3 +1168,24 @@
 
 (def rand-elt (seq) 
   (seq (rand (len seq))))
+
+(mac until (test . body)
+  `(while (no ,test) ,@body))
+
+(def before (x y seq (o i 0))
+  (with (xp (pos x seq i) yp (pos y seq i))
+    (and xp (or (no yp) (< xp yp)))))
+
+(def orf fns
+  (fn args
+    ((afn (fs)
+       (and fs (or (apply (car fs) args) (self (cdr fs)))))
+     fns)))
+
+(def andf fns
+  (fn args
+    ((afn (fs)
+       (if (no fs)       t
+           (no (cdr fs)) (apply (car fs) args)
+                         (and (apply (car fs) args) (self (cdr fs)))))
+     fns)))
