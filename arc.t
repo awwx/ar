@@ -508,3 +508,17 @@
 
 (testis ((andf even [> _ 0]) -4) nil)
 (testis ((andf even [> _ 0]) 4) t)
+
+(testis (atend 1 "abc") nil)
+(testis (atend 2 "abc") t)
+(testis (atend 3 "abc") t)
+
+(testis (multiple 25 5) t)
+(testis (multiple 25 25) t)
+(testis (multiple 25 4) nil)
+
+(testis (nor nil nil nil) t)
+(testis (nor nil t nil nil) nil)
+
+(testis (only.avg '(3 2 3 4)) 3)
+(testis (only.avg '()) nil)

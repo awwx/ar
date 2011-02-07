@@ -1189,3 +1189,17 @@
            (no (cdr fs)) (apply (car fs) args)
                          (and (apply (car fs) args) (self (cdr fs)))))
      fns)))
+
+(def atend (i s)
+  (> i (- (len s) 2)))
+
+(def multiple (x y)
+  (is 0 (mod x y)))
+
+(mac nor args `(no (or ,@args))) 
+
+(def compare (comparer scorer)
+  (fn (x y) (comparer (scorer x) (scorer y))))
+
+(def only (f) 
+  (fn args (if (car args) (apply f args))))
