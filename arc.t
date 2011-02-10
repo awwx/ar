@@ -532,3 +532,13 @@
 (testis (single '(a b)) nil)
 
 (testis (intersperse 'x '(a b c d)) '(a x b x c x d))
+
+(testis (counts '(a b a c c d c b))
+        (obj a 2 b 2 c 3 d 1))
+
+(testis (commonest '(a b a c c d c b)) '(c 3))
+
+(testis (reduce + '(1 2 3 4 5 6)) 21)
+
+;; (testis (tostring (let name "Fred" (prf "Hello #name ~x!" 3)))
+;;         "Hello Fred 3!")

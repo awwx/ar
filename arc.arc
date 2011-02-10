@@ -1223,3 +1223,28 @@
 (def intersperse (x ys)
   (and ys (cons (car ys)
                 (mappend [list x _] (cdr ys)))))
+
+(def counts (seq (o c (table)))
+  (if (no seq)
+      c
+      (do (++ (c (car seq) 0))
+          (counts (cdr seq) c))))
+
+(def commonest (seq)
+  (with (winner nil n 0)
+    (each (k v) (counts seq)
+      (when (> v n) (= winner k n v)))
+    (list winner n)))
+
+(def reduce (f xs)
+  (if (cddr xs)
+      (reduce f (cons (f (car xs) (cadr xs)) (cddr xs)))
+      (apply f xs)))
+
+(def rreduce (f xs)
+  (if (cddr xs)
+      (f (car xs) (rreduce f (cdr xs)))
+      (apply f xs)))
+
+;; todo going to need incremental parsing (with peek chars!) 
+;; for prf
