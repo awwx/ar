@@ -1335,15 +1335,15 @@
       (f))
     (get-output-string port)))
 
-; todo these need to not return void
-
 (ac-def primitive-disp (x (port (current-output-port)))
   (display x port)
-  (flush-output port))
+  (flush-output port)
+  x)
 
 (ac-def primitive-write (x (port (current-output-port)))
   (write x port)
-  (flush-output port))
+  (flush-output port)
+  x)
 
 (test-equal
  (let ((port (open-output-string))
