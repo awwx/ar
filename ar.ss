@@ -908,13 +908,30 @@
 
 
 ;; call
-; todo optimizations
 
-(ac-def ac-call (fn args env)
-  (mcons ar-apply
-         (mcons ((g ac) fn env)
-                ((g map1) (lambda (x)
-                            ((g ac) x env)) args))))
+; todo ac-dbname!
+(ac-def ac-args (names exprs env)
+  ((g map1) (lambda (expr) ((g ac) expr env)) exprs))
+
+(ac-def ac-call (f args env)
+  (cond
+   ;; if we're about to call a literal fn such as ((fn (a b) ...) 1 2)
+   ;; then we know we can just call it in Racket and we don't
+   ;; have to use ar-apply
+   ((and (mpair? f) (eq? (mcar f) 'fn))
+    (mcons ((g ac) f env)
+           ((g ac-args) (arc-cadr f) args env)))
+
+   (else
+    (mcons (case ((g len) args)
+             ((0) ar-funcall0)
+             ((1) ar-funcall1)
+             ((2) ar-funcall2)
+             ((3) ar-funcall3)
+             ((4) ar-funcall4)
+             (else ar-apply))
+           (mcons ((g ac) f env)
+                  ((g map1) (lambda (arg) ((g ac) arg env)) args))))))
 
 (extend ac (s env)
   (tnil (mpair? s))

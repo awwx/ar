@@ -118,7 +118,6 @@ Todo
 * atstrings
 * ac-binaries
 * direct-calls
-* ar-funcallN optimizations
 * ac-macex
 * explicit-flush
 * incremental parsing
