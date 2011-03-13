@@ -1,114 +1,51 @@
-The goals of this Arc runtime project are:
+The goal of this runtime project is to make Arc (even more!) hackable
+by reflecting the Arc compiler into Arc, which in turn also lets more
+of the Arc compiler to be written in Arc itself.
 
-* to fix bugs in the runtime
+    arc> (ac-literal? 123)
+    t
+    arc> (eval 123)
+    123
+    arc> +
+    #<procedure:ar-+>
+    arc> (ac-literal? +)
+    nil
+    arc> (eval +)
+    err: Bad object in expression #<procedure:ar-+>
+    arc> (defrule ac-literal? (isa x 'fn) t)
+    #<procedure:g1444>
+    arc> (ac-literal? +)
+    t
+    arc> (eval +)
+    #<procedure:ar-+>
 
-* to make Arc more hackable
-
-* and to do that while avoiding changing the Arc language.
-
-The later two go together because when there's some change we'd like
-to make to Arc, we can make Arc more hackable instead, and then we can
-get the "different" Arc that we want as a library, instead of having
-to actually change Arc.
+Along the way we take advantage of the more hackable Arc to fix some
+bugs and make some enhancements in the runtime that turn out to be
+easier to do with a compiler which isn't quite as tightly bound to
+Scheme.
 
 This code is under development, most of Arc is still unimplemented.
 
-There's now a toy REPL.  (It only reads one line and eval's that,
-instead of reading as many lines as are needed to complete the input).
+There's a toy REPL (which doesn't bother to catch errors):
 
-To run:
-
-    racket ar.ss
+    racket repl.ss
 
 or, if you have rlwrap:
 
-    rlwrap -q \" racket ar.ss
+    rlwrap -q \" racket repl.ss
 
 You can also use "mzscheme" instead of "racket".
 
 Note that you don't use the "-f" option like you would with Arc 3.1.
 
-Runtime tests can be run by using "--test-inline" or "--test-atend" command
-line arguments.  (Tests are slow because the Arc compiler and Arc are
-loaded afresh for each test).
+Run tests with:
 
-Running all tests (both the runtime tests and the Arc tests) can be
-done with:
-
-    racket ar.ss --test-inline ar.t arc.t
+    racket ar-test.ss
+    racket ac-test.ss
+    racket arc-test.ss
 
 
-Ways to Help
-------------
-
-### Write tests for Arc
-
-Writing tests is often easy.  A test is just an example that throws
-an error if an expression doesn't return the expected result or do the
-expected thing. Here's a test for `sort`:
-
-    (unless (iso (sort < '(5 3 7)) '(3 5 7)) (err "nope"))
-
-If you find it convenient, you can use the unit testing library at
-[test.arc](https://github.com/awwx/ar/blob/master/test.arc), with that
-the above example can be written as:
-
-    (testis (sort < '(5 3 7)) '(3 5 7))
-
-or you can use your own unit testing library... write tests in
-whatever way is most convenient for you.
-
-You don't need to run this new runtime at all, just write tests for
-Arc 3.1.  You also don't have to figure out exactly what the result of
-an expression will be; instead, type the expression into the Arc 3.1
-REPL, and copy the answer.
-
-Tests for Arc will be valuable for far more than just this runtime.
-They can be used for all the other runtimes that people work on
-(implementations of Arc on top of Java, Javascript, etc. etc.)  And
-they serve as illustrative examples.  People wondering what `sort`
-does and how to use it can look at your example and see.
-
-Which tests should you write? First naturally you should look at the
-existing [test files](https://github.com/awwx/ar) to make sure that
-the test you're thinking of hasn't already been written.  After that,
-test the things that your own Arc programs use.  Does your Arc program
-call `sort`, or `begins`, or `img`?  Add a couple of debugging lines
-to find out with what arguments your program calls the function and
-what it returns, and make a test for that.
-
-Tests are enormously helpful.  I don't *know* how your program uses
-Arc, I'm just guessing.  With a test I can immediately see what's not
-working, or if a change I've made has broken something -- that in turn
-would break your program.
-
-
-### Pick a to-do item
-
-There's a list of to-do's below, you can pick one and do it :-).  You
-can fork the github project and push changes to me that way, or just
-send me an email with your patches.
-
-Note that patches to the runtime itself need to be released under the
-Perl Artistic License, as the code is derived from Arc 3.1.  (You can
-*also* release your contributions under whatever other license you
-want, as long as you dual-licence with the Perl Artistic License).
-
- 
-### Address code quality issues
-
-My primary focus so far has been getting things to work, with less
-attention on readable code.  A fresh pair of eyes can see duplicate
-code, awkward names, and notice less confusing ways of doing things.
-
-### Find bugs
-
-Running the runtime right now is pretty slow because none of the Arc
-optimizations have been written yet (they're on the to-do list...)
-However, if you can stand it and do find a bug, bug reports are
-*greatly* appreciated :D.
-
-
+Bug reports are *greatly* appreciated!
 
 
 Todo
@@ -120,34 +57,27 @@ Todo
 * direct-calls
 * ac-macex
 * explicit-flush
-* incremental parsing
 * full REPL
 * declare
 * primitives
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
 * can now get rid of ugly parameter renames such as "testff" for test.
 
-Idea: Testing each definition immediately after it's been defined is a
-useful discipline for ensuring that we don't have any forward
-references, which in turn makes hacking and rebasing the code easy.
-But the tests are particularly ugly right now, in part because we
-don't have much of Arc implemented yet at the time we want to test.
-Since we can now create new Arc runtimes with new-ac, perhaps we could
-create a complete version of Arc which could then incrementally test
-the Arc under construction.
-
  
 Changes
 -------
 
-This version of the Arc runtime:
+These bug fixes and enhancements are demonstrations of things that
+become easier to do when more of the Arc compiler is written in Arc.
+Because of the flexibility of the compiler they're easily reversed or
+changed.
 
-* Implements Arc lists using Racket's mutable pairs (mpair's)
+* Arc lists are implemented using Racket's mutable pairs (mpair's)
 
   as a fix for the [queue bug](http://awwx.ws/queue-test-summary).
 
 
-* implements quasiquotation with Alan Bawden's algorithm
+* quasiquotation is implemented with Alan Bawden's algorithm
 
   as a fix for list splicing in nested quasiquotes, which was giving
   people trouble writing macro-defining macros.
@@ -202,28 +132,6 @@ This version of the Arc runtime:
   and applying join to the pieces will result in the original list.
 
 
-* Reflects the Arc compiler into Arc to make Arc more hackable
-
-         arc> (ac-literal? 123)
-         t
-         arc> (eval 123)
-         123
-         arc> +
-         #<procedure:ar-+>
-         arc> (ac-literal? +)
-         nil
-         arc> (eval +)
-         err: Bad object in expression #<procedure:ar-+>
-         arc> (defrule ac-literal? (isa x 'fn) t)
-         #<procedure:g1444>
-         arc> (ac-literal? +)
-         t
-         arc> (eval +)
-         #<procedure:ar-+>
-
-
-* Arc reader implemented in Arc
-
 
 * global variables are stored in an Arc table instead of in a Racket namespace
 
@@ -252,13 +160,6 @@ This version of the Arc runtime:
 * readline accepts CR-LF line endings
 
   which is useful for Internet protocols such as HTTP.
-
-
-* tables read and print as "#table" followed by the tablist of the
-  table
-
-Note that most of these choices are very easily reversed if they turn
-out to be a bad idea.
 
 
 Contributors

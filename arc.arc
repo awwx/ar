@@ -1,165 +1,377 @@
+(assign do (annotate 'mac
+             (fn args `((fn () ,@args)))))
+
+(assign safeset
+  (annotate 'mac
+    (fn (var val)
+      `(do (if (bound ',var)
+               (do (primitive-disp "*** redefining " (racket-stderr))
+                   (primitive-disp ',var (racket-stderr))
+                   (primitive-disp #\newline (racket-stderr))))
+           (assign ,var ,val)))))
+
+(assign assign-fn
+  (annotate 'mac
+    (fn (name signature func)
+      `(do (sref sig ',signature ',name)
+           (safeset ,name ,func)))))
+
+(assign def
+  (annotate 'mac
+    (fn (name parms . body)
+      `(assign-fn ,name ,parms (fn ,parms ,@body)))))
+
+(def caar (xs) (car (car xs)))
+(def cadr (xs) (car (cdr xs)))
+(def cddr (xs) (cdr (cdr xs)))
+
+(def no (x) (is x nil))
+
+(def acons (x) (is (type x) 'cons))
+
+(def atom (x) (no (acons x)))
+
+(def idfn (x) x)
+
+(def isa (x y) (is (type x) y))
+
+(assign-fn pair (xs (o f list))
+  (fn args
+    ((fn (xs f)
+       (if (no xs)
+            nil
+           (no (cdr xs))
+            (list (list (car xs)))
+            (cons (f (car xs) (cadr xs))
+                  (pair (cddr xs) f))))
+     (car args)
+     (if (cdr args) (cadr args) list))))
+
+(assign mac (annotate 'mac
+              (fn (name parms . body)
+                `(do (sref sig ',parms ',name)
+                     (safeset ,name (annotate 'mac (fn ,parms ,@body)))))))
+
 (mac square-bracket body
   `(fn (_) (,@body)))
 
-(def readline ((o s stdin))
-  (aif (readc s)
-    (coerce
-     (accum a
-       (xloop (c it)
-         (if (is c #\return)
-              (if (is (peekc s) #\newline)
-                   (readc s))
-             (is c #\newline)
-              nil
-              (do (a c)
-                  (aif (readc s)
-                        (next it))))))
-     'string)))
+(mac and args
+  (if args
+      (if (cdr args)
+          `(if ,(car args) (and ,@(cdr args)))
+          (car args))
+      t))
 
-(def toy-repl ()
-  (disp "arc> ")
-  (aif (readline)
-        (do (on-err (fn (e) (prn "err: " (details e)))
-              (fn ()
-                (map1 (fn (r)
-                        (write r)
-                        (prn))
-                      (read-eval it))))
-            (toy-repl))
-        (prn)))
+(def assoc (key al)
+  (if (atom al)
+       nil
+      (and (acons (car al)) (is (caar al) key))
+       (car al)
+      (assoc key (cdr al))))
 
-(def string args
-  (apply + "" (map1 [coerce _ 'string] args)))
+(def alref (al key) (cadr (assoc key al)))
 
-(def ssyntax (x)
-  (and (isa x 'sym)
-       (no (in x '+ '++ '_))
-       (some [in _ #\: #\~ #\& #\. #\!] (string x))))
+(mac with (parms . body)
+ `((fn ,(map1 car (pair parms))
+    ,@body)
+   ,@(map1 cadr (pair parms))))
 
-(def ac-symbol->chars (x)
-  (coerce (coerce x 'string) 'cons))
+(mac let (var val . body)
+  `(with (,var ,val) ,@body))
 
-(def ac-tokens (testff source token acc keepsep?)
-  (if (no source)
-       (rev (if (acons token)
-                 (cons (rev token) acc)
-                 acc))
-      (testff (car source))
-       (ac-tokens testff
-                  (cdr source)
-                  '()
-                  (let rec (if (no token)
-                                acc
-                                (cons (rev token) acc))
-                    (if keepsep?
-                         (cons (car source) rec)
-                         rec))
-                  keepsep?)
-       (ac-tokens testff
-                  (cdr source)
-                  (cons (car source) token)
-                  acc
-                  keepsep?)))
+(mac withs (parms . body)
+  (if (no parms) 
+      `(do ,@body)
+      `(let ,(car parms) ,(cadr parms) 
+         (withs ,(cddr parms) ,@body))))
 
-(def ac-chars->value (x)
-  (read1 (coerce x 'string)))
+(mac rfn (name parms . body)
+  `(let ,name nil
+     (assign ,name (fn ,parms ,@body))))
 
-(def ac-expand-compose (sym)
-  (let elts (map1 (fn (tok)
-                    (if (is (car tok) #\~)
-                         (if (no (cdr tok))
-                             'no
-                             `(complement ,(ac-chars->value (cdr tok))))
-                         (ac-chars->value tok)))
-                  (ac-tokens [is _ #\:] (ac-symbol->chars sym) nil nil nil))
-    (if (no (cdr elts))
-         (car elts)
-         (cons 'compose elts))))
+(mac afn (parms . body)
+ `(let self nil
+    (assign self (fn ,parms ,@body))))
 
-(def ac-expand-ssyntax (sym)
-  (err "Unknown ssyntax" sym))
+(mac compose args
+  (let g (uniq)
+    `(fn ,g
+       ,((afn (fs)
+           (if (cdr fs)
+               (list (car fs) (self (cdr fs)))
+               `(apply ,(if (car fs) (car fs) 'idfn) ,g)))
+         args))))
 
-(defrule ac (ssyntax s)
-  (ac (ac-expand-ssyntax s) env))
+(mac complement (f)
+  (let g (uniq)
+    `(fn ,g (no (apply ,f ,g)))))
 
-(def ac-insym? (char sym)
-  (mem char (ac-symbol->chars sym)))
+(def rev (xs) 
+  ((afn (xs acc)
+     (if (no xs)
+         acc
+         (self (cdr xs) (cons (car xs) acc))))
+   xs nil))
 
-(defrule ac-expand-ssyntax (or (ac-insym? #\: sym) (ac-insym? #\~ sym))
-  (ac-expand-compose sym))
+(def isnt (x y) (no (is x y)))
 
-(def ac-build-sexpr (toks orig)
-  (if (no toks)
-       'get
-      (no (cdr toks))
-       (ac-chars->value (car toks))
-       (list (ac-build-sexpr (cddr toks) orig)
-             (if (is (cadr toks) #\!)
-                  (list 'quote (ac-chars->value (car toks)))
-                  (if (in (car toks) #\. #\!)
-                       (err "Bad ssyntax" orig)
-                       (ac-chars->value (car toks)))))))
+(mac w/uniq (names . body)
+  (if (acons names)
+      `(with ,(apply + nil (map1 (fn (n) (list n '(uniq)))
+                             names))
+         ,@body)
+      `(let ,names (uniq) ,@body)))
 
-(def ac-expand-sexpr (sym)
-  (ac-build-sexpr (rev (ac-tokens [in _ #\. #\!] (ac-symbol->chars sym) nil nil t))
-                  sym))
+(mac or args
+  (and args
+       (w/uniq g
+         `(let ,g ,(car args)
+            (if ,g ,g (or ,@(cdr args)))))))
 
-(defrule ac-expand-ssyntax (or (ac-insym? #\. sym) (ac-insym? #\! sym))
-  (ac-expand-sexpr sym))
+(def alist (x) (or (no x) (is (type x) 'cons)))
 
-(def cdar (x) (cdr:car x))
+(mac in (x . choices)
+  (w/uniq g
+    `(let ,g ,x
+       (or ,@(map1 (fn (c) `(is ,g ,c)) choices)))))
 
-(def ac-andf (s env)
-  (ac (let gs (map1 [uniq] (cdr s))
-        `((fn ,gs
-            (and ,@(map1 (fn (f) `(,f ,@gs))
-                         (cdar s))))
-          ,@(cdr s)))
-      env))
+(def iso (x y)
+  (or (is x y)
+      (and (acons x) 
+           (acons y) 
+           (iso (car x) (car y)) 
+           (iso (cdr x) (cdr y)))))
 
-(def xcar (x) (and (acons x) (car x)))
+(mac when (test . body)
+  `(if ,test (do ,@body)))
 
-(defrule ac (is (xcar:xcar s) 'andf) (ac-andf s env))
+(mac unless (test . body)
+  `(if (no ,test) (do ,@body)))
 
-(def ac-expand-and (sym)
-  (let elts (map1 ac-chars->value
-                  (ac-tokens [is _ #\&] (ac-symbol->chars sym) nil nil nil))
-    (if (no (cdr elts))
-         (car elts)
-         (cons 'andf elts))))
+(mac while (test . body)
+  (w/uniq (gf gp)
+    `((rfn ,gf (,gp)
+        (when ,gp ,@body (,gf ,test)))
+      ,test)))
 
-(defrule ac (ssyntax (xcar s))
-  (ac (cons (ac-expand-ssyntax (car s)) (cdr s)) env))
+(def empty (seq) 
+  (or (no seq) 
+      (and (or (is (type seq) 'string) (is (type seq) 'table))
+           (is (len seq) 0))))
 
-(defrule ac-expand-ssyntax (ac-insym? #\& sym) (ac-expand-and sym))
+(def reclist (f xs)
+  (and xs (or (f xs) (reclist f (cdr xs)))))
 
-; (and:or 3) => ((compose and or) 3) => (and (or 3))
+(def caddr (x) (car (cddr x)))
 
-(def ac-decompose (fns args)
-  (if (no fns)
-       `((fn vals (car vals)) ,@args)
-      (no (cdr fns))
-       (cons (car fns) args)
-       (list (car fns) (ac-decompose (cdr fns) args))))
+(assign-fn recstring (test s (o start 0))
+  (fn args
+    (with (test (car args)
+           s    (cadr args)
+           start (if (cddr args) (caddr args) 0))
+      ((afn (i)
+         (and (< i (len s))
+              (or (test i)
+                  (self (+ i 1)))))
+       start))))
 
-(defrule ac (is (xcar:xcar s) 'compose)
-  (ac (ac-decompose (cdar s) (cdr s)) env))
+(def testify (x)
+  (if (isa x 'fn) x [is _ x]))
 
-(def cadar (x) (car (cdar x)))
+(def some (test seq)
+  (let f (testify test)
+    (if (alist seq)
+         (reclist   (compose f car) seq)
+         (recstring (compose f seq) seq))))
 
-; (~and 3 nil) => ((complement and) 3 nil) => (no (and 3 nil))
+(def all (test seq) 
+  ((complement some) (complement (testify test)) seq))
 
-(defrule ac (is (xcar:xcar s) 'complement)
-  (ac (list 'no (cons (cadar s) (cdr s))) env))
+(mac defvar args
+  (with (name (car args)
+         get  (cadr args)
+         set  (caddr args))
+  `(ac-defvar ',name (list ,get ,set))))
+(sref sig '(name get (o set)) 'defvar)
 
-(def racket-fn (name (o module 'scheme))
-  ((racket-module module) name))
+(def sym (x) (coerce x 'sym))
 
-(mac inline (x)
-  `',(eval x))
+(assign-fn int (x (o b 10))
+  (fn args
+    (with (x (car args)
+           b (if (cdr args) (cadr args) 10))
+      (coerce x 'int b))))
+
+(mac parameterize (param val . body)
+  `(racket-parameterize ,param ,val (fn () ,@body)))
+
+(assign dynamic-parameter* (table))
+
+(mac make-dynamic (name param)
+  (w/uniq paramval
+    `(let ,paramval ,param
+       (sref dynamic-parameter* ,paramval ',name)
+       (defvar ,name (fn () (,paramval)) (fn (val) (,paramval val))))))
+
+(mac paramfor (name)
+  `(dynamic-parameter* ',name))
+
+(mac dlet (name val . body)
+  `(racket-parameterize (paramfor ,name) ,val (fn () ,@body)))
+
+(mac dynamic args
+  (with (name (car args)
+         init (cadr args))
+    `(make-dynamic ,name (parameter ,init))))
+
+(mac make-w/ (name)
+  (let w/name (sym (+ "w/" name))
+    `(mac ,w/name (val . body)
+       `(dlet ,',name ,val ,@body))))
+
+(mac make-implicit (name param)
+  `(do (make-dynamic ,name ,param)
+       (make-w/ ,name)))
+
+(mac implicit args
+  (with (name (car args)
+         init (cadr args))
+    `(make-implicit ,name (parameter ,init))))
+(sref sig '(name (o init)) 'implicit)
+
+(make-implicit stdin  racket-stdin)
+(make-implicit stdout racket-stdout)
+(make-implicit stderr racket-stderr)
+
+(def print (primitive x port)
+  (primitive x port))
+
+(def disp args
+  (with (x (car args)
+         port (or (cadr args) stdout))
+    (print primitive-disp x port)))
+(sref sig '(x (o port)) 'disp)
+
+(def write args
+  (with (x (car args)
+         port (or (cadr args) stdout))
+    (print primitive-write x port)))
+(sref sig '(x (o port)) 'write)
+
+(def pr args
+  (map1 disp args)
+  (car args))
+
+(mac do1 args
+  (w/uniq g
+    `(let ,g ,(car args)
+       ,@(cdr args)
+       ,g)))
+
+(mac w/outstring (var . body)
+  `(let ,var (outstring) ,@body))
+
+(mac tostring body
+  (w/uniq gv
+   `(w/outstring ,gv
+      (w/stdout ,gv ,@body)
+      (inside ,gv))))
+
+(def prn args
+  (do1 (apply pr args)
+       (writec #\newline)))
+
+(def ac-complex-args? (args)
+  (if (no args)
+       nil
+      (isa args 'sym)
+       nil
+      (and (acons args) (isa (car args) 'sym))
+       (ac-complex-args? (cdr args))
+       t))
+
+(def ac-complex-getargs (a) (map1 car a))
+
+(def ac-complex-opt (var expr ra)
+  (list (list var `(if (acons ,ra) (car ,ra) ,expr))))
+
+(def ac-complex-args (args ra)
+  (if (no args)
+       nil
+      (isa args 'sym)
+       (list (list args ra))
+      (acons args)
+       (withs (a (car args)
+               r (cdr args)
+               x (if (and (acons a) (is (car a) 'o))
+                      (ac-complex-opt (cadr a) (car (cddr a)) ra)
+                      (ac-complex-args a (list 'car ra))))
+         (join x (ac-complex-args (cdr args) (list 'cdr ra))))
+       (err "Can't understand fn arg list" args)))
+
+(def ac-complex-fn (args body)
+  (let ra (uniq)
+    `(fn ,ra
+       (withs ,(apply join (ac-complex-args args ra))
+         ,@body))))
+
+(mac aif (expr . body)
+  `(let it ,expr
+     (if it
+         ,@(if (cddr body)
+               `(,(car body) (aif ,@(cdr body)))
+               body))))
+
+(mac erp (x)
+  (w/uniq (gx)
+    `(let ,gx ,x
+       (w/stdout stderr
+         (write ',x)
+         (disp ": ")
+         (write ,gx)
+         (disp #\newline))
+       ,gx)))
+
+(mac defrule (name test . body)
+  (let arglist (sig name)
+    (w/uniq (orig args)
+      `(let ,orig ,name
+         (assign ,name
+           (fn ,args
+             (aif (apply (fn ,arglist ,test) ,args)
+                   (apply (fn ,arglist ,@body) ,args)
+                   (apply ,orig ,args))))))))
+
+(defrule ac-fn (ac-complex-args? args)
+  (ac (ac-complex-fn args body) env))
+
+(def printwith-list (primitive x port)
+  (if (no (cdr x))
+       (do (print primitive (car x) port)
+           (disp ")" port))
+      (acons (cdr x))
+       (do (print primitive (car x) port)
+           (disp " " port)
+           (printwith-list primitive (cdr x) port))
+       (do (print primitive (car x) port)
+           (disp " . " port)
+           (print primitive (cdr x) port)
+           (disp ")" port))))
+
+(defrule print (isa x 'cons)
+  (disp "(" port)
+  (printwith-list primitive x port))
+
+(defrule ac (caris s 'racket)
+  (let x (cadr s)
+    (if (isa x 'string)
+         (racket-read-from-string x)
+         x)))
+
+(assign-fn newstring (k (o char)) (racket make-string))
 
 (def maptable (f table)
-  ((inline (racket-fn 'hash-for-each)) table f)
+  ((racket hash-for-each) table f)
   table)
 
 (mac each (var expr . body)
@@ -177,9 +389,6 @@
             (for ,gv 0 (- (len ,gseq) 1)
               (let ,var (,gseq ,gv) ,@body))))))
 
-(assign-fn newstring (k (o char)) (racket-fn 'make-string))
-
-; no = yet
 (def best (f seq)
   (if (no seq)
       nil
@@ -210,27 +419,221 @@
                   (self (map1 cdr seqs)))))
        seqs)))
 
-(def warn (msg . args)
-  (disp (+ "Warning: " msg ". "))
-  (map [do (write _) (disp " ")] args)
-  (disp #\newline))
+(def string args
+  (apply + "" (map [coerce _ 'string] args)))
 
-(assign-fn make-semaphore ((o init)) (racket-fn 'make-semaphore))
+(def ac-ssyntax (x)
+  (and (isa x 'sym)
+       (no (in x '+ '++ '_))
+       (some [in _ #\: #\~ #\& #\. #\!] (string x))))
 
-;; Might want to support the optional arguments to call-with-semaphore,
-;; but not using them at the moment.
+(def ac-symbol->chars (x)
+  (coerce (coerce x 'string) 'cons))
 
-(def call-with-semaphore (sema func)
-  ((inline (racket-fn 'call-with-semaphore))
-   sema (fn () (func))))
+(def ac-tokens (testff source token acc keepsep?)
+  (if (no source)
+       (rev (if (acons token)
+                 (cons (rev token) acc)
+                 acc))
+      (testff (car source))
+       (ac-tokens testff
+                  (cdr source)
+                  '()
+                  (let rec (if (no token)
+                                acc
+                                (cons (rev token) acc))
+                    (if keepsep?
+                         (cons (car source) rec)
+                         rec))
+                  keepsep?)
+       (ac-tokens testff
+                  (cdr source)
+                  (cons (car source) token)
+                  acc
+                  keepsep?)))
 
-(def make-thread-cell (v (o preserved))
-  ((inline (racket-fn 'make-thread-cell))
-   v
-   (nil->racket-false preserved)))
+(def racket-true (x)
+  (racket (if x 't 'nil)))
 
-(assign-fn thread-cell-ref (cell)   (racket-fn 'thread-cell-ref))
-(assign-fn thread-cell-set (cell v) (racket-fn 'thread-cell-set!))
+(def sread (p eof)
+  (let v ((racket read) p)
+    (if (racket-true ((racket eof-object?) v))
+         eof
+         (ar-toarc v))))
+
+(assign-fn ccc (k) (racket call-with-current-continuation))
+
+(mac point (name . body)
+  (w/uniq (g p)
+    `(ccc (fn (,g)
+            (let ,name (fn ((o ,p)) (,g ,p))
+              ,@body)))))
+
+(mac catch body
+  `(point throw ,@body))
+
+(def protect (during after)
+  (racket (dynamic-wind (lambda () #t) during after)))
+
+(mac after (x . ys)
+  `(protect (fn () ,x) (fn () ,@ys)))
+
+(mac inline (x)
+  `',(eval x))
+
+(def system (cmd)
+  ((inline ((racket-module 'scheme/system) 'system)) cmd)
+  nil)
+
+(mac caselet (var expr . args)
+  (let ex (afn (args)
+            (if (no (cdr args)) 
+                (car args)
+                `(if (is ,var ',(car args))
+                     ,(cadr args)
+                     ,(self (cddr args)))))
+    `(let ,var ,expr ,(ex args))))
+
+(mac case (expr . args)
+  `(caselet ,(uniq) ,expr ,@args))
+
+(def close ports
+  (map (fn (port)
+         (case (type port)
+           input  ((racket close-input-port) port)
+           output ((racket close-output-port) port)
+           socket ((racket tcp-close) port)
+                  (err "Can't close " port)))
+       ports)
+  ;; todo try-custodian
+  nil)
+
+(dynamic infile (racket open-input-file))
+(sref sig '(name) 'infile)
+
+(def outfile (filename (o append))
+  (let flag (if append 'append 'truncate)
+    (racket (open-output-file filename #:mode 'text #:exists flag))))
+
+;; todo open-socket
+
+(let expander 
+     (fn (f var name body)
+       `(let ,var (,f ,name)
+          (after (do ,@body) (close ,var))))
+
+  (mac w/infile (var name . body)
+    (expander 'infile var name body))
+
+  (mac w/outfile (var name . body)
+    (expander 'outfile var name body))
+
+  (mac w/instring (var str . body)
+    (expander 'instring var str body))
+
+  (mac w/socket (var port . body)
+    (expander 'open-socket var port body))
+  )
+
+(mac w/appendfile (var name . body)
+  `(let ,var (outfile ,name 'append)
+     (after (do ,@body) (close ,var))))
+
+(def readstring1 (s (o eof nil)) (w/instring i s (read i eof)))
+
+(def read ((o x stdin) (o eof nil))
+  (if (isa x 'string) (readstring1 x eof) (sread x eof)))
+
+(def ac-chars->value (x)
+  (read (coerce x 'string)))
+
+(def ac-expand-compose (sym)
+  (let elts (map1 (fn (tok)
+                    (if (is (car tok) #\~)
+                         (if (no (cdr tok))
+                             'no
+                             `(complement ,(ac-chars->value (cdr tok))))
+                         (ac-chars->value tok)))
+                  (ac-tokens [is _ #\:] (ac-symbol->chars sym) nil nil nil))
+    (if (no (cdr elts))
+         (car elts)
+         (cons 'compose elts))))
+
+(def ac-expand-ssyntax (sym)
+  (err "Unknown ssyntax" sym))
+
+(defrule ac (ac-ssyntax s)
+  (ac (ac-expand-ssyntax s) env))
+
+(def ac-insym? (char sym)
+  (mem char (ac-symbol->chars sym)))
+
+(defrule ac-expand-ssyntax (or (ac-insym? #\: sym) (ac-insym? #\~ sym))
+  (ac-expand-compose sym))
+
+(def ac-build-sexpr (toks orig)
+  (if (no toks)
+       'get
+      (no (cdr toks))
+       (ac-chars->value (car toks))
+       (list (ac-build-sexpr (cddr toks) orig)
+             (if (is (cadr toks) #\!)
+                  (list 'quote (ac-chars->value (car toks)))
+                  (if (in (car toks) #\. #\!)
+                       (err "Bad ssyntax" orig)
+                       (ac-chars->value (car toks)))))))
+
+(def ac-expand-sexpr (sym)
+  (ac-build-sexpr (rev (ac-tokens [in _ #\. #\!] (ac-symbol->chars sym) nil nil t))
+                  sym))
+
+(defrule ac-expand-ssyntax (or (ac-insym? #\. sym) (ac-insym? #\! sym))
+  (ac-expand-sexpr sym))
+
+(assign cdar cdr:car)
+
+(def ac-andf (s env)
+  (ac (let gs (map1 [uniq] (cdr s))
+        `((fn ,gs
+            (and ,@(map1 (fn (f) `(,f ,@gs))
+                         (cdar s))))
+          ,@(cdr s)))
+      env))
+
+(def xcar (x) (and (acons x) (car x)))
+
+(defrule ac (is (xcar:xcar s) 'andf) (ac-andf s env))
+
+(def ac-expand-and (sym)
+  (let elts (map1 ac-chars->value
+                  (ac-tokens [is _ #\&] (ac-symbol->chars sym) nil nil nil))
+    (if (no (cdr elts))
+         (car elts)
+         (cons 'andf elts))))
+
+(defrule ac (ac-ssyntax (xcar s))
+  (ac (cons (ac-expand-ssyntax (car s)) (cdr s)) env))
+
+(defrule ac-expand-ssyntax (ac-insym? #\& sym) (ac-expand-and sym))
+
+; (and:or 3) => ((compose and or) 3) => (and (or 3))
+
+(def ac-decompose (fns args)
+  (if (no fns)
+       `((fn vals (car vals)) ,@args)
+      (no (cdr fns))
+       (cons (car fns) args)
+       (list (car fns) (ac-decompose (cdr fns) args))))
+
+(defrule ac (is (xcar:xcar s) 'compose)
+  (ac (ac-decompose (cdar s) (cdr s)) env))
+
+(def cadar (x) (car (cdar x)))
+
+; (~and 3 nil) => ((complement and) 3 nil) => (no (and 3 nil))
+
+(defrule ac (is (xcar:xcar s) 'complement)
+  (ac (list 'no (cons (cadar s) (cdr s))) env))
 
 (def macex (e (o once))
   (if (acons e)
@@ -240,14 +643,35 @@
                 (if (no once) (macex expansion) expansion))
               e))
        e))
-                
+
 (def scar (x val)
   (sref x val 0))
 
-; make sure only one thread at a time executes anything
-; inside an atomic-invoke. atomic-invoke is allowed to
-; nest within a thread; the thread-cell keeps track of
-; whether this thread already holds the lock.
+(def scdr (x val)
+  ((racket set-mcdr!) x val))
+
+(def warn (msg . args)
+  (disp (+ "Warning: " msg ". "))
+  (map [do (write _) (disp " ")] args)
+  (disp #\newline))
+
+(def make-semaphore ((o init))
+  ((racket make-semaphore) init))
+
+(def call-with-semaphore (sema func)
+  ((racket call-with-semaphore) sema (fn () (func))))
+
+(def nil->racket-false (x)
+  (if (no x) (racket "#f") x))
+
+(def make-thread-cell (v (o preserved))
+  ((racket make-thread-cell) v (nil->racket-false preserved)))
+
+(def thread-cell-ref (cell)
+  ((racket thread-cell-ref) cell))
+
+(def thread-cell-set (cell v)
+  ((racket thread-cell-set!) cell v))
 
 (assign ar-the-sema (make-semaphore 1))
 
@@ -276,18 +700,23 @@
 (def mappend (f . args)
   (apply + nil (apply map f args)))
 
-; setforms returns (vars get set) for a place based on car of an expr
-;  vars is a list of gensyms alternating with expressions whose vals they
-;   should be bound to, suitable for use as first arg to withs
-;  get is an expression returning the current value in the place
-;  set is an expression representing a function of one argument
-;   that stores a new value in the place
+(def firstn (n xs)
+  (if (no n)            xs
+      (and (> n 0) xs)  (cons (car xs) (firstn (- n 1) (cdr xs)))
+                        nil))
 
-; A bit gross that it works based on the *name* in the car, but maybe
-; wrong to worry.  Macros live in expression land.
+(def nthcdr (n xs)
+  (if (no n)  xs
+      (> n 0) (nthcdr (- n 1) (cdr xs))
+              xs))
 
-; seems meaningful to e.g. (push 1 (pop x)) if (car x) is a cons.
-; can't in cl though.  could I define a setter for push or pop?
+; Generalization of pair: (tuples x) = (pair x)
+
+(def tuples (xs (o n 2))
+  (if (no xs)
+      nil
+      (cons (firstn n xs)
+            (tuples (nthcdr n xs) n))))
 
 (assign setter (table))
 
@@ -337,7 +766,7 @@
 (def setforms (expr0)
   (let expr (macex expr0)
     (if (isa expr 'sym)
-         (if (ssyntax expr)
+         (if (ac-ssyntax expr)
              (setforms (ssexpand expr))
              (w/uniq (g h)
                (list (list g expr)
@@ -363,7 +792,7 @@
                               `(fn (,h) (sref ,g ,h ,(car argsyms))))))))))))
 
 (def metafn (x)
-  (or (ssyntax x)
+  (or (ac-ssyntax x)
       (and (acons x) (in (car x) 'compose 'complement))))
 
 (def expand-metafn-call (f args)
@@ -380,7 +809,7 @@
        (cons f args)))
 
 (def expand= (place val)
-  (if (and (isa place 'sym) (~ssyntax place))
+  (if (and (isa place 'sym) (~ac-ssyntax place))
       `(assign ,place ,val)
       (let (vars prev setter) (setforms place)
         (w/uniq g
@@ -394,11 +823,28 @@
 (mac = args
   (expand=list args))
 
+(mac loop (start test update . body)
+  (w/uniq (gfn gparm)
+    `(do ,start
+         ((rfn ,gfn (,gparm) 
+            (if ,gparm
+                (do ,@body ,update (,gfn ,test))))
+          ,test))))
+
+(mac for (v init max . body)
+  (w/uniq (gi gm)
+    `(with (,v nil ,gi ,init ,gm (+ ,max 1))
+       (loop (assign ,v ,gi) (< ,v ,gm) (assign ,v (+ ,v 1))
+         ,@body))))
+
 (mac down (v init min . body)
   (w/uniq (gi gm)
     `(with (,v nil ,gi ,init ,gm (- ,min 1))
        (loop (assign ,v ,gi) (> ,v ,gm) (assign ,v (- ,v 1))
          ,@body))))
+
+(mac repeat (n . body)
+  `(for ,(uniq) 1 ,n ,@body))
 
 ; (nthcdr x y) = (cut y x).
 
@@ -487,10 +933,8 @@
          (do1 (car ,g) 
               (,setter (cdr ,g)))))))
 
-; todo fix need to rename "test" as "testff"
-
-(def adjoin (x xs (o testff iso))
-  (if (some [testff x _] xs)
+(def adjoin (x xs (o test iso))
+  (if (some [test x _] xs)
       xs
       (cons x xs)))
 
@@ -622,90 +1066,39 @@
          start)
         (recstring [if (f (seq _)) _] seq start))))
 
-(assign-fn mod (x) (racket-fn 'modulo))
+(def mod (n m)
+  (racket.modulo n m))
 
 (def even (n) (is (mod n 2) 0))
 
 (def odd (n) (no (even n)))
-
-(def system (cmd)
-  ((inline (racket-fn 'system 'scheme/system)) cmd)
-  nil)
-
-(def close ports
-  (map (fn (port)
-         (case (type port)
-           input  ((inline (racket-fn 'close-input-port)) port)
-           output ((inline (racket-fn 'close-output-port)) port)
-           socket ((inline (racket-fn 'tcp-close)) port)
-                  (err "Can't close " port)))
-       ports)
-  ;; todo try-custodian
-  nil)
-
-(defrule ac (is (xcar s) 'racket-code)
-  ((inline (racket-fn 'read))
-   ((inline (racket-fn 'open-input-string)) (cadr s))))
-
-(dynamic infile (racket-fn 'open-input-file))
-(= (sig 'infile) '(name))
-
-(def outfile (filename (o append))
-   (let flag (if append 'append 'truncate)
-     (racket-code "(open-output-file filename #:mode 'text #:exists flag)")))
-
-(let expander 
-     (fn (f var name body)
-       `(let ,var (,f ,name)
-          (after (do ,@body) (close ,var))))
-
-  (mac w/infile (var name . body)
-    (expander 'infile var name body))
-
-  (mac w/outfile (var name . body)
-    (expander 'outfile var name body))
-
-  (mac w/instring (var str . body)
-    (expander 'instring var str body))
-
-  (mac w/socket (var port . body)
-    (expander 'open-socket var port body))
-  )
-
-(mac w/appendfile (var name . body)
-  `(let ,var (outfile ,name 'append)
-     (after (do ,@body) (close ,var))))
 
 (mac fromstring (str . body)
   (w/uniq gv
    `(w/instring ,gv ,str
       (w/stdin ,gv ,@body))))
 
+(def readfile (name) (w/infile s name (drain (read s))))
+
+(def readfile1 (name) (w/infile s name (read s)))
+
+(def readall (src (o eof nil))
+  ((afn (i)
+    (let x (read i eof)
+      (if (is x eof)
+          nil
+          (cons x (self i)))))
+   (if (isa src 'string) (instring src) src)))
+
 (def allchars (str)
   (tostring (whiler c (readc str nil) no
               (writec c))))
-
-;; todo no incremental reading yet...
-; (def read ((o x (stdin))) ...)
-
-(defrule ascons (isa x 'input)
-  (drain (readc x)))
-
-(def readfile (name)
-  (w/infile s name (primitive-readall (coerce (allchars s) 'cons))))
-
-(def readfile1 (name)
-  (w/infile s name (read1 s)))
-
-; todo eof
-(def readall (src)
-  (primitive-readall (coerce (if (isa src 'string) src (allchars src)) 'cons)))
 
 (def filechars (name)
   (w/infile s name (allchars s)))
 
 (def mvfile (old new)
-  (racket-code "(rename-file-or-directory old new #t)")
+  (racket.rename-file-or-directory old new (racket "#t"))
   nil)
 
 (def writefile (val file)
@@ -714,7 +1107,7 @@
     (mvfile tmpfile file))
   val)
 
-(implicit rand (racket-fn 'random))
+(dynamic rand racket.random)
 (= (sig 'rand) '((o n)))
 
 (mac rand-choice exprs
@@ -723,19 +1116,23 @@
          (mappend [list (++ key) _]
                   exprs))))
 
-(= racket-false (racket-code "#f"))
+(mac n-of (n expr)
+  (w/uniq ga
+    `(let ,ga nil     
+       (repeat ,n (push ,expr ,ga))
+       (rev ,ga))))
 
 (def aracket-false (x)
-  (is x racket-false))
+  (is x (racket "#f")))
 
 (def aracket-true (x)
   (no (aracket-false x)))
 
 (def aracket-eof (x)
-  (aracket-true (racket-code "(eof-object? x)")))
+  (aracket-true (racket.eof-object? x)))
 
 (def readb ((o str stdin))
-  (let c ((inline (racket-fn 'read-byte)) str)
+  (let c (racket.read-byte str)
     (if (aracket-eof c) nil c)))
 
 ; rejects bytes >= 248 lest digits be overrepresented
@@ -806,6 +1203,32 @@
 (mac defmemo (name parms . body)
   `(safeset ,name (memo (fn ,parms ,@body))))
 
+(def <= args
+  (or (no args)
+      (no (cdr args))
+      (and (no (> (car args) (cadr args)))
+           (apply <= (cdr args)))))
+
+(def >= args
+  (or (no args)
+      (no (cdr args))
+      (and (no (< (car args) (cadr args)))
+           (apply >= (cdr args)))))
+
+(def whitec (c)
+  (in c #\space #\newline #\tab #\return))
+
+(def nonwhite (c) (no (whitec c)))
+
+(def letter (c) (or (<= #\a c #\z) (<= #\A c #\Z)))
+
+(def digit (c) (<= #\0 c #\9))
+
+(def alphadig (c) (or (letter c) (digit c)))
+
+(def punc (c)
+  (in c #\. #\, #\; #\: #\! #\?))
+
 (mac summing (sumfn . body)
   (w/uniq (gc gt)
     `(let ,gc 0
@@ -853,6 +1276,15 @@
       (and (cdr x) (or (atom (cdr x))
                        (dotted (cdr x))))))
 
+;; todo we have push here, so use arc3.1 accum
+
+(mac accum (accfn . body)
+  (w/uniq gacc
+    `(withs (,gacc nil ,accfn (fn (_)
+                                (assign ,gacc (cons _ ,gacc))))
+       ,@body
+       (rev ,gacc))))
+
 (def fill-table (table data)
   (each (k v) (pair data) (= (table k) v))
   table)
@@ -872,18 +1304,29 @@
          al)
     h))
 
-(defrule print (isa x 'table)
-  (disp "#table" port)
-  (print primitive (tablist x) port))
-
-(defalt parse-value-here
-  (mliteral "#table")
-  (listtab (parse-value)))
-
 (mac obj args
   `(listtab (list ,@(map (fn ((k v))
                            `(list ',k ,v))
                          (pair args)))))
+
+(mac xloop (withses . body)
+  (let w (pair withses)
+    `((rfn next ,(map1 car w) ,@body) ,@(map1 cadr w))))
+
+(def readline ((o s stdin))
+  (aif (readc s)
+    (coerce
+     (accum a
+       (xloop (c it)
+         (if (is c #\return)
+              (if (is (peekc s) #\newline)
+                   (readc s))
+             (is c #\newline)
+              nil
+              (do (a c)
+                  (aif (readc s)
+                        (next it))))))
+     'string)))
 
 ; todo remove
 (def dumbsort (xs (o f <))
@@ -899,14 +1342,12 @@
          (iso (dumbsort kx) (dumbsort ky))
          (all [iso x._ y._] kx))))
 
-; todo eof
-(def read-table ((o i stdin))
-  (let e (read1 i)
+(def read-table ((o i stdin) (o eof))
+  (let e (read i eof)
     (if (alist e) (listtab e) e)))
 
-; todo eof
-(def load-table (file)
-  (w/infile i file (read-table i)))
+(def load-table (file (o eof))
+  (w/infile i file (read-table i eof)))
 
 (def save-table (h file)
   (writefile (tablist h) file))
@@ -935,7 +1376,7 @@
   (if (< n 0) (- n) n))
 
 (def trunc (x)
-  (racket-code "(inexact->exact (truncate x))"))
+  (racket.inexact->exact (racket.truncate x)))
 
 (def round (n)
   (withs (base (trunc n) rem (abs (- n base)))
@@ -1030,7 +1471,7 @@
 (def split (seq pos)
   (list (cut seq 0 pos) (cut seq pos)))
 
-(implicit msec (racket-fn 'current-milliseconds))
+(implicit msec racket.current-milliseconds)
 (= (sig 'msec nil))
 
 (mac time (expr)
@@ -1098,7 +1539,7 @@
 
 (def number (n) (in (type n) 'int 'num))
 
-(implicit seconds (racket-fn 'current-seconds))
+(implicit seconds racket.current-seconds)
 (= (sig 'seconds nil))
 
 (def since (t1) (- (seconds) t1))
@@ -1125,14 +1566,14 @@
   `(on-err (fn (c) nil)
            (fn () ,expr)))
 
-(def saferead (arg) (errsafe:read1 arg))
+(def saferead (arg) (errsafe:read arg))
 
 (def safe-load-table (filename) 
   (or (errsafe:load-table filename)
       (table)))
 
 (def dir-exists (path)
-  (if (racket->tnil (racket-code "(directory-exists? path)")) path))
+  (if (racket-true (racket.directory-exists? path)) path))
                     
 (def ensure-dir (path)
   (unless (dir-exists path)
@@ -1140,13 +1581,13 @@
 
 ;; todo something less ugly
 (def timedate ((o seconds (seconds)))
-  (let d (racket-code "(seconds->date seconds)")
-    (list (racket-code "(date-second d)")
-          (racket-code "(date-minute d)")
-          (racket-code "(date-hour d)")
-          (racket-code "(date-day d)")
-          (racket-code "(date-month d)")
-          (racket-code "(date-year d)"))))
+  (let d (racket.seconds->date seconds)
+    (list (racket.date-second d)
+          (racket.date-minute d)
+          (racket.date-hour d)
+          (racket.date-day d)
+          (racket.date-month d)
+          (racket.date-year d))))
 
 (def date ((o s (seconds)))
   (rev (nthcdr 3 (timedate s))))
@@ -1246,5 +1687,6 @@
       (f (car xs) (rreduce f (cdr xs)))
       (apply f xs)))
 
-;; todo going to need incremental parsing (with peek chars!) 
-;; for prf
+(def len< (x n) (< (len x) n))
+
+(def len> (x n) (> (len x) n))
