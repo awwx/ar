@@ -636,7 +636,7 @@
 
 ;; (testis (tablist (car (readall "#table((a 1))"))) '((a 1)))
 
-;; (testis (dumbsort (keys '#table((a 1) (b 2) (c 3) (d 4))))
+;; (testis (sort < (keys '#table((a 1) (b 2) (c 3) (d 4))))
 ;;         '(a b c d))
 
 (def assoc-key-sort (xs)

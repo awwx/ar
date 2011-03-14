@@ -123,8 +123,13 @@
 
 ;; variables
 
+(define (mem v lst)
+  (tnil (and (mpair? lst) 
+             (or (eqv? v (mcar lst))
+                 (true? (mem v (mcdr lst)))))))
+
 (ac-def ac-lex? (v env)
-  ((g mem) v env))
+  (mem v env))
 
 (define (global-ref-err globals* v)
   (let ((message (string-append "undefined global variable: "

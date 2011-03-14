@@ -351,26 +351,26 @@
           (bound 'foo) )
         't)))
 
-    (after '(ac-def primitive-disp)
+    (after '(ac-def racket-disp)
       (test-equal
        (let ((port (open-output-string))
              (globals* (new-ac (build-steps))))
          (hash-set! globals* 'port port)
-         (arc-test-eval '( (primitive-disp "a" port) ) globals*)
+         (arc-test-eval '( (racket-disp "a" port) ) globals*)
          (get-output-string port))
        "a")
 
       (test-equal
        (let ((globals* (new-ac (build-steps))))
          (tostringf (lambda ()
-                      (arc-test-eval '( (primitive-disp "abc") ) globals*))))
+                      (arc-test-eval '( (racket-disp "abc") ) globals*))))
        "abc"))
 
-    (after '(ac-def primitive-write)
+    (after '(ac-def racket-write)
       (test-equal
        (let ((globals* (new-ac (build-steps))))
          (tostringf (lambda ()
-                      (arc-test-eval '( (primitive-write "a") ) globals*))))
+                      (arc-test-eval '( (racket-write "a") ) globals*))))
        "\"a\""))
 
     (after '(extend ac-global (v) ((g ac-defined-var) v))

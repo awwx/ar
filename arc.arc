@@ -187,6 +187,10 @@
 (def all (test seq) 
   ((complement some) (complement (testify test)) seq))
 
+(def mem (test seq)
+  (let f (testify test)
+    (reclist [if (f (car _)) _] seq)))
+
 (mac defvar args
   (with (name (car args)
          get  (cadr args)

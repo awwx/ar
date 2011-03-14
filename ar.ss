@@ -218,9 +218,6 @@
     ((ar-and x)        x)
     ((ar-and x xs ...) (ar-if x (ar-and xs ...)))))
 
-(define (ar-reclist f xs)
-  (ar-and xs (ar-or (f xs) (ar-reclist f (mcdr xs)))))
-
 (define (ar-is2 a b)
   (tnil (or (eqv? a b)
             (and (string? a) (string? b) (string=? a b)))))
@@ -286,21 +283,6 @@
 
 (define (arc-isa x y)
   (arc-is (arc-type x) y))
-
-(define (ar-testify x)
-  (ar-if (arc-isa x 'fn) x (lambda (_) (arc-is _ x))))
-
-(define (ar-mem test seq)
-  (let ((f (ar-testify test)))
-    (ar-reclist (lambda (_) (ar-if (f (mcar _)) _)) seq)))
-
-(test (ar-mem 'x 'nil) 'nil)
-(let* ((d 'nil) (c (mcons 3 d)) (b (mcons 2 c)) (a (mcons 1 b)))
-  (test (ar-mem 1 a) a)
-  (test (ar-mem 2 a) b)
-  (test (ar-mem 3 a) c)
-  (test (ar-mem 4 a) d)
-  (test (ar-mem 5 a) 'nil))
 
 (define (iround x) (inexact->exact (round x)))
 
@@ -549,7 +531,6 @@
         'len                 arc-len
         'list                arc-list
         'map1                arc-map1
-        'mem                 ar-mem
         'outstring           open-output-string
         'peekc               arc-peekc
         'r/list-toarc        r/list-toarc
