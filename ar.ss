@@ -2,7 +2,7 @@
 
 (require scheme/mpair)
 
-(provide ar-and ar-apply ar-caris ar-funcall0 ar-funcall1 ar-funcall2
+(provide ar-apply ar-caris ar-funcall0 ar-funcall1 ar-funcall2
          ar-funcall3 ar-funcall4 ar-if ar-or ar-rep arc-apply arc-cadr
          arc-car arc-cddr arc-cdr arc-isa arc-join arc-list arc-map1
          arc-type deep-fromarc err hash new-ar no? noprint
@@ -211,12 +211,6 @@
 (test (ar-or 'nil 33)      33)
 (test (ar-or 11 33)        11)
 (test (ar-or 'nil 'nil 33) 33)
-
-(define-syntax ar-and
-  (syntax-rules ()
-    ((ar-and)         't)
-    ((ar-and x)        x)
-    ((ar-and x xs ...) (ar-if x (ar-and xs ...)))))
 
 (define (ar-is2 a b)
   (tnil (or (eqv? a b)

@@ -762,6 +762,9 @@
           `(cddr ,g)
           `(fn (val) (scdr (cdr ,g) val)))))
 
+(def ssexpand (x)
+  (if (isa x 'sym) (ac-expand-ssyntax x) x))
+
 ; Note: if expr0 macroexpands into any expression whose car doesn't
 ; have a setter, setforms assumes it's a data structure in functional 
 ; position.  Such bugs will be seen only when the code is executed, when 
@@ -1676,3 +1679,129 @@
 (def len< (x n) (< (len x) n))
 
 (def len> (x n) (> (len x) n))
+
+(def load (file)
+  (w/infile f file
+    (w/uniq eof
+      (whiler e (read f eof) eof
+        (eval e)))))
+
+(def positive (x)
+  (and (number x) (> x 0)))
+
+(mac w/table (var . body)
+  `(let ,var (table) ,@body ,var))
+
+(def ero args
+  (w/stdout stderr
+    (each a args
+      (write a)
+      (writec #\space))
+    (writec #\newline))
+  (car args))
+
+(def queue () (list nil nil 0))
+
+; Despite call to atomic, once had some sign this wasn't thread-safe.
+; Keep an eye on it.
+
+(def enq (obj q)
+  (atomic
+    (++ (q 2))
+    (if (no (car q))
+        (= (cadr q) (= (car q) (list obj)))
+        (= (cdr (cadr q)) (list obj)
+           (cadr q)       (cdr (cadr q))))
+    (car q)))
+
+(def deq (q)
+  (atomic (unless (is (q 2) 0) (-- (q 2)))
+          (pop (car q))))
+
+; Should redef len to do this, and make queues lists annotated queue.
+
+(def qlen (q) (q 2))
+
+(def qlist (q) (car q))
+
+(def enq-limit (val q (o limit 1000))
+  (atomic
+     (unless (< (qlen q) limit)
+       (deq q))
+     (enq val q)))
+
+(def median (ns)
+  ((sort > ns) (trunc (/ (len ns) 2))))
+
+(def flushout ()
+  (racket.flush-output)
+  t)
+
+(mac noisy-each (n var val . body)
+  (w/uniq (gn gc)
+    `(with (,gn ,n ,gc 0)
+       (each ,var ,val
+         (when (multiple (++ ,gc) ,gn)
+           (pr ".") 
+           (flushout)
+           )
+         ,@body)
+       (prn)
+       (flushout))))
+
+(def downcase (x)
+  (let downc (fn (c)
+               (let n (coerce c 'int)
+                 (if (or (< 64 n 91) (< 191 n 215) (< 215 n 223))
+                     (coerce (+ n 32) 'char)
+                     c)))
+    (case (type x)
+      string (map downc x)
+      char   (downc x)
+      sym    (sym (map downc (coerce x 'string)))
+             (err "Can't downcase" x))))
+
+(def upcase (x)
+  (let upc (fn (c)
+             (let n (coerce c 'int)
+               (if (or (< 96 n 123) (< 223 n 247) (< 247 n 255))
+                   (coerce (- n 32) 'char)
+                   c)))
+    (case (type x)
+      string (map upc x)
+      char   (upc x)
+      sym    (sym (map upc (coerce x 'string)))
+             (err "Can't upcase" x))))
+
+(def inc (x (o n 1))
+  (coerce (+ (coerce x 'int) n) (type x)))
+
+(def range (start end)
+  (if (> start end)
+      nil
+      (cons start (range (inc start) end))))
+
+(def mismatch (s1 s2)
+  (catch
+    (on c s1
+      (when (isnt c (s2 index))
+        (throw index)))))
+
+(def memtable (ks)
+  (let h (table)
+    (each k ks (set (h k)))
+    h))
+
+(= bar* " | ")
+
+(mac w/bars body
+  (w/uniq (out needbars)
+    `(let ,needbars nil
+       (do ,@(map (fn (e)
+                    `(let ,out (tostring ,e)
+                       (unless (is ,out "")
+                         (if ,needbars
+                             (pr bar* ,out)
+                             (do (set ,needbars)
+                                 (pr ,out))))))
+                  body)))))

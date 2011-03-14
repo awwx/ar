@@ -155,7 +155,7 @@
          ((g ac-global) s)))
 
 (extend ac (s env)
-  (ar-and (tnil (not (no? s))) (tnil (symbol? s)))
+  (tnil (and (not (no? s)) (symbol? s)))
   ((g ac-var-ref) s env))
 
 
@@ -252,7 +252,7 @@
           (hash-ref arc 'racket-namespace*))))
 
 (ac-def eval (form (arc 'nil))
-  (arc-eval (ar-or arc globals*) form))
+  (arc-eval (if (true? arc) arc globals*) form))
 
 
 ;; quasiquotation

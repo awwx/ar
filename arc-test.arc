@@ -832,3 +832,46 @@
 
 (testis (len> "abc" 3) nil)
 (testis (len> "abc" 2) t)
+
+(let f (string td "/foo.arc")
+  (clean)
+  (writefile '(def MWiyhWKuZG (x) (* x 5)) f)
+  (load f)
+  (testis (MWiyhWKuZG 6) 30))
+
+(testis (positive 'foo) nil)
+(testis (positive -5) nil)
+(testis (positive 0) nil)
+(testis (positive 0.0) nil)
+(testis (positive 55) t)
+(testis (positive 55/3) t)
+(testis (positive 48.6) t)
+
+(testis (keys (w/table h (set h!x))) '(x))
+
+(testis (w/outstring s (w/stderr s (ero "foo" 3)) (inside s)) "\"foo\" 3 \n")
+
+;; todo tests for queue
+
+(testis (median '(1 2 3 4 5 6)) 3)
+
+;; todo tests for flushout, noisy-each
+
+(testis (downcase "AbCDef..00") "abcdef..00")
+(testis (downcase #\B) #\b)
+(testis (downcase 'FOObar) 'foobar)
+
+(testis (upcase "AbCDef..00") "ABCDEF..00")
+(testis (upcase #\b) #\B)
+(testis (upcase 'FOObar) 'FOOBAR)
+
+(testis (inc 10) 11)
+(testis (inc 10 5) 15)
+(testis (inc "13") "14")
+
+(testis (range 1 5) '(1 2 3 4 5))
+
+(testis (mismatch "abcdef" "abcXef") 3)
+(testis (mismatch "abcdef" "abcdef") nil)
+
+(testis (memtable '(a b c d)) (obj a t b t c t d t))
