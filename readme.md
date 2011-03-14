@@ -146,7 +146,7 @@ changed.
 
 * implements stdin, stdout, stderr as implicit variables
 
-  removing an unnecessary layer of parentheses; though violating
+  removing an unnecessary layer of parentheses.
   goal #3.
 
 
