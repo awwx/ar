@@ -640,30 +640,21 @@
 ;;         '(a b c d))
 
 (def assoc-key-sort (xs)
-  (dumbsort xs (fn (a b)
-                 (< (car a) (car b)))))
+  (sort (fn (a b) (< (car a) (car b))) xs))
 
 (testis (assoc-key-sort '((b 2) (d 4) (a 1) (c 3)))
         '((a 1) (b 2) (c 3) (d 4)))
 
-(testis (assoc-key-sort (obj b 2 d 4 a 1 c 3))
-        '((a 1) (b 2) (c 3) (d 4)))
-
 (do (writefile (obj a 1 b 2) "/tmp/foo")
-    (testis (assoc-key-sort (tablist (w/infile s "/tmp/foo" (read-table s))))
+    (testis (assoc-key-sort (erp (tablist (w/infile s "/tmp/foo" (read-table s)))))
             '((a 1) (b 2))))
 
-(testis (fromstring "((a 1) (b 2))" (read-table))
+(testis (erp (fromstring "((a 1) (b 2))" (read-table)))
         (obj a 1 b 2))
 
 (do (writefile (obj a 1 b 2) "/tmp/foo")
     (testis (w/infile s "/tmp/foo" (read-table s))
             (obj a 1 b 2)))
-
-(testt (iso (obj a 1) (obj a 1)))
-(testnil (iso (obj a 1) (obj a 2)))
-(testnil (iso (obj a 1) (obj)))
-(testt (iso (obj a 1 b 2 c 3 d 4) (obj a 1 b 2 c 3 d 4)))
 
 (testis (do (writefile (obj a 1 b 2 c 3) "/tmp/foo")
             (load-table "/tmp/foo"))

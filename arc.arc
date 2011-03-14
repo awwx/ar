@@ -5,9 +5,9 @@
   (annotate 'mac
     (fn (var val)
       `(do (if (bound ',var)
-               (do (primitive-disp "*** redefining " (racket-stderr))
-                   (primitive-disp ',var (racket-stderr))
-                   (primitive-disp #\newline (racket-stderr))))
+               (do (racket-disp "*** redefining " (racket-stderr))
+                   (racket-disp ',var (racket-stderr))
+                   (racket-disp #\newline (racket-stderr))))
            (assign ,var ,val)))))
 
 (assign assign-fn
@@ -249,13 +249,13 @@
 (def disp args
   (with (x (car args)
          port (or (cadr args) stdout))
-    (print primitive-disp x port)))
+    (print racket-disp x port)))
 (sref sig '(x (o port)) 'disp)
 
 (def write args
   (with (x (car args)
          port (or (cadr args) stdout))
-    (print primitive-write x port)))
+    (print racket-write x port)))
 (sref sig '(x (o port)) 'write)
 
 (def pr args
@@ -1276,12 +1276,9 @@
       (and (cdr x) (or (atom (cdr x))
                        (dotted (cdr x))))))
 
-;; todo we have push here, so use arc3.1 accum
-
 (mac accum (accfn . body)
   (w/uniq gacc
-    `(withs (,gacc nil ,accfn (fn (_)
-                                (assign ,gacc (cons _ ,gacc))))
+    `(withs (,gacc nil ,accfn [push _ ,gacc])
        ,@body
        (rev ,gacc))))
 
@@ -1327,20 +1324,6 @@
                   (aif (readc s)
                         (next it))))))
      'string)))
-
-; todo remove
-(def dumbsort (xs (o f <))
-  (let r nil
-    (each x xs (insort f x r))
-    r))
-
-; todo do better
-; todo doesn't work for tables with compound keys
-(defrule iso (and (isa x 'table) (isa y 'table))
-  (with (kx (keys x) ky (keys y))
-    (and (is (len kx) (len ky))
-         (iso (dumbsort kx) (dumbsort ky))
-         (all [iso x._ y._] kx))))
 
 (def read-table ((o i stdin) (o eof))
   (let e (read i eof)
@@ -1579,15 +1562,14 @@
   (unless (dir-exists path)
     (system (string "mkdir -p " path))))
 
-;; todo something less ugly
 (def timedate ((o seconds (seconds)))
   (let d (racket.seconds->date seconds)
-    (list (racket.date-second d)
-          (racket.date-minute d)
-          (racket.date-hour d)
-          (racket.date-day d)
-          (racket.date-month d)
-          (racket.date-year d))))
+    (map [_ d] (list racket.date-second
+                     racket.date-minute
+                     racket.date-hour
+                     racket.date-day
+                     racket.date-month
+                     racket.date-year))))
 
 (def date ((o s (seconds)))
   (rev (nthcdr 3 (timedate s))))

@@ -423,12 +423,12 @@
       (f))
     (get-output-string port)))
 
-(ac-def primitive-disp (x (port (current-output-port)))
+(ac-def racket-disp (x (port (current-output-port)))
   (display x port)
   (flush-output port)
   x)
 
-(ac-def primitive-write (x (port (current-output-port)))
+(ac-def racket-write (x (port (current-output-port)))
   (write x port)
   (flush-output port)
   x)
