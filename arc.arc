@@ -1924,3 +1924,14 @@
     (if (alist seq)
         (reclist   [if (f:car _) (car _)] seq)
         (recstring [if (f:seq _) (seq _)] seq))))
+
+; note that (exact 1/3) is false, which is confusing
+
+(def exact (n)
+  (isa n 'int))
+
+(def expt (x y)
+  (racket.expt x y))
+
+(def sqrt (x)
+  (racket.sqrt x))

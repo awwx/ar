@@ -43,7 +43,7 @@ Run tests with:
     racket ar-test.ss
     racket ac-test.ss
     racket arc-test.ss
-
+    racket strings-test.ss
 
 Bug reports are *greatly* appreciated!
 

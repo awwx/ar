@@ -910,3 +910,12 @@
 (testis (find positive '(-7 -8 6 3)) 6)
 (testis (find positive '()) nil)
 (testis (find positive '(-7 -8 -6 -3)) nil)
+
+(testis (exact 3/5) nil)
+(testis (exact 1/3) nil)
+(testis (exact 5) t)
+(testis (exact 5.0) nil)
+
+(testis (expt 10 3) 1000)
+
+(testis (sqrt 25) 5)
