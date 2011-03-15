@@ -150,9 +150,9 @@
             (global-ref-err globals* v)))
 
 (ac-def ac-var-ref (s env)
-  (ar-if ((g ac-lex?) s env)
-         s
-         ((g ac-global) s)))
+  (if (true? ((g ac-lex?) s env))
+       s
+       ((g ac-global) s)))
 
 (extend ac (s env)
   (tnil (and (not (no? s)) (symbol? s)))

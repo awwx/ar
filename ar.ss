@@ -3,7 +3,7 @@
 (require scheme/mpair)
 
 (provide ar-apply ar-caris ar-funcall0 ar-funcall1 ar-funcall2
-         ar-funcall3 ar-funcall4 ar-if ar-or ar-rep arc-apply arc-cadr
+         ar-funcall3 ar-funcall4 ar-rep arc-apply arc-cadr
          arc-car arc-cddr arc-cdr arc-isa arc-join arc-list arc-map1
          arc-type deep-fromarc err hash new-ar no? noprint
          run-ar-tests tagged? tnil toarc true? write-to-string)
@@ -176,41 +176,6 @@
 (test (arc-join (arc-list 1) (arc-list 2) (arc-list 3)) (arc-list 1 2 3))
 
 (define err error)
-
-(define-syntax ar-if
-  (syntax-rules ()
-    ((ar-if)
-     'nil)
-    ((ar-if x)
-     x)
-    ((ar-if t x)
-     (if (eqv? t 'nil) 'nil x))
-    ((ar-if t a . rest)
-     (if (eqv? t 'nil) (ar-if . rest) a))
-    ))
-
-(test (ar-if)                    'nil)
-(test (ar-if 'nil)               'nil)
-(test (ar-if 44)                 44)
-(test (ar-if 'nil 44)            'nil)
-(test (ar-if 14 44)              44)
-(test (ar-if 'nil 33 44)         44)
-(test (ar-if 'foo 33 44)         33)
-(test (ar-if 'nil 33 'yes 44 55) 44)
-(test (ar-if 'nil 33 'nil 44 55) 55)
-(test (ar-if 'nil 33 'nil 44)    'nil)
-
-(define-syntax ar-or
-  (syntax-rules ()
-    ((ar-or)          'nil)
-    ((ar-or x xs ...) (ar-if x x (ar-or xs ...)))))
-
-(test (ar-or)              'nil)
-(test (ar-or 'nil)         'nil)
-(test (ar-or 33)           33)
-(test (ar-or 'nil 33)      33)
-(test (ar-or 11 33)        11)
-(test (ar-or 'nil 'nil 33) 33)
 
 (define (ar-is2 a b)
   (tnil (or (eqv? a b)
