@@ -205,8 +205,10 @@ lists using Racket mpair's.
 Waterhouse [investigated the queue
 bug](http://arclanguage.org/item?id=13518), determining that it is a
 garbage collection issue; this in turn gives us confidence that
-implementing Arc lists with Racket mpair's is in fact one way to
-fix the bug.
+implementing Arc lists with Racket mpair's is in fact one way to fix
+the bug.  (Note that waterhouse also provided a [direct
+fix](http://arclanguage.org/item?id=13616) for Arc 3.1, so you don't
+need this runtime implementation just to get a fix for the queue bug).
 
 Reflecting the Arc compiler into Arc was inspired by rntz's [Arc
 compiler written in Arc](https://github.com/nex3/arc/tree/arcc).
