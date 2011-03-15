@@ -220,10 +220,16 @@
        (( '()      ) 'nil)
        (( '(a)     ) (arc-list 'a))
        (( '(nil)   ) (arc-list 'nil))
-       (( '(a . b) ) (mcons 'a 'b)))
+       (( '(a . b) ) (mcons 'a 'b))
 
-      (arc-test
-       (( (apply list 1 2 '(3 4)) ) (toarc '(1 2 3 4)))))
+       (( (apply list 1 2 '(3 4)) ) (toarc '(1 2 3 4)))
+
+       (( (apply +)            ) 0)
+       (( (apply + nil)        ) 0)
+       (( (apply + '(1))       ) 1)
+       (( (apply + '(1 2 3 4)) ) 10)
+       (( (apply + 1 2 nil)    ) 3)
+       (( (apply + 1 2 '(3 4)) ) 10)))
 
     (after '(ac-def ac-body)
       (test

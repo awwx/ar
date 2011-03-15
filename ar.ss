@@ -393,12 +393,18 @@
 
 
 (define (combine as (accum '()))
-  (cond ((null? (cdr as))
+  (cond ((null? as)
+         accum)
+        ((null? (cdr as))
          (append accum (list-fromarc (car as))))
         (else
          (combine (cdr as) (append accum (list (car as)))))))
 
+(test (combine (list))                        '())
+(test (combine (list (arc-list)))             '())
+(test (combine (list (arc-list 'a)))          '(a))
 (test (combine (list (arc-list 'a 'b 'c)))    '(a b c))
+(test (combine (list 'a (arc-list)))          '(a))
 (test (combine (list 'a (arc-list 'b 'c 'd))) '(a b c d))
 (test (combine (list 'a 'b (arc-list 'c 'd))) '(a b c d))
 
@@ -406,8 +412,9 @@
 (define (arc-apply fn . args)
   (apply ar-apply fn (combine args)))
 
+(test (arc-apply ar-+) 0)
 (test (arc-apply ar-+ 'nil (toarc '((a b) (c d)))) (toarc '(a b c d)))
-
+(test (arc-apply ar-+ 1 2 (arc-list 3 4)) 10)
 
 (define (ar-funcall0 fn)
   (if (procedure? fn)
