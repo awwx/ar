@@ -1162,6 +1162,9 @@
   (let c (racket.read-byte str)
     (if (aracket-eof c) nil c)))
 
+(def writeb (b (o str stdout))
+  (racket.write-byte b str))
+
 ; rejects bytes >= 248 lest digits be overrepresented
 
 (def rand-string (n)

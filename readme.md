@@ -60,6 +60,7 @@ Todo
 * explicit-flush
 * declare
 * primitives
+  * writeb
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
 
  

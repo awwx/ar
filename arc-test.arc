@@ -529,6 +529,9 @@
   (testis (readb) 187)
   (testis (readb) nil))
 
+(testis (tostring (writeb 65) (writeb 66) (writeb 67))
+        "ABC")
+
 (testis (dlet infile (fn (name)
                        ;; a not very random /dev/urandom :-)
                        (instring "\u0000\u0001\u0002"))
