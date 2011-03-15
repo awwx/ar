@@ -497,6 +497,7 @@
         'len                 arc-len
         'list                arc-list
         'map1                arc-map1
+        'nil                 'nil
         'outstring           open-output-string
         'peekc               arc-peekc
         'r/list-toarc        r/list-toarc

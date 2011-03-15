@@ -27,40 +27,40 @@
 ; the compiler building steps defined so far.
 
 (define (new-ac (build-steps ac-build-steps))
-  (let ((globals* (new-ar)))
-    (hash-set! globals* 'racket-namespace* (make-base-namespace))
+  (let ((arc (new-ar)))
+    (hash-set! arc 'racket-namespace* (make-base-namespace))
     (for-each (lambda (pair)
                 (let ((step (car pair)))
-                  (step globals*)))
+                  (step arc)))
               build-steps)
-    globals*))
+    arc))
 
 
 ;; sig
 
 (add-ac-build-step
- (lambda (globals*)
-   (hash-set! globals* 'sig (hash))))
+ (lambda (arc)
+   (hash-set! arc 'sig (hash))))
 
 (define-syntax g
   (lambda (stx)
     (syntax-case stx ()
       ((g v)
-       (with-syntax ((globals* (datum->syntax #'v 'globals*)))
-         #'(hash-ref globals* 'v))))))
+       (with-syntax ((arc (datum->syntax #'v 'arc)))
+         #'(hash-ref arc 'v))))))
 
-(define (ac-def-fn globals* name signature fn)
-  (hash-set! (hash-ref globals* 'sig) name (toarc signature))
-  (hash-set! globals* name fn))
+(define (ac-def-fn arc name signature fn)
+  (hash-set! (hash-ref arc 'sig) name (toarc signature))
+  (hash-set! arc name fn))
 
 (define-syntax ac-def
   (lambda (stx)
     (syntax-case stx ()
       ((ac-def name args body ...)
-       (with-syntax ((globals* (datum->syntax #'name 'globals*)))
+       (with-syntax ((arc (datum->syntax #'name 'arc)))
          #'(add-ac-build-step
-             (lambda (globals*)
-               (ac-def-fn globals* 'name 'args (lambda args body ...)))
+             (lambda (arc)
+               (ac-def-fn arc 'name 'args (lambda args body ...)))
              `(ac-def ,'name ,'args)))))))
 
 
@@ -76,13 +76,13 @@
 
 (define (extend-impl name test body source)
   (add-ac-build-step
-   (lambda (globals*)
-     (let ((previous (hash-ref globals* name)))
-       (hash-set! globals* name
+   (lambda (arc)
+     (let ((previous (hash-ref arc name)))
+       (hash-set! arc name
          (lambda args
-           (let ((result (apply test globals* args)))
+           (let ((result (apply test arc args)))
              (if (true? result)
-                  (apply body globals* result args)
+                  (apply body arc result args)
                   (apply previous args)))))))
    source))
 
@@ -90,12 +90,13 @@
   (lambda (stx)
     (syntax-case stx ()
       ((extend name args test body ...)
-       (with-syntax ((globals* (datum->syntax #'args 'globals*))
+       (with-syntax ((arc (datum->syntax #'args 'arc))
                      (it       (datum->syntax #'args 'it)))
          #'(extend-impl 'name
-            (lambda (globals* . args) test)
-            (lambda (globals* it . args) body ...)
+            (lambda (arc . args) test)
+            (lambda (arc it . args) body ...)
             `(extend ,'name ,'args ,'test)))))))
+
 
 ;; literal
 
@@ -111,16 +112,6 @@
 ; it's alive!
 
 
-;; nil
-
-(define (ac-nil)
-  (arc-list 'quote 'nil))
-
-(extend ac (s env)
-  (tnil (eq? s 'nil))
-  (ac-nil))
-
-
 ;; variables
 
 (define (mem v lst)
@@ -131,7 +122,7 @@
 (ac-def ac-lex? (v env)
   (mem v env))
 
-(define (global-ref-err globals* v)
+(define (global-ref-err arc v)
   (let ((message (string-append "undefined global variable: "
                                 (symbol->string v))))
     (lambda ()
@@ -145,9 +136,9 @@
 
 (ac-def ac-global (v)
   (arc-list hash-ref
-            globals*
+            arc
             (arc-list 'quote v)
-            (global-ref-err globals* v)))
+            (global-ref-err arc v)))
 
 (ac-def ac-var-ref (s env)
   (if (true? ((g ac-lex?) s env))
@@ -155,7 +146,7 @@
        ((g ac-global) s)))
 
 (extend ac (s env)
-  (tnil (and (not (no? s)) (symbol? s)))
+  (tnil (symbol? s))
   ((g ac-var-ref) s env))
 
 
@@ -211,7 +202,7 @@
 
 (ac-def ac-body* (body env)
   (if (no? body)
-      ((g list) (ac-nil))
+      ((g list) ''nil)
       ((g ac-body) body env)))
 
 (ac-def ac-body*x (args body env)
@@ -251,8 +242,8 @@
     (eval (deep-fromarc ((hash-ref arc 'ac) form 'nil))
           (hash-ref arc 'racket-namespace*))))
 
-(ac-def eval (form (arc 'nil))
-  (arc-eval (if (true? arc) arc globals*) form))
+(ac-def eval (form (other-arc 'nil))
+  (arc-eval (if (true? other-arc) other-arc arc) form))
 
 
 ;; quasiquotation
@@ -308,7 +299,7 @@
 
 (ac-def ac-if (args env)
   (cond ((no? args)
-         (ac-nil))
+         ''nil)
         ((no? ((g cdr) args))
          ((g ac) ((g car) args) env))
         (else
@@ -325,7 +316,7 @@
 ;; assign
 
 (ac-def ac-global-assign (a b)
-  (arc-list hash-set! globals* (arc-list 'quote a) b))
+  (arc-list hash-set! arc (arc-list 'quote a) b))
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
@@ -358,7 +349,7 @@
 
 (ac-def ac-macro? (fn)
   (if (symbol? fn)
-      (let ((v (hash-ref globals* fn 'nil)))
+      (let ((v (hash-ref arc fn 'nil)))
         (if (and (tagged? v)
                  (eq? (arc-type v) 'mac))
             (ar-rep v)
@@ -397,13 +388,13 @@
 ; write in Arc.
 
 (add-ac-build-step
- (lambda (globals*)
-   (hash-set! globals* 'ac-fn-rest-impl
-     (arc-eval globals*
+ (lambda (arc)
+   (hash-set! arc 'ac-fn-rest-impl
+     (arc-eval arc
       (toarc '(fn (args r/rest rest body env)
-           `(lambda ,(join args r/rest)
-              (let ((,rest (,r/list-toarc ,r/rest)))
-                ,@(ac-body*x (join args (list rest)) body env)))) )))))
+                `(lambda ,(join args r/rest)
+                   (let ((,rest (,r/list-toarc ,r/rest)))
+                     ,@(ac-body*x (join args (list rest)) body env)))) )))))
 
 (ac-def ac-fn-rest (args body env)
   ((g ac-fn-rest-impl)
@@ -417,7 +408,7 @@
 ;; bound
 
 (ac-def bound (x)
-  (tnil (hash-ref globals* x (lambda () #f))))
+  (tnil (hash-ref arc x (lambda () #f))))
 
 
 ;; disp, write
@@ -486,18 +477,17 @@
   (make-readtable readtable #\[ 'terminating-macro read-square-brackets))
 
 (add-ac-build-step
-  (lambda (globals*)
-    (hash-set! globals* 'racket-readtable* #f)
-    (hash-set! globals* 'arc-readtable* (bracket-readtable #f))))
+  (lambda (arc)
+    (hash-set! arc 'racket-readtable* #f)
+    (hash-set! arc 'arc-readtable* (bracket-readtable #f))))
 
 (ac-def racket-read-from-string (str)
   (parameterize ((current-readtable (g racket-readtable*)))
     (read (open-input-string str))))
 
 (define (arc-read arc input)
-  (let ((globals* arc))
-    (parameterize ((current-readtable (g arc-readtable*)))
-      (read input))))
+  (parameterize ((current-readtable (g arc-readtable*)))
+    (read input)))
 
 (define (aload1 arc p)
   (let ((x (arc-read arc p)))

@@ -132,8 +132,8 @@
 (define test-inline (make-parameter #t))
 
 (define (arc-test-impl source expected)
-  (let ((globals* (new-ac (build-steps))))
-    (let ((result (arc-test-eval source globals*)))
+  (let ((arc (new-ac (build-steps))))
+    (let ((result (arc-test-eval source arc)))
       (test-impl (writes-to-string source) expected result))))
 
 (define-syntax arc-test
@@ -173,7 +173,7 @@
 
     (after '(ac-def ac (s env))
       (test-expect-error
-       (let ((globals* (new-ac (build-steps))))
+       (let ((arc (new-ac (build-steps))))
          ((g ac) (lambda () 'foo) 'nil))
        "Bad object in expression"))
 
@@ -183,28 +183,25 @@
        (( #\a   ) #\a)
        (( "abc" ) "abc")))
 
-    (after '(extend ac (s env) (tnil (eq? s 'nil)))
-      (arc-test
-       (( nil ) 'nil)))
-
     (after '(ac-def ac-lex?)
-      (test-t (let ((globals* (new-ac (build-steps))))
+      (test-t (let ((arc (new-ac (build-steps))))
                 ((g ac-lex?)
                  'y
                  (arc-list 'x 'y 'z))))
-      (test-nil (let ((globals* (new-ac (build-steps))))
+      (test-nil (let ((arc (new-ac (build-steps))))
                   ((g ac-lex?)
                    'w
                    (arc-list 'x 'y 'z)))))
 
     (after '(extend ac (s env) (ar-and (tnil (not (no? s))) (tnil (symbol? s))))
       (test-expect-error
-       (let ((globals* (new-ac (build-steps))))
-         (arc-test-eval '( foo ) globals*))
+       (let ((arc (new-ac (build-steps))))
+         (arc-test-eval '( foo ) arc))
        "undefined global variable: foo")
 
       (arc-test
-       (( car ) arc-car)))
+       (( car ) arc-car)
+       (( nil ) 'nil)))
 
     (after '(extend ac (s env) (tnil (mpair? s)))
       (arc-test
@@ -233,7 +230,7 @@
 
     (after '(ac-def ac-body)
       (test
-       (let ((globals* (new-ac (build-steps))))
+       (let ((arc (new-ac (build-steps))))
          ((g ac-body)
           (arc-list 1 2 3)
           'nil))
@@ -360,23 +357,23 @@
     (after '(ac-def racket-disp)
       (test-equal
        (let ((port (open-output-string))
-             (globals* (new-ac (build-steps))))
-         (hash-set! globals* 'port port)
-         (arc-test-eval '( (racket-disp "a" port) ) globals*)
+             (arc (new-ac (build-steps))))
+         (hash-set! arc 'port port)
+         (arc-test-eval '( (racket-disp "a" port) ) arc)
          (get-output-string port))
        "a")
 
       (test-equal
-       (let ((globals* (new-ac (build-steps))))
+       (let ((arc (new-ac (build-steps))))
          (tostringf (lambda ()
-                      (arc-test-eval '( (racket-disp "abc") ) globals*))))
+                      (arc-test-eval '( (racket-disp "abc") ) arc))))
        "abc"))
 
     (after '(ac-def racket-write)
       (test-equal
-       (let ((globals* (new-ac (build-steps))))
+       (let ((arc (new-ac (build-steps))))
          (tostringf (lambda ()
-                      (arc-test-eval '( (racket-write "a") ) globals*))))
+                      (arc-test-eval '( (racket-write "a") ) arc))))
        "\"a\""))
 
     (after '(ac-def table)
