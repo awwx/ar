@@ -146,7 +146,6 @@ changed.
 * implements stdin, stdout, stderr as implicit variables
 
   removing an unnecessary layer of parentheses.
-  goal #3.
 
 
 * uniq implemented using Racket's gensym
@@ -159,6 +158,17 @@ changed.
 * readline accepts CR-LF line endings
 
   which is useful for Internet protocols such as HTTP.
+
+
+* [...] is implemented with a macro
+
+  [a b c] is expanded by the reader into (square-bracket a b c).
+  Meanwhile there's a square-bracket macro:
+
+         (mac square-bracket body
+           `(fn (_) (,@body)))
+
+  this makes it easier to hack the square bracket syntax. 
 
 
 Contributors
