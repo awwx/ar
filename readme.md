@@ -24,15 +24,15 @@ bugs and make some enhancements in the runtime that turn out to be
 easier to do with a compiler which isn't quite as tightly bound to
 Scheme.
 
-This code is under development, most of Arc is still unimplemented.
+This code is under development, much of Arc is unimplemented.
 
-There's a toy REPL (which doesn't bother to catch errors):
+Get to the REPL with:
 
-    racket repl.ss
+    racket as.ss
 
 or, if you have rlwrap:
 
-    rlwrap -q \" racket repl.ss
+    rlwrap -q \" racket as.ss
 
 You can also use "mzscheme" instead of "racket".
 
@@ -51,17 +51,16 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
+* user break (i.e. typing ^C) doesn't seem to be enabled
 * ac-nameit, ac-dbname
 * atstrings
 * ac-binaries
 * direct-calls
 * macex1
 * explicit-flush
-* full REPL
 * declare
 * primitives
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
-* can now get rid of ugly parameter renames such as "testff" for test.
 
  
 Changes

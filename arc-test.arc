@@ -875,3 +875,18 @@
 (testis (mismatch "abcdef" "abcdef") nil)
 
 (testis (memtable '(a b c d)) (obj a t b t c t d t))
+
+(testis (tostring (w/bars (pr "ab") (pr "cd") (pr "ef"))) "ab | cd | ef")
+
+;; todo tests for threads, trav
+
+(let x (list 'a nil 'c)
+  (or= (cadr x) 'b)
+  (or= (cadr x) 'X)
+  (testis x '(a b c)))
+
+;; todo tests for hooks, out, get
+
+;; todo tests for disk savers
+
+;; todo test for evtil, rand-key, ratio

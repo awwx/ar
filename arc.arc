@@ -434,13 +434,13 @@
 (def ac-symbol->chars (x)
   (coerce (coerce x 'string) 'cons))
 
-(def ac-tokens (testff source token acc keepsep?)
+(def ac-tokens (test source token acc keepsep?)
   (if (no source)
        (rev (if (acons token)
                  (cons (rev token) acc)
                  acc))
-      (testff (car source))
-       (ac-tokens testff
+      (test (car source))
+       (ac-tokens test
                   (cdr source)
                   '()
                   (let rec (if (no token)
@@ -450,7 +450,7 @@
                          (cons (car source) rec)
                          rec))
                   keepsep?)
-       (ac-tokens testff
+       (ac-tokens test
                   (cdr source)
                   (cons (car source) token)
                   acc
@@ -519,7 +519,8 @@
   (let flag (if append 'append 'truncate)
     (racket (open-output-file filename #:mode 'text #:exists flag))))
 
-;; todo open-socket
+(def open-socket (port)
+  ((inline ((racket-module 'scheme/tcp) 'tcp-listen)) port 50 (racket "#t")))
 
 (let expander 
      (fn (f var name body)
@@ -1562,6 +1563,9 @@
   (or (errsafe:load-table filename)
       (table)))
 
+(def file-exists (path)
+  (if (racket-true (racket.file-exists? path)) path))
+
 (def dir-exists (path)
   (if (racket-true (racket.directory-exists? path)) path))
                     
@@ -1805,3 +1809,90 @@
                              (do (set ,needbars)
                                  (pr ,out))))))
                   body)))))
+
+(def new-thread (f)
+  (racket.thread (fn () (f))))
+
+(def kill-thread (thd)
+  (racket.kill-thread thd))
+
+(def break-thread (thd)
+  (racket.break-thread thd))
+
+(def current-thread ()
+  (racket.current-thread))
+
+(def sleep ((o secs 0))
+  (racket.sleep secs)
+  nil)
+
+(mac thread body 
+  `(new-thread (fn () ,@body)))
+
+(mac trav (x . fs)
+  (w/uniq g
+    `((afn (,g)
+        (when ,g
+          ,@(map [list _ g] fs)))
+      ,x)))
+
+(mac or= (place expr)
+  (let (binds val setter) (setforms place)
+    `(atwiths ,binds
+       (or ,val (,setter ,expr)))))
+
+(= hooks* (table))
+
+(def hook (name . args)
+  (aif (hooks* name) (apply it args)))
+
+(mac defhook (name . rest)
+  `(= (hooks* ',name) (fn ,@rest)))
+  
+(mac out (expr) `(pr ,(tostring (eval expr))))
+
+(def get (index) [_ index])
+
+(= savers* (table))
+
+(mac fromdisk (var file init load save)
+  (w/uniq (gf gv)
+    `(unless (bound ',var)
+       (do1 (= ,var (iflet ,gf (file-exists ,file)
+                               (,load ,gf)
+                               ,init))
+            (= (savers* ',var) (fn (,gv) (,save ,gv ,file)))))))
+
+(mac diskvar (var file)
+  `(fromdisk ,var ,file nil readfile1 writefile))
+
+(mac disktable (var file)
+  `(fromdisk ,var ,file (table) load-table save-table))
+
+(mac todisk (var (o expr var))
+  `((savers* ',var) 
+    ,(if (is var expr) var `(= ,var ,expr))))
+
+(mac evtil (expr test)
+  (w/uniq gv
+    `(let ,gv ,expr
+       (while (no (,test ,gv))
+         (= ,gv ,expr))
+       ,gv)))
+
+(def rand-key (h)
+  (if (empty h)
+      nil
+      (let n (rand (len h))
+        (catch
+          (each (k v) h
+            (when (is (-- n) -1)
+              (throw k)))))))
+
+(def ratio (test xs)
+  (if (empty xs)
+      0
+      (/ (count test xs) (len xs))))
+
+(def quit ()
+  (racket.exit))
