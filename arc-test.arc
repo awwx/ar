@@ -138,6 +138,18 @@
 
 (testis (int "123") 123)
 
+(ac-defvar 'j4K3II9Jh6 (list (fn () 'foo)))
+(testis j4K3II9Jh6 'foo)
+
+(ac-defvar 'EFsEQlU8S1 (list nil (fn (x) (assign U5liRzluxt (+ x 1)))))
+(assign EFsEQlU8S1 5)
+(testis U5liRzluxt 6)
+
+(ac-defvar 'Y1jAJlOrAr (list nil))
+(testis
+ (catcherr (assign Y1jAJlOrAr 5))
+ (makeerr "Y1jAJlOrAr is not assignable"))
+
 (testis (do (assign NJyVDPGgYb (parameter 33))
             (parameterize NJyVDPGgYb 77 (NJyVDPGgYb)))
         77)

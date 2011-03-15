@@ -373,27 +373,6 @@
                       (arc-test-eval '( (racket-write "a") ) globals*))))
        "\"a\""))
 
-    (after '(extend ac-global (v) ((g ac-defined-var) v))
-      (test-equal
-       (let ((globals* (new-ac (build-steps))))
-         (arc-test-eval '( (ac-defvar 'x (list (fn () 'foo))) ) globals*)
-         (arc-test-eval '( x ) globals*))
-       'foo))
-
-    (after '(extend ac-global-assign (a b) ((g ac-defined-var) a))
-      (test-equal
-       (arc-test-eval '( (ac-defvar 'x (list nil (fn (x) (assign a (+ x 1)))))
-                         (assign x 5)
-                         a )
-                      (new-ac (build-steps)))
-       6)
-
-      (test-expect-error
-       (arc-test-eval '( (ac-defvar 'x (list nil))
-                         (assign x 5) )
-                      (new-ac (build-steps)))
-       "x is not assignable"))
-
     (after '(ac-def table)
       (arc-test (( (table) ) (hash))))
 

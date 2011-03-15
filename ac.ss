@@ -439,34 +439,6 @@
   x)
 
 
-;; defvar impl
-
-(add-ac-build-step
- (lambda (globals*)
-   (hash-set! globals* 'ac-defined-vars* (hash))))
-
-(ac-def ac-defvar (v x)
-  (hash-set! (g ac-defined-vars*) v x)
-  'nil)
-
-(ac-def ac-defined-var (v)
-  (hash-ref (g ac-defined-vars*) v (lambda () 'nil)))
-
-(extend ac-global (v)
-  ((g ac-defined-var) v)
-  (arc-list ar-apply (mcar it)))
-
-(ac-def ac-not-assignable (v)
-  (lambda (x)
-    (err (string-append (symbol->string v) " is not assignable"))))
-
-(extend ac-global-assign (a b)
-  ((g ac-defined-var) a)
-  (arc-list ar-apply
-            (ar-or (arc-cadr it) ((g ac-not-assignable) a))
-            b))
-
-
 ;; table
 
 (ac-def table ((init #f))

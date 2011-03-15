@@ -191,6 +191,48 @@
   (let f (testify test)
     (reclist [if (f (car _)) _] seq)))
 
+(mac aif (expr . body)
+  `(let it ,expr
+     (if it
+         ,@(if (cddr body)
+               `(,(car body) (aif ,@(cdr body)))
+               body))))
+
+(mac defrule (name test . body)
+  (let arglist (sig name)
+    (w/uniq (orig args)
+      `(let ,orig ,name
+         (assign ,name
+           (fn ,args
+             (aif (apply (fn ,arglist ,test) ,args)
+                   (apply (fn ,arglist ,@body) ,args)
+                   (apply ,orig ,args))))))))
+
+(defrule ac (caris s 'racket)
+  (let x (cadr s)
+    (if (isa x 'string)
+         (racket-read-from-string x)
+         x)))
+
+(assign ac-defined-vars* (table))
+
+(def ac-defvar (v x)
+  (sref ac-defined-vars* x v)
+  nil)
+
+(def ac-defined-var (v)
+  (ac-defined-vars* v))
+
+(defrule ac-global (ac-defined-var v)
+  `(,(car it)))
+
+(def ac-not-assignable (v)
+  (fn (x)
+    (err (string v " is not assignable"))))
+
+(defrule ac-global-assign (ac-defined-var a)
+  `(,(or (cadr it) (ac-not-assignable a)) ,b))
+
 (mac defvar args
   (with (name (car args)
          get  (cadr args)
@@ -319,13 +361,6 @@
        (withs ,(apply join (ac-complex-args args ra))
          ,@body))))
 
-(mac aif (expr . body)
-  `(let it ,expr
-     (if it
-         ,@(if (cddr body)
-               `(,(car body) (aif ,@(cdr body)))
-               body))))
-
 (mac erp (x)
   (w/uniq (gx)
     `(let ,gx ,x
@@ -335,16 +370,6 @@
          (write ,gx)
          (disp #\newline))
        ,gx)))
-
-(mac defrule (name test . body)
-  (let arglist (sig name)
-    (w/uniq (orig args)
-      `(let ,orig ,name
-         (assign ,name
-           (fn ,args
-             (aif (apply (fn ,arglist ,test) ,args)
-                   (apply (fn ,arglist ,@body) ,args)
-                   (apply ,orig ,args))))))))
 
 (defrule ac-fn (ac-complex-args? args)
   (ac (ac-complex-fn args body) env))
@@ -365,12 +390,6 @@
 (defrule print (isa x 'cons)
   (disp "(" port)
   (printwith-list primitive x port))
-
-(defrule ac (caris s 'racket)
-  (let x (cadr s)
-    (if (isa x 'string)
-         (racket-read-from-string x)
-         x)))
 
 (assign-fn newstring (k (o char)) (racket make-string))
 

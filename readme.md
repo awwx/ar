@@ -51,6 +51,7 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
+* (apply +) is broken
 * user break (i.e. typing ^C) doesn't seem to be enabled
 * ac-nameit, ac-dbname
 * atstrings
