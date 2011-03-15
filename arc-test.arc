@@ -905,3 +905,8 @@
 ;; todo tests for disk savers
 
 ;; todo test for evtil, rand-key, ratio
+
+(testis (find digit "abc9def") #\9)
+(testis (find positive '(-7 -8 6 3)) 6)
+(testis (find positive '()) nil)
+(testis (find positive '(-7 -8 -6 -3)) nil)
