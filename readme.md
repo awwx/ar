@@ -60,7 +60,26 @@ Todo
 * explicit-flush
 * declare
 * primitives
+  * socket-accept
+  * setuid
+  * pipe-from
+  * dir
+  * rmfile
+  * current-process-milliseconds
+  * current-gc-milliseconds
+  * client-ip
+  * dead
+  * force-close
+  * memory
+  * sin
+  * cos
+  * tan
+  * asin
+  * acos
+  * atan
+  * log
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
+* custodian for really closing ports
 
  
 Changes
