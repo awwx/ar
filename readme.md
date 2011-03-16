@@ -51,7 +51,6 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
-* (bound x) returns nil when x is set to Racket #f
 * user break (i.e. typing ^C) doesn't seem to be enabled
 * ac-nameit, ac-dbname
 * atstrings
