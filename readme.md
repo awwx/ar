@@ -212,6 +212,28 @@ changed.
 
   this makes it easier to hack the square bracket syntax. 
 
+* the REPL removes excess characters at the end of the input line
+
+  In Arc 3.1:
+
+         arc> (readline) ;Fee fi fo fum   
+         " ;Fee fi fo fum"
+         arc> 
+
+  this is because Racket's reader reads up to the closing ")", leaving
+  the rest of the input line in the input buffer, which is then read
+  by readline.
+
+  On the assumption that the REPL is being run from a terminal and
+  thus there will always be a trailing newline (which sends the input
+  line to the process), the ar REPL cleans out the input buffer up to
+  and including the newline:
+
+         arc> (readline) ;Fee fi fo fum
+         hello
+         "hello"
+         arc> 
+
 
 Contributors
 ------------
