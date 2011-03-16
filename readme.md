@@ -51,7 +51,8 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
-* user break (i.e. typing ^C) doesn't seem to be enabled
+* clean up messy code in io.arc
+* would be nice if typing ^C returned to the REPL
 * ac-nameit, ac-dbname
 * atstrings
 * ac-binaries
@@ -60,16 +61,8 @@ Todo
 * explicit-flush
 * declare
 * primitives
-  * socket-accept
-  * setuid
-  * pipe-from
-  * dir
-  * rmfile
   * current-process-milliseconds
   * current-gc-milliseconds
-  * client-ip
-  * dead
-  * force-close
   * memory
   * sin
   * cos
@@ -79,7 +72,37 @@ Todo
   * atan
   * log
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
-* custodian for really closing ports
+* need tests for
+  * atomic
+  * force-close on sockets (see comment on force-close in arc3.1/ac.scm)
+  * threads
+  * whilet
+  * awhen
+  * whiler
+  * consif
+  * check
+  * reinsert-sorted and insortnew
+  * memo and defmemo
+  * prall, prs
+  * templates
+  * cache, defcache
+  * until
+  * queue
+  * flushout
+  * noisy-each
+  * trav
+  * hooks
+  * out
+  * get
+  * evtil
+  * rand-key
+  * ratio
+  * dead
+  * socket-accept
+  * setuid
+  * dir
+  * rmfile
+  * client-ip
 
  
 Changes

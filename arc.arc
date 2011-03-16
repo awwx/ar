@@ -520,16 +520,18 @@
 (mac case (expr . args)
   `(caselet ,(uniq) ,expr ,@args))
 
+;; todo try-custodian redefined in io.arc
+
+(def try-custodian (port))
+
 (def close ports
-  (map (fn (port)
-         (case (type port)
-           input  ((racket close-input-port) port)
-           output ((racket close-output-port) port)
-           socket ((racket tcp-close) port)
-                  (err "Can't close " port)))
-       ports)
-  ;; todo try-custodian
-  nil)
+  (each port ports
+    (case (type port)
+      input  ((racket close-input-port) port)
+      output ((racket close-output-port) port)
+      socket ((racket tcp-close) port)
+             (err "Can't close " port))
+    (try-custodian port)))
 
 (dynamic infile (racket open-input-file))
 (sref sig '(name) 'infile)
@@ -1503,6 +1505,8 @@
 (def union (f xs ys)
   (+ xs (rem (fn (y) (some [f _ y] xs))
              ys)))
+
+(def carif (x) (if (atom x) x (car x)))
 
 (= templates* (table))
 

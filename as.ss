@@ -4,5 +4,8 @@
 (require "ac.ss")
 
 (let ((arc (new-arc)))
-  (aload arc "arc.arc" "repl.arc")
+  (aload arc
+    "arc.arc"
+    "arc3.1/strings.arc"
+    "repl.arc")
   (noprint ((get arc 'repl))))
