@@ -2,7 +2,7 @@
 
 (require "ac.ss")
 
-(aload (new-ac)
+(aload (new-arc)
   "arc.arc"
   "arc3.1/strings.arc"
   "equal-wrt-testing.arc" "test.arc"

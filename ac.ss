@@ -5,6 +5,39 @@
 
 (provide (all-from-out "ar.ss") (all-defined-out))
 
+(define default-globals-implementation 'namespace)
+
+(define (globals-implementation arc)
+  (hash-ref arc 'globals-implementation* default-globals-implementation))
+
+(define (ac-global-name s)
+  (string->symbol (string-append "_" (symbol->string s))))
+
+;; note that these don't need to be particularly fast
+
+(define (get arc varname)
+  (case (globals-implementation arc)
+    ((table) (hash-ref arc varname))
+    ((namespace) (namespace-variable-value (ac-global-name varname) #t #f
+                   (hash-ref arc 'racket-namespace*)))))
+
+(define (get-default arc varname default)
+  (case (globals-implementation arc)
+    ((table) (hash-ref arc varname default))
+    ((namespace) (namespace-variable-value
+                  (ac-global-name varname)
+                  #t
+                  default
+                  (hash-ref arc 'racket-namespace*)))))
+
+(define (set arc varname value)
+  (case (globals-implementation arc)
+    ((table) (hash-set! arc varname value))
+    ((namespace)
+     (namespace-set-variable-value! (ac-global-name varname) value
+                   #t
+                   (hash-ref arc 'racket-namespace*)))))
+
 
 ;; Arc compiler steps
 
@@ -23,16 +56,19 @@
 ; Return a global variable namespace that includes the Arc runtime
 ; globals (car, +, etc.) and whatever Arc compiler globals that have
 ; been defined so far (ac, ac-literal?, etc.)  Note that a fresh copy
-; of the compiler is created each time (new-ac) is called, including
+; of the compiler is created each time (new-arc) is called, including
 ; the compiler building steps defined so far.
 
-(define (new-ac (build-steps ac-build-steps))
-  (let ((arc (new-ar)))
+(define (new-arc (options (hash)))
+  (let ((arc (hash)))
     (hash-set! arc 'racket-namespace* (make-base-namespace))
+    (hash-for-each (new-ar)
+      (lambda (k v)
+        (set arc k v)))
     (for-each (lambda (pair)
                 (let ((step (car pair)))
                   (step arc)))
-              build-steps)
+              (hash-ref options 'build-steps ac-build-steps))
     arc))
 
 
@@ -40,18 +76,18 @@
 
 (add-ac-build-step
  (lambda (arc)
-   (hash-set! arc 'sig (hash))))
+   (set arc 'sig (hash))))
 
 (define-syntax g
   (lambda (stx)
     (syntax-case stx ()
       ((g v)
        (with-syntax ((arc (datum->syntax #'v 'arc)))
-         #'(hash-ref arc 'v))))))
+         #'(get arc 'v))))))
 
 (define (ac-def-fn arc name signature fn)
-  (hash-set! (hash-ref arc 'sig) name (toarc signature))
-  (hash-set! arc name fn))
+  (hash-set! (get arc 'sig) name (toarc signature))
+  (set arc name fn))
 
 (define-syntax ac-def
   (lambda (stx)
@@ -77,8 +113,8 @@
 (define (extend-impl name test body source)
   (add-ac-build-step
    (lambda (arc)
-     (let ((previous (hash-ref arc name)))
-       (hash-set! arc name
+     (let ((previous (get arc name)))
+       (set arc name
          (lambda args
            (let ((result (apply test arc args)))
              (if (true? result)
@@ -135,11 +171,13 @@
 ; yet if it makes a difference).
 
 (ac-def ac-global (v)
-  (arc-list hash-ref
-            arc
-            (arc-list 'quote v)
-            (global-ref-err arc v)))
-
+  (case (globals-implementation arc)
+    ((table) (arc-list hash-ref
+                       arc
+                       (arc-list 'quote v)
+                       (global-ref-err arc v)))
+    ((namespace) (ac-global-name v))))
+     
 (ac-def ac-var-ref (s env)
   (if (true? ((g ac-lex?) s env))
        s
@@ -238,8 +276,9 @@
 ;; eval
 
 (define (arc-eval arc form)
-  (parameterize ((current-readtable (hash-ref arc 'arc-readtable* #f)))
-    (eval (deep-fromarc ((hash-ref arc 'ac) form 'nil))
+  (parameterize ((current-readtable (get-default arc 'arc-readtable* (lambda () #f)))
+                 (compile-allow-set!-undefined #t))
+    (eval (deep-fromarc ((get arc 'ac) form 'nil))
           (hash-ref arc 'racket-namespace*))))
 
 (ac-def eval (form (other-arc 'nil))
@@ -316,7 +355,9 @@
 ;; assign
 
 (ac-def ac-global-assign (a b)
-  (arc-list hash-set! arc (arc-list 'quote a) b))
+  (case (globals-implementation arc)
+    ((table) (arc-list hash-set! arc (arc-list 'quote a) b))
+    ((namespace) (arc-list 'set! (ac-global-name a) b))))
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
@@ -349,7 +390,7 @@
 
 (ac-def ac-macro? (fn)
   (if (symbol? fn)
-      (let ((v (hash-ref arc fn 'nil)))
+      (let ((v (get-default arc fn (lambda () 'nil))))
         (if (and (tagged? v)
                  (eq? (arc-type v) 'mac))
             (ar-rep v)
@@ -389,7 +430,7 @@
 
 (add-ac-build-step
  (lambda (arc)
-   (hash-set! arc 'ac-fn-rest-impl
+   (set arc 'ac-fn-rest-impl
      (arc-eval arc
       (toarc '(fn (args r/rest rest body env)
                 `(lambda ,(join args r/rest)
@@ -407,8 +448,9 @@
 
 ;; bound
 
-(ac-def bound (x)
-  (tnil (hash-ref arc x (lambda () #f))))
+(ac-def bound (name)
+  (let ((undef (list 'undef)))
+    (tnil (not (eq? (get-default arc name (lambda () undef)) undef)))))
 
 
 ;; disp, write
@@ -478,8 +520,8 @@
 
 (add-ac-build-step
   (lambda (arc)
-    (hash-set! arc 'racket-readtable* #f)
-    (hash-set! arc 'arc-readtable* (bracket-readtable #f))))
+    (set arc 'racket-readtable* #f)
+    (set arc 'arc-readtable* (bracket-readtable #f))))
 
 (ac-def racket-read-from-string (str)
   (parameterize ((current-readtable (g racket-readtable*)))

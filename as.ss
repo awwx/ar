@@ -3,6 +3,6 @@
 
 (require "ac.ss")
 
-(let ((arc (new-ac)))
+(let ((arc (new-arc)))
   (aload arc "arc.arc" "repl.arc")
-  (noprint ((hash-ref arc 'repl))))
+  (noprint ((get arc 'repl))))

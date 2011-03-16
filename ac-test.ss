@@ -3,7 +3,7 @@
 (require (only-in "ar.ss"
            arc-car arc-list deep-fromarc hash no? toarc true? write-to-string))
 (require (only-in "ac.ss"
-           new-ac ac-build-steps g))
+           arc-eval new-arc ac-build-steps get g globals-implementation))
 
 (define (test-expect-error-impl source thunk expected-error-message)
   (let ((actual-error
@@ -110,14 +110,21 @@
 
 (define (arc-test-eval r/arc-program globals)
   (let ((final 'nil))
-    (for-each (lambda (r/source)
-                (let ((a/source (toarc r/source)))
-                  (let ((a/compiled ((hash-ref globals 'ac) a/source 'nil)))
-                    (let ((r/compiled (deep-fromarc a/compiled)))
-                      (let ((result (eval r/compiled (hash-ref globals 'racket-namespace*))))
-                        (set! final result))))))
+    (for-each (lambda (r/form)
+                (set! final (arc-eval globals (toarc r/form))))
               r/arc-program)
     final))
+
+;;  (arc-eval globals (toarc r/arc-program)))
+  ;; (let ((final 'nil))
+  ;;   (for-each (lambda (r/source)
+  ;;               (let ((a/source (toarc r/source)))
+  ;;                 (let ((a/compiled ((get globals 'ac) a/source 'nil)))
+  ;;                   (let ((r/compiled (deep-fromarc a/compiled)))
+  ;;                     (let ((result (eval r/compiled (hash-ref globals 'racket-namespace*))))
+  ;;                       (set! final result))))))
+  ;;             r/arc-program)
+  ;;   final))
 
 (define (writes-to-string xs)
   (let ((port (open-output-string)))
@@ -132,7 +139,7 @@
 (define test-inline (make-parameter #t))
 
 (define (arc-test-impl source expected)
-  (let ((arc (new-ac (build-steps))))
+  (let ((arc (test-arc)))
     (let ((result (arc-test-eval source arc)))
       (test-impl (writes-to-string source) expected result))))
 
@@ -157,6 +164,11 @@
   (parameterize ((build-steps (take (lambda (s) (begins s pattern)))))
     (thunk)))
 
+(define (test-arc)
+  (let ((options (hash)))
+    (hash-set! options 'build-steps (build-steps))
+    (new-arc options)))
+
 (define-syntax after
   (syntax-rules ()
     ((after pattern body ...)
@@ -173,7 +185,7 @@
 
     (after '(ac-def ac (s env))
       (test-expect-error
-       (let ((arc (new-ac (build-steps))))
+       (let ((arc (test-arc)))
          ((g ac) (lambda () 'foo) 'nil))
        "Bad object in expression"))
 
@@ -184,20 +196,22 @@
        (( "abc" ) "abc")))
 
     (after '(ac-def ac-lex?)
-      (test-t (let ((arc (new-ac (build-steps))))
+      (test-t (let ((arc (test-arc)))
                 ((g ac-lex?)
                  'y
                  (arc-list 'x 'y 'z))))
-      (test-nil (let ((arc (new-ac (build-steps))))
+      (test-nil (let ((arc (test-arc)))
                   ((g ac-lex?)
                    'w
                    (arc-list 'x 'y 'z)))))
 
     (after '(extend ac (s env) (ar-and (tnil (not (no? s))) (tnil (symbol? s))))
-      (test-expect-error
-       (let ((arc (new-ac (build-steps))))
-         (arc-test-eval '( foo ) arc))
-       "undefined global variable: foo")
+      (let ((arc (test-arc)))
+        (test-expect-error
+          (arc-test-eval '( foo ) arc)
+          (case (globals-implementation arc)
+            ((table) "undefined global variable: foo")
+            ((namespace) "reference to undefined identifier: _foo"))))
 
       (arc-test
        (( car ) arc-car)
@@ -230,7 +244,7 @@
 
     (after '(ac-def ac-body)
       (test
-       (let ((arc (new-ac (build-steps))))
+       (let ((arc (test-arc)))
          ((g ac-body)
           (arc-list 1 2 3)
           'nil))
@@ -343,7 +357,7 @@
 
     (after '(ac-def bound)
       (arc-test
-       (( (bound 'foo) )
+       (( (bound 'QmrQOCYWOy) )
         'nil)
 
        (( (assign foo nil)
@@ -357,21 +371,21 @@
     (after '(ac-def racket-disp)
       (test-equal
        (let ((port (open-output-string))
-             (arc (new-ac (build-steps))))
+             (arc (test-arc)))
          (hash-set! arc 'port port)
-         (arc-test-eval '( (racket-disp "a" port) ) arc)
+         (arc-test-eval `( (racket-disp "a" ',port) ) arc)
          (get-output-string port))
        "a")
 
       (test-equal
-       (let ((arc (new-ac (build-steps))))
+       (let ((arc (test-arc)))
          (tostringf (lambda ()
                       (arc-test-eval '( (racket-disp "abc") ) arc))))
        "abc"))
 
     (after '(ac-def racket-write)
       (test-equal
-       (let ((arc (new-ac (build-steps))))
+       (let ((arc (test-arc)))
          (tostringf (lambda ()
                       (arc-test-eval '( (racket-write "a") ) arc))))
        "\"a\""))
