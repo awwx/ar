@@ -80,8 +80,6 @@ Todo
   * log
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
 * custodian for really closing ports
-* performance: ar currently runs the queue test roughly three times
-  slower than a fixed Arc 3.1
 
  
 Changes
