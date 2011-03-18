@@ -173,10 +173,11 @@ changed.
   and applying join to the pieces will result in the original list.
 
 
+* global variables can be stored in an Arc table instead of in a Racket namespace
 
-* global variables are stored in an Arc table instead of in a Racket namespace
-
-  as an experiment to see if the simpler data structure is sufficient.
+  This has been turned off by default though, as it did turn out to be
+  slower than using a Racket namespace for global variables as Arc 3.1
+  does.
 
 
 * implicit variables
