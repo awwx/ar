@@ -89,6 +89,15 @@
   (hash-set! (get arc 'sig) name (toarc signature))
   (set arc name fn))
 
+(add-ac-build-step
+ (lambda (arc)
+   (ac-def-fn arc 'new-arc '((o options)) new-arc)
+   (ac-def-fn arc 'namespace-get '(namespace varname) get)
+   (ac-def-fn arc 'namespace-set '(namespace varname value)
+     (lambda (namespace varname value)
+       (set namespace varname value)
+       'nil))))
+
 (define-syntax ac-def
   (lambda (stx)
     (syntax-case stx ()
@@ -388,14 +397,20 @@
 
 ;; macro
 
+(define (mac? x)
+  (and (tagged? x)
+       (eq? (arc-type x) 'mac)))
+
 (ac-def ac-macro? (fn)
-  (if (symbol? fn)
-      (let ((v (get-default arc fn (lambda () 'nil))))
-        (if (and (tagged? v)
-                 (eq? (arc-type v) 'mac))
-            (ar-rep v)
-            'nil))
-      'nil))
+  (cond ((mac? fn)
+         (ar-rep fn))
+        ((symbol? fn)
+         (let ((v (get-default arc fn (lambda () 'nil))))
+           (if (mac? v)
+               (ar-rep v)
+               'nil)))
+        (else
+         'nil)))
 
 (ac-def ac-mac-call (m args env)
   (let ((x1 (arc-apply m args)))
@@ -542,3 +557,8 @@
   (for-each (lambda (filename)
               (call-with-input-file filename (lambda (p) (aload1 arc p))))
             filenames))
+
+(add-ac-build-step
+ (lambda (arc)
+   (ac-def-fn arc 'aload '(namespace . filenames) aload)
+   (ac-def-fn arc 'this-namespace '() (lambda () arc))))
