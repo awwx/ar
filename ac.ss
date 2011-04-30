@@ -148,7 +148,8 @@
 (ac-def ac-literal? (x)
   (tnil (or (char? x)
             (string? x)
-            (number? x))))
+            (number? x)
+            (procedure? x))))
 
 (extend ac (s env)
   ((g ac-literal?) s)

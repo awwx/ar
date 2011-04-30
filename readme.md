@@ -164,6 +164,39 @@ changed.
   this may be the right axiomatic approach.
 
 
+* function values are considered literals by the compiler
+
+  This is another change which isn't visible unless you're using
+  macros (there otherwise isn't a way to insert a function *value*
+  into the source code the compiler compiles).
+
+  In Arc 3.1, a function value can be included in a macro expansion,
+  but it needs to be quoted:
+
+         (mac evens (xs) `(',keep even ,xs))
+
+         (def foo () (evens '(1 2 3 4 5 6 7 8)))
+
+         (wipe keep)
+
+         arc> (foo)
+         (2 4 6 8)
+
+  With this change, the function value no longer needs to be quoted:
+
+         (mac evens (xs) `(,keep even ,xs))
+
+
+* macro values can also be included in a macro expansion
+
+         (mac bar () `(prn "hi, this is bar"))
+
+         (mac foo () `(,bar))
+
+         arc> (foo)
+         hi, this is bar
+
+
 * join can accept a non-list as its last argument
 
          (join '(1 2) 3) => (1 2 . 3)
