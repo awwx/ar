@@ -63,7 +63,7 @@
   (let ([ns (make-base-empty-namespace)])
     (parameterize ([current-namespace ns])
       (namespace-require '(only racket/base #%app #%datum #%top
-                                begin let set! make-string
+                                let set! make-string
                                 call-with-current-continuation open-input-file
                                 dynamic-wind read close-input-port eof-object?
                                 make-semaphore make-thread-cell random
@@ -409,7 +409,7 @@
              ((g ac-assignn) (arc-cddr x) env))))
 
 (ac-def ac-assign (x env)
-  (mcons 'begin
+  (mcons 'racket-begin
          ((g ac-assignn) x env)))
 
 (extend ac (s env)
