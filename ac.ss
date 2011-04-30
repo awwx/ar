@@ -56,17 +56,16 @@
 ; of the compiler is created each time (new-arc) is called, including
 ; the compiler building steps defined so far.
 
-(define (nomnom)
-  (let ([ns (make-base-empty-namespace)])
-    (parameterize ([current-namespace ns])
+(define (make-arc-racket-namespace)
+  (let ((ns (make-base-empty-namespace)))
+    (parameterize ((current-namespace ns))
       (namespace-require '(only racket/base #%app #%datum #%top))
-      (namespace-require '(prefix racket- racket/base))
-      (namespace-require '(prefix _racket- racket/base)))
+      (namespace-require '(prefix racket- racket/base)))
     ns))
 
 (define (new-arc (options (hash)))
   (let ((arc (hash)))
-    (hash-set! arc 'racket-namespace* (nomnom))
+    (hash-set! arc 'racket-namespace* (make-arc-racket-namespace))
     (hash-for-each (new-ar)
       (lambda (k v)
         (set arc k v)))
@@ -280,6 +279,8 @@
   (if (true? ((g dotted-list?) args))
        ((g ac-fn-rest) args body env)
        (mcons 'racket-lambda
+              ;; TODO I think it would be better to have an explicit
+              ;; representation for nil instead
               (mcons (arc-list 'racket-list args)
                      ((g ac-body*x) args body env)))))
 
