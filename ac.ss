@@ -63,7 +63,7 @@
   (let ([ns (make-base-empty-namespace)])
     (parameterize ([current-namespace ns])
       (namespace-require '(only racket/base #%app #%datum #%top
-                                set! make-string
+                                make-string
                                 call-with-current-continuation open-input-file
                                 dynamic-wind read close-input-port eof-object?
                                 make-semaphore make-thread-cell random
@@ -388,7 +388,7 @@
 (ac-def ac-global-assign (a b)
   (case (globals-implementation arc)
     ((table) (arc-list hash-set! arc (arc-list 'racket-quote a) b))
-    ((namespace) (arc-list 'set! (ac-global-name a) b))))
+    ((namespace) (arc-list 'racket-set! (ac-global-name a) b))))
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
@@ -397,7 +397,7 @@
     (arc-list 'racket-let
               (arc-list (arc-list result ((g ac) b1 env)))
               (if (true? ((g ac-lex?) a env))                  
-                   (arc-list 'set! a result)
+                   (arc-list 'racket-set! a result)
                    ((g ac-global-assign) a result))
               result)))
 
