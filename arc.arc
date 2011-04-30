@@ -538,7 +538,7 @@
 
 (def outfile (filename (o append))
   (let flag (if append 'append 'truncate)
-    (racket (open-output-file filename #:mode 'text #:exists flag))))
+    (racket (open-output-file filename #:mode (racket-quote text) #:exists flag))))
 
 (def open-socket (port)
   ((inline ((racket-module 'scheme/tcp) 'tcp-listen)) port 50 (racket "#t")))

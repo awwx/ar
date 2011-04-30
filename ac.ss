@@ -63,7 +63,7 @@
   (let ([ns (make-base-empty-namespace)])
     (parameterize ([current-namespace ns])
       (namespace-require '(only racket/base #%app #%datum #%top
-                                quote if begin let set! make-string
+                                if begin let set! make-string
                                 call-with-current-continuation open-input-file
                                 dynamic-wind read close-input-port eof-object?
                                 make-semaphore make-thread-cell random
