@@ -59,9 +59,30 @@
 ; of the compiler is created each time (new-arc) is called, including
 ; the compiler building steps defined so far.
 
+(define (nomnom)
+  (let ([ns (make-base-empty-namespace)])
+    (parameterize ([current-namespace ns])
+      (namespace-require '(only racket/base #%app #%datum #%top
+                                quote lambda if begin let set! make-string
+                                call-with-current-continuation open-input-file
+                                dynamic-wind read close-input-port eof-object?
+                                make-semaphore make-thread-cell random
+                                thread-cell-ref thread-cell-set!
+                                call-with-semaphore current-milliseconds
+                                current-seconds open-output-file
+                                close-output-port set-mcdr! modulo
+                                rename-file-or-directory > < read-byte
+                                write-byte hash-for-each inexact->exact
+                                truncate delete-file directory-exists?
+                                seconds->date date-second date-minute
+                                date-hour date-day date-month date-year
+                                expt sqrt))
+      (namespace-require '(prefix racket- racket/base)))
+    ns))
+
 (define (new-arc (options (hash)))
   (let ((arc (hash)))
-    (hash-set! arc 'racket-namespace* (make-base-namespace))
+    (hash-set! arc 'racket-namespace* (nomnom))
     (hash-for-each (new-ar)
       (lambda (k v)
         (set arc k v)))
