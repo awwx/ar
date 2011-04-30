@@ -63,7 +63,7 @@
   (let ([ns (make-base-empty-namespace)])
     (parameterize ([current-namespace ns])
       (namespace-require '(only racket/base #%app #%datum #%top
-                                let set! make-string
+                                set! make-string
                                 call-with-current-continuation open-input-file
                                 dynamic-wind read close-input-port eof-object?
                                 make-semaphore make-thread-cell random
@@ -394,7 +394,7 @@
   (unless (symbol? a)
     (err "First arg to assign must be a symbol" a))
   (let ((result (gensym)))
-    (arc-list 'let
+    (arc-list 'racket-let
               (arc-list (arc-list result ((g ac) b1 env)))
               (if (true? ((g ac-lex?) a env))                  
                    (arc-list 'set! a result)
@@ -471,7 +471,7 @@
      (arc-eval arc
       (toarc '(fn (args r/rest rest body env)
                 `(racket-lambda ,(join args r/rest)
-                   (let ((,rest (,r/list-toarc ,r/rest)))
+                   (racket-let ((,rest (,r/list-toarc ,r/rest)))
                      ,@(ac-body*x (join args (list rest)) body env)))) )))))
 
 (ac-def ac-fn-rest (args body env)
