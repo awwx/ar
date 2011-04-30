@@ -110,7 +110,10 @@
         (else x)))
 
 (define (deep-fromarc x)
-  (cond ;; nil in the car position isn't a list terminator, and so can
+  (cond ((and (mpair? x) (eq? (mcar x) 'racket-list))
+         (strict-deep-fromarc (mcar (mcdr x))))
+
+        ;; nil in the car position isn't a list terminator, and so can
         ;; be left alone.
         ((mpair? x)
          (cons (let ((a (mcar x)))
@@ -118,6 +121,15 @@
                (let ((b (mcdr x)))
                  (if (eq? b 'nil) '() (deep-fromarc b)))))
 
+        (else
+         x)))
+
+(define (strict-deep-fromarc x)
+  (cond ((eq? x 'nil)
+         '())
+        ((mpair? x)
+         (cons (strict-deep-fromarc (mcar x))
+               (strict-deep-fromarc (mcdr x))))
         (else
          x)))
 

@@ -10,22 +10,19 @@
 (define (globals-implementation arc)
   (hash-ref arc 'globals-implementation* default-globals-implementation))
 
-(define (ac-global-name s)
-  (string->symbol (string-append "_" (symbol->string s))))
-
 ;; note that these don't need to be particularly fast
 
 (define (get arc varname)
   (case (globals-implementation arc)
     ((table) (hash-ref arc varname))
-    ((namespace) (namespace-variable-value (ac-global-name varname) #t #f
+    ((namespace) (namespace-variable-value varname #t #f
                    (hash-ref arc 'racket-namespace*)))))
 
 (define (get-default arc varname default)
   (case (globals-implementation arc)
     ((table) (hash-ref arc varname default))
     ((namespace) (namespace-variable-value
-                  (ac-global-name varname)
+                  varname
                   #t
                   default
                   (hash-ref arc 'racket-namespace*)))))
@@ -34,7 +31,7 @@
   (case (globals-implementation arc)
     ((table) (hash-set! arc varname value))
     ((namespace)
-     (namespace-set-variable-value! (ac-global-name varname) value
+     (namespace-set-variable-value! varname value
                    #t
                    (hash-ref arc 'racket-namespace*)))))
 
@@ -62,22 +59,9 @@
 (define (nomnom)
   (let ([ns (make-base-empty-namespace)])
     (parameterize ([current-namespace ns])
-      (namespace-require '(only racket/base #%app #%datum #%top
-                                make-string
-                                call-with-current-continuation open-input-file
-                                dynamic-wind read close-input-port eof-object?
-                                make-semaphore make-thread-cell random
-                                thread-cell-ref thread-cell-set!
-                                call-with-semaphore current-milliseconds
-                                current-seconds open-output-file
-                                close-output-port set-mcdr! modulo
-                                rename-file-or-directory > < read-byte
-                                write-byte hash-for-each inexact->exact
-                                truncate delete-file directory-exists?
-                                seconds->date date-second date-minute
-                                date-hour date-day date-month date-year
-                                expt sqrt))
-      (namespace-require '(prefix racket- racket/base)))
+      (namespace-require '(only racket/base #%app #%datum #%top))
+      (namespace-require '(prefix racket- racket/base))
+      (namespace-require '(prefix _racket- racket/base)))
     ns))
 
 (define (new-arc (options (hash)))
@@ -207,7 +191,7 @@
                        arc
                        (arc-list 'racket-quote v)
                        (global-ref-err arc v)))
-    ((namespace) (ac-global-name v))))
+    ((namespace) v)))
      
 (ac-def ac-var-ref (s env)
   (if (true? ((g ac-lex?) s env))
@@ -296,7 +280,7 @@
   (if (true? ((g dotted-list?) args))
        ((g ac-fn-rest) args body env)
        (mcons 'racket-lambda
-              (mcons args
+              (mcons (arc-list 'racket-list args)
                      ((g ac-body*x) args body env)))))
 
 (extend ac (s env)
@@ -388,7 +372,7 @@
 (ac-def ac-global-assign (a b)
   (case (globals-implementation arc)
     ((table) (arc-list hash-set! arc (arc-list 'racket-quote a) b))
-    ((namespace) (arc-list 'racket-set! (ac-global-name a) b))))
+    ((namespace) (arc-list 'racket-set! a b))))
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
