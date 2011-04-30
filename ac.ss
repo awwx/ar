@@ -205,7 +205,7 @@
   (case (globals-implementation arc)
     ((table) (arc-list hash-ref
                        arc
-                       (arc-list 'quote v)
+                       (arc-list 'racket-quote v)
                        (global-ref-err arc v)))
     ((namespace) (ac-global-name v))))
      
@@ -258,7 +258,7 @@
 
 (extend ac (s env) ((g caris) s 'quote)
   (let ((v (arc-cadr s)))
-    ((g list) ((g list) 'quote (lambda () v)))))
+    ((g list) ((g list) 'racket-quote (lambda () v)))))
 
 
 ;; fn
@@ -271,7 +271,7 @@
 
 (ac-def ac-body* (body env)
   (if (no? body)
-      ((g list) ''nil)
+      ((g list) '(racket-quote nil))
       ((g ac-body) body env)))
 
 (ac-def ac-body*x (args body env)
@@ -369,7 +369,7 @@
 
 (ac-def ac-if (args env)
   (cond ((no? args)
-         ''nil)
+         '(racket-quote nil))
         ((no? ((g cdr) args))
          ((g ac) ((g car) args) env))
         (else
@@ -387,7 +387,7 @@
 
 (ac-def ac-global-assign (a b)
   (case (globals-implementation arc)
-    ((table) (arc-list hash-set! arc (arc-list 'quote a) b))
+    ((table) (arc-list hash-set! arc (arc-list 'racket-quote a) b))
     ((namespace) (arc-list 'set! (ac-global-name a) b))))
 
 (ac-def ac-assign1 (a b1 env)
