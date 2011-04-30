@@ -63,7 +63,7 @@
   (let ([ns (make-base-empty-namespace)])
     (parameterize ([current-namespace ns])
       (namespace-require '(only racket/base #%app #%datum #%top
-                                if begin let set! make-string
+                                begin let set! make-string
                                 call-with-current-continuation open-input-file
                                 dynamic-wind read close-input-port eof-object?
                                 make-semaphore make-thread-cell random
@@ -373,7 +373,7 @@
         ((no? ((g cdr) args))
          ((g ac) ((g car) args) env))
         (else
-         (arc-list 'if
+         (arc-list 'racket-if
                    (arc-list true? ((g ac) ((g car) args) env))
                    ((g ac) (arc-cadr args) env)
                    ((g ac-if) (arc-cddr args) env)))))

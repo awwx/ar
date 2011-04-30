@@ -476,7 +476,7 @@
                   keepsep?)))
 
 (def racket-true (x)
-  (racket (if x (racket-quote t) (racket-quote nil))))
+  (racket (racket-if x (racket-quote t) (racket-quote nil))))
 
 (def sread (p eof)
   (let v ((racket read) p)
