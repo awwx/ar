@@ -63,7 +63,7 @@
   (let ([ns (make-base-empty-namespace)])
     (parameterize ([current-namespace ns])
       (namespace-require '(only racket/base #%app #%datum #%top
-                                quote lambda if begin let set! make-string
+                                quote if begin let set! make-string
                                 call-with-current-continuation open-input-file
                                 dynamic-wind read close-input-port eof-object?
                                 make-semaphore make-thread-cell random
@@ -295,7 +295,7 @@
 (ac-def ac-fn (args body env)
   (if (true? ((g dotted-list?) args))
        ((g ac-fn-rest) args body env)
-       (mcons 'lambda
+       (mcons 'racket-lambda
               (mcons args
                      ((g ac-body*x) args body env)))))
 
@@ -470,7 +470,7 @@
    (set arc 'ac-fn-rest-impl
      (arc-eval arc
       (toarc '(fn (args r/rest rest body env)
-                `(lambda ,(join args r/rest)
+                `(racket-lambda ,(join args r/rest)
                    (let ((,rest (,r/list-toarc ,r/rest)))
                      ,@(ac-body*x (join args (list rest)) body env)))) )))))
 

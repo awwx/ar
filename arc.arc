@@ -496,7 +496,7 @@
   `(point throw ,@body))
 
 (def protect (during after)
-  (racket (dynamic-wind (lambda () #t) during after)))
+  (racket (dynamic-wind (racket-lambda () #t) during after)))
 
 (mac after (x . ys)
   `(protect (fn () ,x) (fn () ,@ys)))
