@@ -10,22 +10,19 @@
 (define (globals-implementation arc)
   (hash-ref arc 'globals-implementation* default-globals-implementation))
 
-(define (ac-global-name s)
-  (string->symbol (string-append "_" (symbol->string s))))
-
 ;; note that these don't need to be particularly fast
 
 (define (get arc varname)
   (case (globals-implementation arc)
     ((table) (hash-ref arc varname))
-    ((namespace) (namespace-variable-value (ac-global-name varname) #t #f
+    ((namespace) (namespace-variable-value varname #t #f
                    (hash-ref arc 'racket-namespace*)))))
 
 (define (get-default arc varname default)
   (case (globals-implementation arc)
     ((table) (hash-ref arc varname default))
     ((namespace) (namespace-variable-value
-                  (ac-global-name varname)
+                  varname
                   #t
                   default
                   (hash-ref arc 'racket-namespace*)))))
@@ -34,7 +31,7 @@
   (case (globals-implementation arc)
     ((table) (hash-set! arc varname value))
     ((namespace)
-     (namespace-set-variable-value! (ac-global-name varname) value
+     (namespace-set-variable-value! varname value
                    #t
                    (hash-ref arc 'racket-namespace*)))))
 
@@ -59,9 +56,16 @@
 ; of the compiler is created each time (new-arc) is called, including
 ; the compiler building steps defined so far.
 
+(define (make-arc-racket-namespace)
+  (let ((ns (make-base-empty-namespace)))
+    (parameterize ((current-namespace ns))
+      (namespace-require '(only racket/base #%app #%datum #%top))
+      (namespace-require '(prefix racket- racket/base)))
+    ns))
+
 (define (new-arc (options (hash)))
   (let ((arc (hash)))
-    (hash-set! arc 'racket-namespace* (make-base-namespace))
+    (hash-set! arc 'racket-namespace* (make-arc-racket-namespace))
     (hash-for-each (new-ar)
       (lambda (k v)
         (set arc k v)))
@@ -184,9 +188,9 @@
   (case (globals-implementation arc)
     ((table) (arc-list hash-ref
                        arc
-                       (arc-list 'quote v)
+                       (arc-list 'racket-quote v)
                        (global-ref-err arc v)))
-    ((namespace) (ac-global-name v))))
+    ((namespace) v)))
      
 (ac-def ac-var-ref (s env)
   (if (true? ((g ac-lex?) s env))
@@ -237,7 +241,7 @@
 
 (extend ac (s env) ((g caris) s 'quote)
   (let ((v (arc-cadr s)))
-    ((g list) ((g list) 'quote (lambda () v)))))
+    ((g list) ((g list) 'racket-quote (lambda () v)))))
 
 
 ;; fn
@@ -250,7 +254,7 @@
 
 (ac-def ac-body* (body env)
   (if (no? body)
-      ((g list) ''nil)
+      ((g list) '(racket-quote nil))
       ((g ac-body) body env)))
 
 (ac-def ac-body*x (args body env)
@@ -274,8 +278,10 @@
 (ac-def ac-fn (args body env)
   (if (true? ((g dotted-list?) args))
        ((g ac-fn-rest) args body env)
-       (mcons 'lambda
-              (mcons args
+       (mcons 'racket-lambda
+              ;; TODO I think it would be better to have an explicit
+              ;; representation for nil instead
+              (mcons (arc-list 'racket-list args)
                      ((g ac-body*x) args body env)))))
 
 (extend ac (s env)
@@ -348,11 +354,11 @@
 
 (ac-def ac-if (args env)
   (cond ((no? args)
-         ''nil)
+         '(racket-quote nil))
         ((no? ((g cdr) args))
          ((g ac) ((g car) args) env))
         (else
-         (arc-list 'if
+         (arc-list 'racket-if
                    (arc-list true? ((g ac) ((g car) args) env))
                    ((g ac) (arc-cadr args) env)
                    ((g ac-if) (arc-cddr args) env)))))
@@ -366,17 +372,17 @@
 
 (ac-def ac-global-assign (a b)
   (case (globals-implementation arc)
-    ((table) (arc-list hash-set! arc (arc-list 'quote a) b))
-    ((namespace) (arc-list 'set! (ac-global-name a) b))))
+    ((table) (arc-list hash-set! arc (arc-list 'racket-quote a) b))
+    ((namespace) (arc-list 'racket-set! a b))))
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
     (err "First arg to assign must be a symbol" a))
   (let ((result (gensym)))
-    (arc-list 'let
+    (arc-list 'racket-let
               (arc-list (arc-list result ((g ac) b1 env)))
               (if (true? ((g ac-lex?) a env))                  
-                   (arc-list 'set! a result)
+                   (arc-list 'racket-set! a result)
                    ((g ac-global-assign) a result))
               result)))
 
@@ -388,7 +394,7 @@
              ((g ac-assignn) (arc-cddr x) env))))
 
 (ac-def ac-assign (x env)
-  (mcons 'begin
+  (mcons 'racket-begin
          ((g ac-assignn) x env)))
 
 (extend ac (s env)
@@ -449,8 +455,8 @@
    (set arc 'ac-fn-rest-impl
      (arc-eval arc
       (toarc '(fn (args r/rest rest body env)
-                `(lambda ,(join args r/rest)
-                   (let ((,rest (,r/list-toarc ,r/rest)))
+                `(racket-lambda ,(join args r/rest)
+                   (racket-let ((,rest (,r/list-toarc ,r/rest)))
                      ,@(ac-body*x (join args (list rest)) body env)))) )))))
 
 (ac-def ac-fn-rest (args body env)

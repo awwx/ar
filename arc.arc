@@ -391,10 +391,10 @@
   (disp "(" port)
   (printwith-list primitive x port))
 
-(assign-fn newstring (k (o char)) (racket make-string))
+(assign-fn newstring (k (o char)) racket-make-string)
 
 (def maptable (f table)
-  ((racket hash-for-each) table f)
+  (racket-hash-for-each table f)
   table)
 
 (mac each (var expr . body)
@@ -476,15 +476,15 @@
                   keepsep?)))
 
 (def racket-true (x)
-  (racket (if x 't 'nil)))
+  (racket (racket-if x (racket-quote t) (racket-quote nil))))
 
 (def sread (p eof)
-  (let v ((racket read) p)
-    (if (racket-true ((racket eof-object?) v))
+  (let v (racket-read p)
+    (if (racket-true (racket-eof-object? v))
          eof
          (ar-toarc v))))
 
-(assign-fn ccc (k) (racket call-with-current-continuation))
+(assign-fn ccc (k) racket-call-with-current-continuation)
 
 (mac point (name . body)
   (w/uniq (g p)
@@ -496,7 +496,7 @@
   `(point throw ,@body))
 
 (def protect (during after)
-  (racket (dynamic-wind (lambda () #t) during after)))
+  (racket (racket-dynamic-wind (racket-lambda () #t) during after)))
 
 (mac after (x . ys)
   `(protect (fn () ,x) (fn () ,@ys)))
@@ -527,18 +527,18 @@
 (def close ports
   (each port ports
     (case (type port)
-      input  ((racket close-input-port) port)
-      output ((racket close-output-port) port)
-      socket ((racket tcp-close) port)
+      input  (racket-close-input-port port)
+      output (racket-close-output-port port)
+      socket (racket-tcp-close port)
              (err "Can't close " port))
     (try-custodian port)))
 
-(dynamic infile (racket open-input-file))
+(dynamic infile racket-open-input-file)
 (sref sig '(name) 'infile)
 
 (def outfile (filename (o append))
   (let flag (if append 'append 'truncate)
-    (racket (open-output-file filename #:mode 'text #:exists flag))))
+    (racket (racket-open-output-file filename #:mode (racket-quote text) #:exists flag))))
 
 (def open-socket (port)
   ((inline ((racket-module 'scheme/tcp) 'tcp-listen)) port 50 (racket "#t")))
@@ -674,7 +674,7 @@
   (sref x val 0))
 
 (def scdr (x val)
-  ((racket set-mcdr!) x val))
+  ((racket racket-set-mcdr!) x val))
 
 (def warn (msg . args)
   (disp (+ "Warning: " msg ". "))
@@ -682,7 +682,7 @@
   (disp #\newline))
 
 (def make-semaphore ((o init))
-  ((racket make-semaphore) init))
+  (racket-make-semaphore init))
 
 (def call-with-semaphore (sema func)
   ((racket call-with-semaphore) sema (fn () (func))))
@@ -691,13 +691,13 @@
   (if (no x) (racket "#f") x))
 
 (def make-thread-cell (v (o preserved))
-  ((racket make-thread-cell) v (nil->racket-false preserved)))
+  (racket-make-thread-cell v (nil->racket-false preserved)))
 
 (def thread-cell-ref (cell)
-  ((racket thread-cell-ref) cell))
+  (racket-thread-cell-ref cell))
 
 (def thread-cell-set (cell v)
-  ((racket thread-cell-set!) cell v))
+  ((racket racket-thread-cell-set!) cell v))
 
 (assign ar-the-sema (make-semaphore 1))
 
@@ -708,7 +708,7 @@
        (f)
        (do (thread-cell-set ar-sema-cell t)
            (after
-             (call-with-semaphore ar-the-sema f)
+             (racket-call-with-semaphore ar-the-sema f)
              (thread-cell-set ar-sema-cell nil)))))
 
 (mac atomic body
@@ -1096,7 +1096,7 @@
         (recstring [if (f (seq _)) _] seq start))))
 
 (def mod (n m)
-  (racket.modulo n m))
+  (racket-modulo n m))
 
 (def even (n) (is (mod n 2) 0))
 
@@ -1127,7 +1127,7 @@
   (w/infile s name (allchars s)))
 
 (def mvfile (old new)
-  (racket.rename-file-or-directory old new (racket "#t"))
+  (racket-rename-file-or-directory old new (racket "#t"))
   nil)
 
 (def writefile (val file)
@@ -1136,7 +1136,7 @@
     (mvfile tmpfile file))
   val)
 
-(dynamic rand racket.random)
+(dynamic rand racket-random)
 (= (sig 'rand) '((o n)))
 
 (mac rand-choice exprs
@@ -1158,14 +1158,14 @@
   (no (aracket-false x)))
 
 (def aracket-eof (x)
-  (aracket-true (racket.eof-object? x)))
+  (aracket-true (racket-eof-object? x)))
 
 (def readb ((o str stdin))
-  (let c (racket.read-byte str)
+  (let c (racket-read-byte str)
     (if (aracket-eof c) nil c)))
 
 (def writeb (b (o str stdout))
-  (racket.write-byte b str))
+  (racket-write-byte b str))
 
 ; rejects bytes >= 248 lest digits be overrepresented
 
@@ -1391,7 +1391,7 @@
   (if (< n 0) (- n) n))
 
 (def trunc (x)
-  (racket.inexact->exact (racket.truncate x)))
+  (racket-inexact->exact (racket-truncate x)))
 
 (def round (n)
   (withs (base (trunc n) rem (abs (- n base)))
@@ -1486,7 +1486,7 @@
 (def split (seq pos)
   (list (cut seq 0 pos) (cut seq pos)))
 
-(implicit msec racket.current-milliseconds)
+(implicit msec racket-current-milliseconds)
 (= (sig 'msec nil))
 
 (mac time (expr)
@@ -1556,7 +1556,7 @@
 
 (def number (n) (in (type n) 'int 'num))
 
-(implicit seconds racket.current-seconds)
+(implicit seconds racket-current-seconds)
 (= (sig 'seconds nil))
 
 (def since (t1) (- (seconds) t1))
@@ -1590,23 +1590,23 @@
       (table)))
 
 (def file-exists (path)
-  (if (racket-true (racket.file-exists? path)) path))
+  (if (racket-true (racket-file-exists? path)) path))
 
 (def dir-exists (path)
-  (if (racket-true (racket.directory-exists? path)) path))
+  (if (racket-true (racket-directory-exists? path)) path))
                     
 (def ensure-dir (path)
   (unless (dir-exists path)
     (system (string "mkdir -p " path))))
 
 (def timedate ((o seconds (seconds)))
-  (let d (racket.seconds->date seconds)
-    (map [_ d] (list racket.date-second
-                     racket.date-minute
-                     racket.date-hour
-                     racket.date-day
-                     racket.date-month
-                     racket.date-year))))
+  (let d (racket-seconds->date seconds)
+    (map [_ d] (list racket-date-second
+                     racket-date-minute
+                     racket-date-hour
+                     racket-date-day
+                     racket-date-month
+                     racket-date-year))))
 
 (def date ((o s (seconds)))
   (rev (nthcdr 3 (timedate s))))
@@ -1764,7 +1764,7 @@
   ((sort > ns) (trunc (/ (len ns) 2))))
 
 (def flushout ()
-  (racket.flush-output)
+  (racket-flush-output)
   t)
 
 (mac noisy-each (n var val . body)
@@ -1837,19 +1837,19 @@
                   body)))))
 
 (def new-thread (f)
-  (racket.thread (fn () (f))))
+  (racket-thread (fn () (f))))
 
 (def kill-thread (thd)
-  (racket.kill-thread thd))
+  (racket-kill-thread thd))
 
 (def break-thread (thd)
-  (racket.break-thread thd))
+  (racket-break-thread thd))
 
 (def current-thread ()
-  (racket.current-thread))
+  (racket-current-thread))
 
 (def sleep ((o secs 0))
-  (racket.sleep secs)
+  (racket-sleep secs)
   nil)
 
 (mac thread body 
@@ -1921,7 +1921,7 @@
       (/ (count test xs) (len xs))))
 
 (def quit ()
-  (racket.exit))
+  (racket-exit))
 
 (def find (test seq)
   (let f (testify test)
@@ -1935,7 +1935,7 @@
   (isa n 'int))
 
 (def expt (x y)
-  (racket.expt x y))
+  (racket-expt x y))
 
 (def sqrt (x)
-  (racket.sqrt x))
+  (racket-sqrt x))

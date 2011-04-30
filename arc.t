@@ -521,8 +521,8 @@
 
 (testis (n-of 5 7) '(7 7 7 7 7))
 
-(testis (aracket-false (racket (> 1 2))) t)
-(testis (aracket-false (racket (< 1 2))) nil)
+(testis (aracket-false (racket (racket-> 1 2))) t)
+(testis (aracket-false (racket (racket-< 1 2))) nil)
 
 (fromstring "λ"
   (testis (readb) 206)
@@ -771,7 +771,7 @@
 (testis (saferead "123") 123)
 (testis (saferead "#abc") nil)
 
-(do (racket (delete-file "/tmp/foo"))
+(do (racket-delete-file "/tmp/foo")
     (testis (safe-load-table "/tmp/foo") (obj))
     (writefile (obj a 1 b 2) "/tmp/foo")
     (testis (safe-load-table "/tmp/foo") (obj a 1 b 2)))

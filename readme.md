@@ -52,6 +52,9 @@ Todo
 ----
 
 * clean up messy code in io.arc
+* the strategy for representing Racket lists in Arc (which we need to
+  have ac return an Arc list representing Racket code) is a bit
+  confused... a clearer way to distinguish nil and () would be better.
 * would be nice if typing ^C returned to the REPL
 * ac-nameit, ac-dbname
 * atstrings
@@ -211,6 +214,23 @@ changed.
   This has been turned off by default though, as it did turn out to be
   slower than using a Racket namespace for global variables as Arc 3.1
   does.
+
+
+* global variables are represented in Racket's namespace with their plain name
+
+  In Arc 3.1, global variable are stored in Racket's namespace with a
+  "_" prefix, which can be seen e.g. in some error messages:
+
+         arc> x
+         Error: "reference to undefined identifier: _x"
+
+  This implementation uses the plain variable name with no prefix:
+
+         arc> x
+         Error: reference to undefined identifier: x
+
+  To avoid clashes with Racket identifiers which need to be in the
+  namespace, Racket identifiers are prefixed with "racket-".
 
 
 * implicit variables

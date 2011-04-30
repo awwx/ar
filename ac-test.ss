@@ -211,7 +211,7 @@
           (arc-test-eval '( foo ) arc)
           (case (globals-implementation arc)
             ((table) "undefined global variable: foo")
-            ((namespace) "reference to undefined identifier: _foo"))))
+            ((namespace) "reference to undefined identifier: foo"))))
 
       (arc-test
        (( car ) arc-car)
