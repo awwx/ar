@@ -329,21 +329,21 @@
 
     (after '(ac-def ac-macro?)
       (arc-test
-       (( (ac-macro? 5 'nil)    ) 'nil)
-       (( (ac-macro? 'foo 'nil) ) 'nil)
+       (( (ac-macro? 5)    ) 'nil)
+       (( (ac-macro? 'foo) ) 'nil)
 
        (( (assign foo 5)
-          (ac-macro? 'foo 'nil) )
+          (ac-macro? 'foo) )
         'nil)
 
        (( (assign foo (annotate 'mac 123))
-          (ac-macro? 'foo 'nil) )
+          (ac-macro? 'foo) )
         123)))
 
     (after '(extend ac-call (fn args env)
               (if (true? ((g ac-lex?) fn env))
                    'nil
-                   ((g ac-macro?) fn env)))
+                   ((g ac-macro?) fn)))
       (arc-test
        (( (assign foo (annotate 'mac (fn (x) x)))
           (foo 123) )

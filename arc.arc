@@ -663,7 +663,7 @@
 
 (def macex (e (o once))
   (if (acons e)
-       (let m (ac-macro? (car e) nil)
+       (let m (ac-macro? (car e))
          (if m
               (let expansion (apply m (cdr e))
                 (if (no once) (macex expansion) expansion))

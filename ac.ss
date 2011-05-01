@@ -408,10 +408,10 @@
   (and (tagged? x)
        (eq? (arc-type x) 'mac)))
 
-(ac-def ac-macro? (fn env)
+(ac-def ac-macro? (fn)
   (cond ((mac? fn)
          (ar-rep fn))
-        ((and (symbol? fn) (no? (ac-lex? fn env)))
+        ((symbol? fn)
          (let ((v (get-default arc fn (lambda () 'nil))))
            (if (mac? v)
                (ar-rep v)
@@ -427,7 +427,7 @@
 (extend ac-call (fn args env)
   (if (true? ((g ac-lex?) fn env))
        'nil
-       ((g ac-macro?) fn env))
+       ((g ac-macro?) fn))
   ((g ac-mac-call) it args env))
 
 
