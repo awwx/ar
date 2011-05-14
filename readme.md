@@ -303,6 +303,11 @@ Changes
          "hello"
          arc>
 
+* (coerce '() 'cons) now returns nil
+
+  thus any list can be coerce'd to a "cons", even though the empty
+  list isn't actually represented by a cons cell.
+
 
 Contributors
 ------------
@@ -333,3 +338,6 @@ that.
 
 rocketnia provided the patch to make lexical variables take precedence
 over macros with the same name; waterhouse contributed the test.
+
+Pauan moved Arc's coerce and + functions out of ar; and made `(coerce
+'() 'cons)` return nil.
