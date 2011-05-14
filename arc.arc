@@ -336,8 +336,6 @@
        (ac-complex-args? (cdr args))
        t))
 
-(def ac-complex-getargs (a) (map1 car a))
-
 (def ac-complex-opt (var expr ra)
   (list (list var `(if (acons ,ra) (car ,ra) ,expr))))
 
