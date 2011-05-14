@@ -183,7 +183,7 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def +)
+    (after '(ac-def coerce)
       (let ((arc (test-arc)))
         (test ((g coerce) #\A                   'int)       65)
         (test ((g coerce) #\A                   'string)    "A")
