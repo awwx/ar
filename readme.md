@@ -1,28 +1,24 @@
-The goal of this runtime project is to make Arc (even more!) hackable
-by reflecting the Arc compiler into Arc, which in turn also lets more
-of the Arc compiler to be written in Arc itself.
+Join the conversation about the Arc Runtime Project ("ar") on Convore:
+https://convore.com/arc-runtime-project/
 
-    arc> (ac-literal? 123)
-    t
-    arc> (eval 123)
-    123
-    arc> +
-    #<procedure:ar-+>
-    arc> (ac-literal? +)
-    nil
-    arc> (eval +)
-    err: Bad object in expression #<procedure:ar-+>
-    arc> (defrule ac-literal? (isa x 'fn) t)
-    #<procedure:g1444>
-    arc> (ac-literal? +)
-    t
-    arc> (eval +)
-    #<procedure:ar-+>
+Goals of ar include:
 
-Along the way we take advantage of the more hackable Arc to fix some
-bugs and make some enhancements in the runtime that turn out to be
-easier to do with a compiler which isn't quite as tightly bound to
-Scheme.
+* Make Arc (even more!) hackable, enabling people to create their
+  own personal programming language -- beyond what can be done just
+  with with macros.
+
+* Provide a complete implementation of Arc 3.1, as one of the
+  available languages based on ar.
+
+* Be at least as good as Arc 3.1 at running a production website; thus
+  for example you should be able to run a news.arc site on top of ar
+  if you wanted to.
+
+* Use the latest Racket version directly, instead of relying on the
+  "mzscheme" backwards compatibility mode.
+
+* Fix bugs and make enhancements in the runtime which are easier to do
+  with a compiler which isn't quite as tightly bound to Scheme.
 
 This code is under development, much of Arc is unimplemented.
 
@@ -52,6 +48,9 @@ Todo
 ----
 
 * clean up messy code in io.arc
+* I haven't been able to replicate the socket force close problem yet
+  that Arc 3.1 solves by using custodians; is this still a problem in
+  Racket?
 * the strategy for representing Racket lists in Arc (which we need to
   have ac return an Arc list representing Racket code) is a bit
   confused... a clearer way to distinguish nil and () would be better.
@@ -111,11 +110,6 @@ Todo
 Changes
 -------
 
-These bug fixes and enhancements are demonstrations of things that
-become easier to do when more of the Arc compiler is written in Arc.
-Because of the flexibility of the compiler they're easily reversed or
-changed.
-
 * Arc lists are implemented using Racket's mutable pairs (mpair's)
 
   as a fix for the [queue bug](http://awwx.ws/queue-test-summary).
@@ -130,6 +124,27 @@ changed.
 * Function rest arguments are 'nil terminated Arc lists
 
          (cdr ((fn args args) 1)) => nil
+
+
+* the Arc compiler is reflected into Arc (where it can be hacked by
+  redefining or extending the functions which implement the compiler)
+
+         arc> (ac-literal? 123)
+         t
+         arc> (eval 123)
+         123
+         arc> +
+         #<procedure:ar-+>
+         arc> (ac-literal? +)
+         nil
+         arc> (eval +)
+         err: Bad object in expression #<procedure:ar-+>
+         arc> (defrule ac-literal? (isa x 'fn) t)
+         #<procedure:g1444>
+         arc> (ac-literal? +)
+         t
+         arc> (eval +)
+         #<procedure:ar-+>
 
 
 * lexical identifiers take precedence over macros
