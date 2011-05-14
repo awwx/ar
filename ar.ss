@@ -299,23 +299,6 @@
                       (else      (err "Can't coerce" x type))))
     (#t             x)))
 
-(test (arc-coerce #\A                   'int)       65)
-(test (arc-coerce #\A                   'string)    "A")
-(test (arc-coerce #\A                   'sym)       'A)
-(test (arc-coerce 123                   'num)       123)
-(test (arc-coerce 65                    'char)      #\A)
-(test (arc-coerce 123                   'string)    "123")
-(test (arc-coerce 128                   'string 16) "80")
-(test (arc-coerce 13.4                  'int)       13)
-(test (arc-coerce 65.0                  'char)      #\A)
-(test (arc-coerce 14.5                  'string)    "14.5")
-(test (arc-coerce "foo"                 'sym)       'foo)
-(test (arc-coerce "foo"                 'cons)      (arc-list #\f #\o #\o))
-(test (arc-coerce "123.5"               'num)       123.5)
-(test (arc-coerce "123"                 'int)       123)
-(test (arc-coerce (arc-list "a" 'b #\c) 'string)    "abc")
-(test (arc-coerce 'nil                  'string)    "")
-
 
 (define (char-or-string? x) (or (string? x) (char? x)))
 
