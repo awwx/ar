@@ -1,5 +1,12 @@
 (testis (w/instring s "" (readc s 'end)) 'end)
 
+(testis (w/instring s ""    (peekc s)) 'nil)
+(testis (w/instring s "abc" (peekc s)) #\a)
+(testis (w/instring s "abc"
+          (peekc s)
+          (readc s))
+        #\a)
+
 (testis (do (assign a 1)
             (assign b 2)
             (assign c 3)
