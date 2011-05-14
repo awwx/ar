@@ -2,7 +2,7 @@
 ;; rely on Arc being up and running, and so is useful for working on
 ;; the compiler.
 ;;
-;; Run as.ss to get the full featured REPL.
+;; Run arc to get the full featured REPL.
 
 #lang scheme
 

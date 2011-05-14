@@ -24,15 +24,20 @@ This code is under development, much of Arc is unimplemented.
 
 Get to the REPL with:
 
-    racket as.ss
+    ./arc
 
 or, if you have rlwrap:
 
-    rlwrap -q \" racket as.ss
+    rlwrap -q \" ./arc
 
-You can also use "mzscheme" instead of "racket".
+You can load Arc files from the command line and then go into the
+REPL:
 
-Note that you don't use the "-f" option like you would with Arc 3.1.
+    /path/to/ar/arc foo.arc bar.arc
+
+or, if you want to execute your Arc program without entering the REPL:
+
+    /path/to/ar/arc --no-repl foo.arc bar.arc
 
 Run tests with:
 
@@ -47,6 +52,8 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
+* The code currently requires Racket, though a compatibility mode for
+  PLT Scheme would be useful.
 * clean up messy code in io.arc
 * I haven't been able to replicate the socket force close problem yet
   that Arc 3.1 solves by using custodians; is this still a problem in
