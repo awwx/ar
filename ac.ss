@@ -113,6 +113,22 @@
              `(ac-def ,'name ,'args)))))))
 
 
+;; +
+
+(define (arc-list? x) (or (no? x) (mpair? x)))
+
+(ac-def + args
+  (cond ((null? args)
+         0)
+        ((or (char? (car args)) (string? (car args)))
+         (apply string-append
+                (map (lambda (a) ((g coerce) a 'string)) args)))
+        ((arc-list? (car args))
+         (apply arc-join args))
+        (else
+         (apply + args))))
+
+
 ;; The Arc compiler!
 
 (ac-def ac (s env)

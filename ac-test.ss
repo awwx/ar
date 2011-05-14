@@ -183,6 +183,16 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
+    (after '(ac-def +)
+      (test-t
+       (let ((arc (test-arc)))
+         (test ((g +))                             0)
+         (test ((g +) #\a "b" 'c 3)                "abc3")
+         (test ((g +) "a" 'b #\c)                  "abc")
+         (test ((g +) 'nil (arc-list 1 2 3))       (arc-list 1 2 3))
+         (test ((g +) (arc-list 1 2) (arc-list 3)) (arc-list 1 2 3))
+         (test ((g +) 1 2 3)                       6))))
+
     (after '(ac-def ac (s env))
       (test-expect-error
        (let ((arc (test-arc)))

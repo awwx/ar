@@ -321,25 +321,6 @@
 
 (define (arc-list? x) (or (no? x) (mpair? x)))
 
-(define (ar-+ . args)
-  (cond ((null? args)
-         0)
-        ((char-or-string? (car args))
-         (apply string-append
-                (map (lambda (a) (arc-coerce a 'string)) args)))
-        ((arc-list? (car args))
-         (apply arc-join args))
-        (else
-         (apply + args))))
-
-(test (ar-+) 0)
-(test (ar-+ #\a "b" 'c 3) "abc3")
-(test (ar-+ "a" 'b #\c) "abc")
-(test (ar-+ 'nil (arc-list 1 2 3)) (arc-list 1 2 3))
-(test (ar-+ (arc-list 1 2) (arc-list 3)) (arc-list 1 2 3))
-(test (ar-+ 1 2 3) 6)
-
-
 (define (arc->2 x y)
   (tnil (cond ((and (number? x) (number? y)) (> x y))
               ((and (string? x) (string? y)) (string>? x y))
@@ -424,9 +405,9 @@
 (define (arc-apply fn . args)
   (apply ar-apply fn (combine args)))
 
-(test (arc-apply ar-+) 0)
-(test (arc-apply ar-+ 'nil (toarc '((a b) (c d)))) (toarc '(a b c d)))
-(test (arc-apply ar-+ 1 2 (arc-list 3 4)) 10)
+(test (arc-apply +) 0)
+(test (arc-apply arc-join 'nil (toarc '((a b) (c d)))) (toarc '(a b c d)))
+(test (arc-apply + 1 2 (arc-list 3 4)) 10)
 
 (define (ar-funcall0 fn)
   (if (procedure? fn)
@@ -488,8 +469,7 @@
     (if (eof-object? c) 'nil c)))
 
 (define ar-namespace*
-  (hash '+                   ar-+
-        '-                   -
+  (hash '-                   -
         '/                   /
         '*                   *
         '<                   arc-<
