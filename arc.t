@@ -43,7 +43,7 @@
 
 (testis (atom 3) t)
 (testis (atom '(3)) nil)
- 
+
 (testis (idfn 123) 123)
 
 (testis (map1 acons '(1 (2) 3 (4))) '(nil t nil t))
@@ -426,7 +426,7 @@
     (-- x)
     (testis x 6))
 
-(do (= x 7) 
+(do (= x 7)
     (zap + x 1)
     (testis x 8))
 

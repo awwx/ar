@@ -106,7 +106,7 @@ Todo
   * rmfile
   * client-ip
 
- 
+
 Changes
 -------
 
@@ -279,15 +279,15 @@ Changes
          (mac square-bracket body
            `(fn (_) (,@body)))
 
-  this makes it easier to hack the square bracket syntax. 
+  this makes it easier to hack the square bracket syntax.
 
 * the REPL removes excess characters at the end of the input line
 
   In Arc 3.1:
 
-         arc> (readline) ;Fee fi fo fum   
+         arc> (readline) ;Fee fi fo fum
          " ;Fee fi fo fum"
-         arc> 
+         arc>
 
   this is because Racket's reader reads up to the closing ")", leaving
   the rest of the input line in the input buffer, which is then read
@@ -301,7 +301,7 @@ Changes
          arc> (readline) ;Fee fi fo fum
          hello
          "hello"
-         arc> 
+         arc>
 
 
 Contributors

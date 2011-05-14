@@ -166,7 +166,7 @@
 (define (tnil x) (if x 't 'nil))
 
 (define (arc-map1 f xs)
-  (if (no? xs) 
+  (if (no? xs)
       'nil
       (mcons (f (arc-car xs)) (arc-map1 f (arc-cdr xs)))))
 
@@ -258,7 +258,7 @@
 (define (iround x) (inexact->exact (round x)))
 
 (define (arc-coerce x type . args)
-  (cond 
+  (cond
     ((tagged? x) (err "Can't coerce annotated object"))
     ((eqv? type (arc-type x)) x)
     ((char? x)      (case type
@@ -282,7 +282,7 @@
                       ((num)     (or (apply string->number x args)
                                      (err "Can't coerce" x type)))
                       ((int)     (let ((n (apply string->number x args)))
-                                   (if n 
+                                   (if n
                                        (iround n)
                                        (err "Can't coerce" x type))))
                       (else      (err "Can't coerce" x type))))
@@ -294,7 +294,7 @@
     ((eq? x 'nil)   (case type
                       ((string)  "")
                       (else      (err "Can't coerce" x type))))
-    ((symbol? x)    (case type 
+    ((symbol? x)    (case type
                       ((string)  (symbol->string x))
                       (else      (err "Can't coerce" x type))))
     (#t             x)))
@@ -325,9 +325,9 @@
   (cond ((null? args)
          0)
         ((char-or-string? (car args))
-         (apply string-append 
+         (apply string-append
                 (map (lambda (a) (arc-coerce a 'string)) args)))
-        ((arc-list? (car args)) 
+        ((arc-list? (car args))
          (apply arc-join args))
         (else
          (apply + args))))

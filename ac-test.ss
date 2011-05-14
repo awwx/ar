@@ -98,7 +98,7 @@
   (unless (no? (thunk))
      (error "not nil")))
 
-(define-syntax test-t 
+(define-syntax test-t
   (syntax-rules ()
     ((test-t body ...)
      (test-t-impl (lambda () body ...)))))
