@@ -113,6 +113,53 @@
              `(ac-def ,'name ,'args)))))))
 
 
+;; coerce
+
+(define (iround x) (inexact->exact (round x)))
+
+(ac-def coerce (x type . args)
+  (cond
+    ((tagged? x) (err "Can't coerce annotated object"))
+    ((eqv? type (arc-type x)) x)
+    ((char? x)      (case type
+                      ((int)     (char->integer x))
+                      ((string)  (string x))
+                      ((sym)     (string->symbol (string x)))
+                      (else      (err "Can't coerce" x type))))
+    ((exint? x)     (case type
+                      ((num)     x)
+                      ((char)    (integer->char x))
+                      ((string)  (apply number->string x args))
+                      (else      (err "Can't coerce" x type))))
+    ((number? x)    (case type
+                      ((int)     (iround x))
+                      ((char)    (integer->char (iround x)))
+                      ((string)  (apply number->string x args))
+                      (else      (err "Can't coerce" x type))))
+    ((string? x)    (case type
+                      ((sym)     (string->symbol x))
+                      ((cons)    ((g r/list-toarc) (string->list x)))
+                      ((num)     (or (apply string->number x args)
+                                     (err "Can't coerce" x type)))
+                      ((int)     (let ((n (apply string->number x args)))
+                                   (if n
+                                       (iround n)
+                                       (err "Can't coerce" x type))))
+                      (else      (err "Can't coerce" x type))))
+    ((mpair? x)     (case type
+                      ((string)  (apply string-append
+                                        (list-fromarc
+                                         (arc-map1 (lambda (y) ((g coerce) y 'string)) x))))
+                      (else      (err "Can't coerce" x type))))
+    ((eq? x 'nil)   (case type
+                      ((string)  "")
+                      (else      (err "Can't coerce" x type))))
+    ((symbol? x)    (case type
+                      ((string)  (symbol->string x))
+                      (else      (err "Can't coerce" x type))))
+    (#t             x)))
+
+
 ;; +
 
 (define (arc-list? x) (or (no? x) (mpair? x)))
