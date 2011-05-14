@@ -255,8 +255,6 @@
 (define (arc-isa x y)
   (arc-is (arc-type x) y))
 
-(define (char-or-string? x) (or (string? x) (char? x)))
-
 (define (arc-list? x) (or (no? x) (mpair? x)))
 
 (define (arc->2 x y)
