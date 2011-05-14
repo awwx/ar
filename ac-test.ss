@@ -201,6 +201,7 @@
         (test ((g coerce) "123"                 'int)       123)
         (test ((g coerce) (arc-list "a" 'b #\c) 'string)    "abc")
         (test ((g coerce) 'nil                  'string)    "")
+        (test ((g coerce) 'nil                  'cons)      'nil)
         ))
 
     (after '(ac-def +)
