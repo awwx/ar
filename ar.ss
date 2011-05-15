@@ -400,10 +400,6 @@
   (let ((c (read-char port)))
     (if (eof-object? c) eof c)))
 
-(define (arc-peekc (port (current-input-port)))
-  (let ((c (peek-char port)))
-    (if (eof-object? c) 'nil c)))
-
 (define ar-namespace*
   (hash '-                   -
         '/                   /
@@ -426,7 +422,6 @@
         'map1                arc-map1
         'nil                 'nil
         'outstring           open-output-string
-        'peekc               arc-peekc
         'r/list-toarc        r/list-toarc
         'racket-stdin        current-input-port
         'racket-stdout       current-output-port

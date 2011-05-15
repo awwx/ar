@@ -112,6 +112,16 @@
                (ac-def-fn arc 'name 'args (lambda args body ...)))
              `(ac-def ,'name ,'args)))))))
 
+(define-syntax ac-def-sig
+  (lambda (stx)
+    (syntax-case stx ()
+      ((ac-def-sig name racket-args arc-signature body ...)
+       (with-syntax ((arc (datum->syntax #'name 'arc)))
+         #'(add-ac-build-step
+            (lambda (arc)
+              (ac-def-fn arc 'name 'arc-signature
+                (lambda racket-args body ...)))
+            `(ac-def-sig ,'name ,'racket-args)))))))
 
 ;; coerce
 
@@ -175,6 +185,13 @@
          (apply arc-join args))
         (else
          (apply + args))))
+
+
+;; peekc
+
+(ac-def-sig peekc ((port (current-input-port))) (port (o stdin))
+  (let ((c (peek-char port)))
+    (if (eof-object? c) 'nil c)))
 
 
 ;; The Arc compiler!
