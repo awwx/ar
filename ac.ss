@@ -194,6 +194,14 @@
     (if (eof-object? c) 'nil c)))
 
 
+;; readc
+
+(ac-def-sig readc ((port (current-input-port)) (eof 'nil))
+                  ((o port stdin) (o eof nil))
+  (let ((c (read-char port)))
+    (if (eof-object? c) eof c)))
+
+
 ;; The Arc compiler!
 
 (ac-def ac (s env)

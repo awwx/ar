@@ -396,10 +396,6 @@
   (write-char c port))
 
 
-(define (arc-readc (port (current-input-port)) (eof 'nil))
-  (let ((c (read-char port)))
-    (if (eof-object? c) eof c)))
-
 (define ar-namespace*
   (hash '-                   -
         '/                   /
@@ -428,7 +424,6 @@
         'racket-stderr       current-error-port
         'racket-module       racket-module
         'racket-parameterize racket-parameterize
-        'readc               arc-readc
         't                   't
         'ar-toarc            toarc
         'type                arc-type
