@@ -224,6 +224,34 @@
       (dynamic-require r/module sym))))
 
 
+;; ar-funcall
+
+(ac-def ar-funcall0 (fn)
+  (if (procedure? fn)
+      (fn)
+      (ar-apply fn)))
+
+(ac-def ar-funcall1 (fn arg1)
+  (if (procedure? fn)
+      (fn arg1)
+      (ar-apply fn arg1)))
+
+(ac-def ar-funcall2 (fn arg1 arg2)
+  (if (procedure? fn)
+      (fn arg1 arg2)
+      (ar-apply fn arg1 arg2)))
+
+(ac-def ar-funcall3 (fn arg1 arg2 arg3)
+  (if (procedure? fn)
+      (fn arg1 arg2 arg3)
+      (ar-apply fn arg1 arg2 arg3)))
+
+(ac-def ar-funcall4 (fn arg1 arg2 arg3 arg4)
+  (if (procedure? fn)
+      (fn arg1 arg2 arg3 arg4)
+      (ar-apply fn arg1 arg2 arg3 arg4)))
+
+
 ;; The Arc compiler!
 
 (ac-def ac (s env)
@@ -330,11 +358,11 @@
 
    (else
     (mcons (case ((g len) args)
-             ((0) ar-funcall0)
-             ((1) ar-funcall1)
-             ((2) ar-funcall2)
-             ((3) ar-funcall3)
-             ((4) ar-funcall4)
+             ((0) (g ar-funcall0))
+             ((1) (g ar-funcall1))
+             ((2) (g ar-funcall2))
+             ((3) (g ar-funcall3))
+             ((4) (g ar-funcall4))
              (else ar-apply))
            (mcons ((g ac) f env)
                   ((g map1) (lambda (arg) ((g ac) arg env)) args))))))

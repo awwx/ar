@@ -213,6 +213,16 @@
         (test ((g +) (arc-list 1 2) (arc-list 3)) (arc-list 1 2 3))
         (test ((g +) 1 2 3)                       6)))
 
+    (after '(ac-def ar-funcall4)
+      (let ((arc (test-arc)))
+        (test ((g ar-funcall0) +)                     0)
+        (test ((g ar-funcall1) + 3)                   3)
+        (test ((g ar-funcall1) "abcd" 2)              #\c)
+        (test ((g ar-funcall2) + 3 4)                 7)
+        (test ((g ar-funcall2) (hash 'a 1 'b 2) 'x 3) 3)
+        (test ((g ar-funcall3) + 3 4 5)               12)
+        (test ((g ar-funcall4) + 3 4 5 6)             18)))
+
     (after '(ac-def ac (s env))
       (test-expect-error
        (let ((arc (test-arc)))

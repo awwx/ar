@@ -2,8 +2,8 @@
 
 (require scheme/mpair)
 
-(provide ar-apply ar-caris ar-funcall0 ar-funcall1 ar-funcall2
-         ar-funcall3 ar-funcall4 ar-rep arc-apply arc-cadr
+(provide ar-apply ar-caris
+         ar-rep arc-apply arc-cadr
          arc-car arc-cddr arc-cdr arc-isa arc-join arc-list arc-map1
          arc-type deep-fromarc err exint? hash list-fromarc new-ar
          no? noprint run-ar-tests tagged? tnil toarc true? write-to-string)
@@ -344,43 +344,6 @@
 (test (arc-apply +) 0)
 (test (arc-apply arc-join 'nil (toarc '((a b) (c d)))) (toarc '(a b c d)))
 (test (arc-apply + 1 2 (arc-list 3 4)) 10)
-
-(define (ar-funcall0 fn)
-  (if (procedure? fn)
-      (fn)
-      (ar-apply fn)))
-
-(test (ar-funcall0 +) 0)
-
-(define (ar-funcall1 fn arg1)
-  (if (procedure? fn)
-      (fn arg1)
-      (ar-apply fn arg1)))
-
-(test (ar-funcall1 + 3) 3)
-(test (ar-funcall1 "abcd" 2) #\c)
-
-(define (ar-funcall2 fn arg1 arg2)
-  (if (procedure? fn)
-      (fn arg1 arg2)
-      (ar-apply fn arg1 arg2)))
-
-(test (ar-funcall2 + 3 4) 7)
-(test (ar-funcall2 (hash 'a 1 'b 2) 'x 3) 3)
-
-(define (ar-funcall3 fn arg1 arg2 arg3)
-  (if (procedure? fn)
-      (fn arg1 arg2 arg3)
-      (ar-apply fn arg1 arg2 arg3)))
-
-(test (ar-funcall3 + 3 4 5) 12)
-
-(define (ar-funcall4 fn arg1 arg2 arg3 arg4)
-  (if (procedure? fn)
-      (fn arg1 arg2 arg3 arg4)
-      (ar-apply fn arg1 arg2 arg3 arg4)))
-
-(test (ar-funcall4 + 3 4 5 6) 18)
 
 
 (define ar-namespace*
