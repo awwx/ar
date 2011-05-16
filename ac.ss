@@ -189,7 +189,7 @@
 
 ;; peekc
 
-(ac-def-sig peekc ((port (current-input-port))) (port (o stdin))
+(ac-def-sig peekc ((port (current-input-port))) ((o port stdin))
   (let ((c (peek-char port)))
     (if (eof-object? c) 'nil c)))
 
