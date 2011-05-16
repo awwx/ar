@@ -202,6 +202,13 @@
     (if (eof-object? c) eof c)))
 
 
+;; writec
+
+(ac-def-sig writec (c (port (current-output-port)))
+                   (c (o port stdout))
+  (write-char c port))
+
+
 ;; The Arc compiler!
 
 (ac-def ac (s env)

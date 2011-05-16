@@ -7,6 +7,8 @@
           (readc s))
         #\a)
 
+(testis (tostring (writec #\a)) "a")
+
 (testis (do (assign a 1)
             (assign b 2)
             (assign c 3)

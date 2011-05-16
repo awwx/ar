@@ -392,9 +392,6 @@
   (parameterize ((parameter value))
     (body)))
 
-(define (arc-writec c (port (current-output-port)))
-  (write-char c port))
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -428,7 +425,6 @@
         'ar-toarc            toarc
         'type                arc-type
         'uniq                gensym
-        'writec              arc-writec
         ))
 
 (define (new-ar)
