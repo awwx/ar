@@ -209,6 +209,13 @@
   (write-char c port))
 
 
+;; racket-parameterize
+
+(ac-def racket-parameterize (parameter value body)
+  (parameterize ((parameter value))
+    (body)))
+
+
 ;; The Arc compiler!
 
 (ac-def ac (s env)

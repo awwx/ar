@@ -388,10 +388,6 @@
     (lambda (sym)
       (dynamic-require r/module sym))))
 
-(define (racket-parameterize parameter value body)
-  (parameterize ((parameter value))
-    (body)))
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -420,7 +416,6 @@
         'racket-stdout       current-output-port
         'racket-stderr       current-error-port
         'racket-module       racket-module
-        'racket-parameterize racket-parameterize
         't                   't
         'ar-toarc            toarc
         'type                arc-type
