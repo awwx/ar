@@ -216,6 +216,14 @@
     (body)))
 
 
+;; racket-module
+
+(ac-def racket-module (a/module)
+  (let ((r/module (deep-fromarc a/module)))
+    (lambda (sym)
+      (dynamic-require r/module sym))))
+
+
 ;; The Arc compiler!
 
 (ac-def ac (s env)

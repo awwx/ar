@@ -383,12 +383,6 @@
 (test (ar-funcall4 + 3 4 5 6) 18)
 
 
-(define (racket-module a/module)
-  (let ((r/module (deep-fromarc a/module)))
-    (lambda (sym)
-      (dynamic-require r/module sym))))
-
-
 (define ar-namespace*
   (hash '-                   -
         '/                   /
@@ -415,7 +409,6 @@
         'racket-stdin        current-input-port
         'racket-stdout       current-output-port
         'racket-stderr       current-error-port
-        'racket-module       racket-module
         't                   't
         'ar-toarc            toarc
         'type                arc-type
