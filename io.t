@@ -2,7 +2,7 @@
 
 (def tcp-connect (host port)
   (racket "(racket-let-values (((i o) (racket-tcp-connect host port)))
-             (arc-list i o))"))
+             (list i o))"))
 
 (let ready (make-semaphore)
 

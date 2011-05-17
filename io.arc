@@ -12,25 +12,23 @@
 (racket (racket-require (racket-prefix-in racket- scheme/tcp)))
 (racket (racket-require (racket-prefix-in racket- scheme/port)))
 (racket (racket-require (racket-prefix-in racket- scheme/mpair)))
-(racket (racket-require (racket-only-in "ar.ss" arc-list)))
 
 (def socket-accept (s)
-  (let associate-custodian associate-custodian
-    (racket "
-      (racket-let ((oc (racket-current-custodian))
-                   (nc (racket-make-custodian)))
-         (racket-current-custodian nc)
-         (racket-call-with-values
-           (racket-lambda () (racket-tcp-accept s))
-           (racket-lambda (in out)
-             (racket-let ((in1 (racket-make-limited-input-port in 100000 #t)))
-               (racket-current-custodian oc)
-               (associate-custodian nc in1 out)
-               (arc-list in1
-                         out
-                         (racket-let-values (((us them) (racket-tcp-addresses out)))
-                           them))))))
-   ")))
+  (racket "
+    (racket-let ((oc (racket-current-custodian))
+                 (nc (racket-make-custodian)))
+       (racket-current-custodian nc)
+       (racket-call-with-values
+         (racket-lambda () (racket-tcp-accept s))
+         (racket-lambda (in out)
+           (racket-let ((in1 (racket-make-limited-input-port in 100000 #t)))
+             (racket-current-custodian oc)
+             (associate-custodian nc in1 out)
+             (list in1
+                   out
+                   (racket-let-values (((us them) (racket-tcp-addresses out)))
+                         them))))))
+  "))
 
 ;; breaks the compiler to require foreign.ss into our namespace
 
