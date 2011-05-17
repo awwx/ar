@@ -3,4 +3,5 @@ set -e -v
 racket ar-test.ss
 racket ac-test.ss
 racket arc-test.ss
+racket io-test.ss
 racket strings-test.ss

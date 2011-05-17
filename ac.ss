@@ -216,9 +216,9 @@
     (body)))
 
 
-;; racket-module
+;; racket-module-ref
 
-(ac-def racket-module (a/module)
+(ac-def racket-module-ref (a/module)
   (let ((r/module (deep-fromarc a/module)))
     (lambda (sym)
       (dynamic-require r/module sym))))
