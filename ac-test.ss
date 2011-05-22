@@ -115,17 +115,6 @@
               r/arc-program)
     final))
 
-;;  (arc-eval globals (toarc r/arc-program)))
-  ;; (let ((final 'nil))
-  ;;   (for-each (lambda (r/source)
-  ;;               (let ((a/source (toarc r/source)))
-  ;;                 (let ((a/compiled ((get globals 'ac) a/source 'nil)))
-  ;;                   (let ((r/compiled (deep-fromarc a/compiled)))
-  ;;                     (let ((result (eval r/compiled (hash-ref globals 'racket-namespace*))))
-  ;;                       (set! final result))))))
-  ;;             r/arc-program)
-  ;;   final))
-
 (define (writes-to-string xs)
   (let ((port (open-output-string)))
     (for-each (lambda (x)
