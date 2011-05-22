@@ -4,7 +4,7 @@
 
 (provide arc-list
          hash list-fromarc new-ar
-         noprint r/list-toarc run-ar-tests toarc
+         noprint r/list-toarc run-ar-tests
          write-to-string)
 
 (define ar-tests* '())
@@ -98,16 +98,6 @@
 (test (list-fromarc (arc-list 1 2)) '(1 2))
 (test (list-fromarc (mcons 1 2))    '(1 . 2))
 
-(define (toarc x)
-  (cond ((pair? x)
-         (mcons (toarc (car x))
-                (toarc (cdr x))))
-        ((null? x)
-         'nil)
-        ((string? x)
-         (string-copy x))
-        (else x)))
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -124,7 +114,6 @@
         'racket-stdout       current-output-port
         'racket-stderr       current-error-port
         't                   't
-        'ar-toarc            toarc
         'uniq                gensym
         ))
 

@@ -76,6 +76,19 @@
     arc))
 
 
+;; toarc
+
+(define (toarc x)
+  (cond ((pair? x)
+         (mcons (toarc (car x))
+                (toarc (cdr x))))
+        ((null? x)
+         'nil)
+        ((string? x)
+         (string-copy x))
+        (else x)))
+
+
 ;; sig
 
 (add-ac-build-step
@@ -122,6 +135,12 @@
               (ac-def-fn arc 'name 'arc-signature
                 (lambda racket-args body ...)))
             `(ac-def-sig ,'name ,'racket-args)))))))
+
+
+;; ar-toarc
+
+(ac-def ar-toarc (x)
+  (toarc x))
 
 
 ;; ar-deep-fromarc
@@ -824,10 +843,11 @@
  (lambda (arc)
    (set arc 'ac-fn-rest-impl
      (arc-eval arc
-      (toarc '(fn (args r/rest rest body env)
-                `(racket-lambda ,(join args r/rest)
-                   (racket-let ((,rest (,r/list-toarc ,r/rest)))
-                     ,@(ac-body*x (join args (list rest)) body env)))) )))))
+      ((g ar-toarc)
+       '(fn (args r/rest rest body env)
+          `(racket-lambda ,(join args r/rest)
+             (racket-let ((,rest (,r/list-toarc ,r/rest)))
+               ,@(ac-body*x (join args (list rest)) body env)))) )))))
 
 (ac-def ac-fn-rest (args body env)
   ((g ac-fn-rest-impl)
@@ -928,7 +948,7 @@
   (let ((x (arc-read arc p)))
     (if (eof-object? x)
          'nil
-         (begin (arc-eval arc (toarc x))
+         (begin (arc-eval arc ((g ar-toarc) x))
                 (aload1 arc p)))))
 
 (define (aload arc . filenames)

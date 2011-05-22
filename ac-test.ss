@@ -1,7 +1,9 @@
 #lang scheme
 
+(require mzlib/defmacro)
+
 (require (only-in "ar.ss"
-           arc-list hash toarc
+           arc-list hash
            write-to-string))
 (require (only-in "ac.ss"
            arc-eval new-arc ac-build-steps get g globals-implementation))
@@ -109,10 +111,10 @@
     ((test-nil arc body ...)
      (test-nil-impl arc (lambda () body ...)))))
 
-(define (arc-test-eval r/arc-program globals)
+(define (arc-test-eval r/arc-program arc)
   (let ((final 'nil))
     (for-each (lambda (r/form)
-                (set! final (arc-eval globals (toarc r/form))))
+                (set! final (arc-eval arc ((g ar-toarc) r/form))))
               r/arc-program)
     final))
 
@@ -128,16 +130,13 @@
 (define build-steps (make-parameter ac-build-steps))
 (define test-inline (make-parameter #t))
 
-(define (arc-test-impl source expected)
-  (let ((arc (test-arc)))
-    (let ((result (arc-test-eval source arc)))
-      (test-impl (writes-to-string source) expected result))))
+(define (arc-test-impl arc source expected)
+  (let ((result (arc-test-eval source arc)))
+    (test-impl (writes-to-string source) expected result)))
 
-(define-syntax arc-test
-  (syntax-rules ()
-    ((arc-test (source expected) ...)
-     (begin (arc-test-impl 'source expected)
-            ...))))
+(defmacro arc-test (source expected)
+  `(let ((arc (test-arc)))
+     (arc-test-impl arc ',source ,expected)))
 
 (define (take match)
   (define (step lst acc)
@@ -341,8 +340,8 @@
     (after '(ac-def apply)
       (let ((arc (test-arc)))
         (test ((g apply) +) 0)
-        (test ((g apply) (g join) 'nil (toarc '((a b) (c d))))
-              (toarc '(a b c d)))
+        (test ((g apply) (g join) 'nil ((g ar-toarc) '((a b) (c d))))
+              ((g ar-toarc) '(a b c d)))
         (test ((g apply) + 1 2 ((g list) 3 4)) 10)))
 
     (after '(ac-def ac (s env))
@@ -352,10 +351,9 @@
        "Bad object in expression"))
 
     (after '(extend ac (s env) ((g ac-literal?) s))
-      (arc-test
-       (( 123   ) 123)
-       (( #\a   ) #\a)
-       (( "abc" ) "abc")))
+      (arc-test ( 123   ) 123)
+      (arc-test ( #\a   ) #\a)
+      (arc-test ( "abc" ) "abc"))
 
     (after '(ac-def ac-lex?)
       (let ((arc (test-arc)))
@@ -377,34 +375,31 @@
             ((namespace) "reference to undefined identifier: foo"))))
 
       (let ((arc (test-arc)))
-        (arc-test
-         (( car ) (g car))
-         (( nil ) 'nil))))
+        (arc-test ( car ) (g car))
+        (arc-test ( nil ) 'nil)))
 
     (after '(extend ac (s env) ((g ar-tnil) (mpair? s)))
-      (arc-test
-       (( (+)           ) 0)
-       (( (+ 1 2)       ) 3)
-       (( (+ 1 2 3)     ) 6)
-       (( (+ 1 2 3 4)   ) 10)
-       (( (+ 1 2 3 4 5) ) 15)))
+      (arc-test ( (+)           ) 0)
+      (arc-test ( (+ 1 2)       ) 3)
+      (arc-test ( (+ 1 2 3)     ) 6)
+      (arc-test ( (+ 1 2 3 4)   ) 10)
+      (arc-test ( (+ 1 2 3 4 5) ) 15))
 
     (after '(extend ac (s env) ((g caris) s 'quote))
-      (arc-test
-       (( 'abc     ) 'abc)
-       (( '()      ) 'nil)
-       (( '(a)     ) (arc-list 'a))
-       (( '(nil)   ) (arc-list 'nil))
-       (( '(a . b) ) (mcons 'a 'b))
+      (arc-test ( 'abc     ) 'abc)
+      (arc-test ( '()      ) 'nil)
+      (arc-test ( '(a)     ) (arc-list 'a))
+      (arc-test ( '(nil)   ) (arc-list 'nil))
+      (arc-test ( '(a . b) ) (mcons 'a 'b))
 
-       (( (apply list 1 2 '(3 4)) ) (toarc '(1 2 3 4)))
+      (arc-test ( (apply list 1 2 '(3 4)) ) ((g ar-toarc) '(1 2 3 4)))
 
-       (( (apply +)            ) 0)
-       (( (apply + nil)        ) 0)
-       (( (apply + '(1))       ) 1)
-       (( (apply + '(1 2 3 4)) ) 10)
-       (( (apply + 1 2 nil)    ) 3)
-       (( (apply + 1 2 '(3 4)) ) 10)))
+      (arc-test ( (apply +)            ) 0)
+      (arc-test ( (apply + nil)        ) 0)
+      (arc-test ( (apply + '(1))       ) 1)
+      (arc-test ( (apply + '(1 2 3 4)) ) 10)
+      (arc-test ( (apply + 1 2 nil)    ) 3)
+      (arc-test ( (apply + 1 2 '(3 4)) ) 10))
 
     (after '(ac-def ac-body)
       (test
@@ -415,122 +410,113 @@
        (arc-list 1 2 3)))
 
     (after '(extend ac (s env) ((g caris) s 'fn))
-      (arc-test
-       (( ((fn ()))                  ) 'nil)
-       (( ((fn () 3))                ) 3)
-       (( ((fn (a) a) 3)             ) 3)
-       (( ((fn (a b) b) 1 2)         ) 2)
-       (( ((fn (a b) (+ a b 3)) 1 2) ) 6)))
+      (arc-test ( ((fn ()))                  ) 'nil)
+      (arc-test ( ((fn () 3))                ) 3)
+      (arc-test ( ((fn (a) a) 3)             ) 3)
+      (arc-test ( ((fn (a b) b) 1 2)         ) 2)
+      (arc-test ( ((fn (a b) (+ a b 3)) 1 2) ) 6))
 
     (after '(ac-def eval)
-      (arc-test
-       (( (eval 3)        ) 3)
-       (( (eval '(+ 1 2)) ) 3)))
+      (arc-test ( (eval 3)        ) 3)
+      (arc-test ( (eval '(+ 1 2)) ) 3))
 
     (after '(extend ac (s env) ((g caris) s 'quasiquote))
-      (arc-test
-       (( `nil     ) 'nil)
-       (( `3       ) 3)
-       (( `a       ) 'a)
-       (( `()      ) 'nil)
-       (( `(1)     ) (arc-list 1))
-       (( `(1 . 2) ) (mcons 1 2))
-       (( `(1 2)   ) (arc-list 1 2))
-       (( `((1 2)) ) (arc-list (arc-list 1 2)))
+       (arc-test ( `nil     ) 'nil)
+       (arc-test ( `3       ) 3)
+       (arc-test ( `a       ) 'a)
+       (arc-test ( `()      ) 'nil)
+       (arc-test ( `(1)     ) (arc-list 1))
+       (arc-test ( `(1 . 2) ) (mcons 1 2))
+       (arc-test ( `(1 2)   ) (arc-list 1 2))
+       (arc-test ( `((1 2)) ) (arc-list (arc-list 1 2)))
 
-       (( `,(+ 1 2)         ) 3)
-       (( `(,(+ 1 2))       ) (arc-list 3))
-       (( `(1 2 ,(+ 1 2) 4) ) (arc-list 1 2 3 4))
+       (arc-test ( `,(+ 1 2)         ) 3)
+       (arc-test ( `(,(+ 1 2))       ) (arc-list 3))
+       (arc-test ( `(1 2 ,(+ 1 2) 4) ) (arc-list 1 2 3 4))
+       
+       (arc-test ( (eval ``3)         ) 3)
+       (arc-test ( (eval ``,,3)       ) 3)
+       (arc-test ( (eval ``,,(+ 1 2)) ) 3)
 
-       (( (eval ``3)         ) 3)
-       (( (eval ``,,3)       ) 3)
-       (( (eval ``,,(+ 1 2)) ) 3)
-
-       (( `(1 ,@(list 2 3) 4)                   ) (arc-list 1 2 3 4))
-       (( (eval ``,(+ 1 ,@(list 2 3) 4))        ) 10)
+       (arc-test ( `(1 ,@(list 2 3) 4)                   ) (arc-list 1 2 3 4))
+       (arc-test ( (eval ``,(+ 1 ,@(list 2 3) 4))        ) 10)
 
        ;; Note the following gives the wrong answer in Arc3.1 because of
        ;; Racket's nested list splicing bug.
 
-       (( (eval (eval ``(+ 1 ,,@(list 2 3) 4))) ) 10)))
+       (arc-test ( (eval (eval ``(+ 1 ,,@(list 2 3) 4))) ) 10))
 
     (after '(extend ac (s env) ((g caris) s 'if))
-      (arc-test
-       (( (if)           ) 'nil)
-       (( (if nil)       ) 'nil)
-       (( (if 9)         ) 9)
-       (( (if nil 1 2)   ) 2)
-       (( (if 9 1 2)     ) 1)
-       (( (if 9 1 2 3)   ) 1)
-       (( (if nil 1 2 3) ) 3)))
+      (arc-test ( (if)           ) 'nil)
+      (arc-test ( (if nil)       ) 'nil)
+      (arc-test ( (if 9)         ) 9)
+      (arc-test ( (if nil 1 2)   ) 2)
+      (arc-test ( (if 9 1 2)     ) 1)
+      (arc-test ( (if 9 1 2 3)   ) 1)
+      (arc-test ( (if nil 1 2 3) ) 3))
 
     (after '(extend ac (s env) (ar-caris s 'assign))
-      (arc-test
-       (( (assign x 123) ) 123)
+      (arc-test ( (assign x 123) ) 123)
 
-       (( ((fn ()
-             (assign x 123)
-             x)) )
-        123)
+      (arc-test ( ((fn ()
+                      (assign x 123)
+                      x)) )
+                 123)
 
-       (( ((fn (x)
-             (assign x 123))
-           456) )
-        123)
+      (arc-test ( ((fn (x)
+                      (assign x 123))
+                    456) )
+                 123)
 
-       (( ((fn (x)
-             (assign x 123)
-             x)
-           456) )
-        123)
+      (arc-test ( ((fn (x)
+                      (assign x 123)
+                      x)
+                    456) )
+                 123)
 
-       (( ((fn (a b)
-             (assign a 11)
-             (assign b 22)
-             (list a b))
-           1 2) )
-        (arc-list 11 22))))
+      (arc-test ( ((fn (a b)
+                      (assign a 11)
+                      (assign b 22)
+                      (list a b))
+                    1 2) )
+                 (arc-list 11 22)))
 
     (after '(ac-def ac-macro?)
-      (arc-test
-       (( (ac-macro? 5)    ) 'nil)
-       (( (ac-macro? 'foo) ) 'nil)
+      (arc-test ( (ac-macro? 5)    ) 'nil)
+      (arc-test ( (ac-macro? 'foo) ) 'nil)
 
-       (( (assign foo 5)
-          (ac-macro? 'foo) )
-        'nil)
+      (arc-test ( (assign foo 5)
+                   (ac-macro? 'foo) )
+                 'nil)
 
-       (( (assign foo (annotate 'mac 123))
-          (ac-macro? 'foo) )
-        123)))
+      (arc-test ( (assign foo (annotate 'mac 123))
+                   (ac-macro? 'foo) )
+                 123))
 
     (after '(extend ac-call (fn args env)
               (if ((g ar-true) ((g ac-lex?) fn env))
                    'nil
                    ((g ac-macro?) fn)))
-      (arc-test
-       (( (assign foo (annotate 'mac (fn (x) x)))
-          (foo 123) )
-        123)))
+      (arc-test ( (assign foo (annotate 'mac (fn (x) x)))
+                   (foo 123) )
+                 123))
 
     (after '(ac-def ac-fn-rest)
-      (arc-test
-       (( ((fn args (car args)) 1 2)             ) 1)
-       (( (cdr ((fn args args) 1))               ) 'nil)
-       (( ((fn (a b . rest) (car rest)) 1 2 3 4) ) 3)))
+      (arc-test ( ((fn args (car args)) 1 2)             ) 1)
+      (arc-test ( (cdr ((fn args args) 1))               ) 'nil)
+      (arc-test ( ((fn (a b . rest) (car rest)) 1 2 3 4) ) 3))
 
     (after '(ac-def bound)
-      (arc-test
-       (( (bound 'QmrQOCYWOy) )
-        'nil)
+      (arc-test ( (bound 'QmrQOCYWOy) )
+                 'nil)
 
-       (( (assign foo nil)
-          (bound 'foo) )
-        't)
+      (arc-test ( (assign foo nil)
+                   (bound 'foo) )
+                 't)
 
-       (( (assign foo 123)
-          (bound 'foo) )
-        't)))
+      (arc-test ( (assign foo 123)
+                   (bound 'foo) )
+                 't))
 
     (after '(ac-def racket-disp)
       (test-equal
@@ -555,38 +541,38 @@
        "\"a\""))
 
     (after '(ac-def table)
-      (arc-test (( (table) ) (hash))))
+      (arc-test ( (table) ) (hash)))
 
     (after '(ac-def sref)
       (arc-test
-       (( (assign a '(x y z))
-          (sref a 'M 1)
-          a )
-        (arc-list 'x 'M 'z))
+       ( (assign a '(x y z))
+         (sref a 'M 1)
+         a )
+       (arc-list 'x 'M 'z))
 
-       (( (assign a (table))
-          (sref a 55 'x)
-          a)
-        (hash 'x 55))
+      (arc-test ( (assign a (table))
+                   (sref a 55 'x)
+                   a)
+                 (hash 'x 55))
 
-       (( (table (fn (h)
-                   (sref h 55 'x)
-                   (sref h 66 'y))) )
-        (hash 'x 55 'y 66))
+      (arc-test ( (table (fn (h)
+                            (sref h 55 'x)
+                            (sref h 66 'y))) )
+                 (hash 'x 55 'y 66))
 
-       (( (assign a "abcd")
-          (sref a #\M 2)
-          a )
-        "abMd")))
+      (arc-test ( (assign a "abcd")
+                   (sref a #\M 2)
+                   a )
+                 "abMd"))
 
     (after '(ac-def details)
       (arc-test
-       (( (on-err details (fn () (/ 1 0))) )
-        "/: division by zero")))
+       ( (on-err details (fn () (/ 1 0))) )
+       "/: division by zero"))
 
     (after '(ac-def parameter)
       (arc-test
-       (( (type (parameter 3)) ) 'parameter)))
+       ( (type (parameter 3)) ) 'parameter))
 
     ))
 
