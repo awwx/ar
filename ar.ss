@@ -2,8 +2,7 @@
 
 (require scheme/mpair)
 
-(provide pairwise
-         arc-cadr
+(provide arc-cadr
          arc-car arc-cddr arc-cdr arc-join arc-list arc-map1
          deep-fromarc err hash list-fromarc new-ar
          no? noprint run-ar-tests tnil toarc true? write-to-string)
@@ -189,27 +188,6 @@
 
 (define err error)
 
-(define (ar-is2 a b)
-  (tnil (or (eqv? a b)
-            (and (string? a) (string? b) (string=? a b)))))
-
-(define (pairwise pred lst)
-  (cond ((null? lst) 't)
-        ((null? (cdr lst)) 't)
-        ((not (eqv? (pred (car lst) (cadr lst)) 'nil))
-         (pairwise pred (cdr lst)))
-        (else 'nil)))
-
-(define (arc-is . args)
-  (pairwise ar-is2 args))
-
-(test (arc-is)       't)
-(test (arc-is 4)     't)
-(test (arc-is 3 4)   'nil)
-(test (arc-is 4 4)   't)
-(test (arc-is 4 4 5) 'nil)
-(test (arc-is 4 4 4) 't)
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -222,7 +200,6 @@
         'join                arc-join
         'inside              get-output-string
         'instring            open-input-string
-        'is                  arc-is
         'list                arc-list
         'map1                arc-map1
         'nil                 'nil

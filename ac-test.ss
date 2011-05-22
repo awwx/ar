@@ -178,6 +178,15 @@
           (test ((g type) x) 'mytype)
           (test ((g rep) x)  'foo))))
 
+    (after '(ac-def is)
+      (let ((arc (test-arc)))
+        (test ((g is))       't)
+        (test ((g is) 4)     't)
+        (test ((g is) 3 4)   'nil)
+        (test ((g is) 4 4)   't)
+        (test ((g is) 4 4 5) 'nil)
+        (test ((g is) 4 4 4) 't)))
+
     (after '(ac-def caris)
       (let ((arc (test-arc)))
         (test ((g caris) 4 'x)                'nil)

@@ -212,6 +212,23 @@
         (else (vector 'tagged type rep))))
 
 
+;; is
+
+(define (pairwise pred lst)
+  (cond ((null? lst) 't)
+        ((null? (cdr lst)) 't)
+        ((not (eqv? (pred (car lst) (cadr lst)) 'nil))
+         (pairwise pred (cdr lst)))
+        (else 'nil)))
+
+(ac-def is2 (a b)
+  (tnil (or (eqv? a b)
+            (and (string? a) (string? b) (string=? a b)))))
+
+(ac-def is args
+  (pairwise (g is2) (list-fromarc args)))
+
+
 ;; caris
 
 (ac-def caris (x val)
