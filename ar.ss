@@ -2,7 +2,7 @@
 
 (require scheme/mpair)
 
-(provide pairwise ar-caris
+(provide pairwise
          arc-cadr
          arc-car arc-cddr arc-cdr arc-join arc-list arc-map1
          deep-fromarc err hash list-fromarc new-ar
@@ -210,21 +210,12 @@
 (test (arc-is 4 4 5) 'nil)
 (test (arc-is 4 4 4) 't)
 
-(define (ar-caris x val)
-  (tnil (and (mpair? x)
-             (true? (arc-is (arc-car x) val)))))
-
-(test (ar-caris 4 'x)                'nil)
-(test (ar-caris (arc-list 'y 'z) 'x) 'nil)
-(test (ar-caris (arc-list 'x 'y) 'x) 't)
-
 
 (define ar-namespace*
   (hash '-                   -
         '/                   /
         '*                   *
         'car                 arc-car
-        'caris               ar-caris
         'cdr                 arc-cdr
         'cons                mcons
         'err                 err

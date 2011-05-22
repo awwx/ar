@@ -212,6 +212,13 @@
         (else (vector 'tagged type rep))))
 
 
+;; caris
+
+(ac-def caris (x val)
+  (tnil (and (mpair? x)
+             (true? ((g is) ((g car) x) val)))))
+
+
 ;; <
 
 (ac-def <2 (x y)
@@ -569,11 +576,11 @@
 ; different expansion algorithm.
 
 (ac-def qq-expand (x)
-  (cond ((true? (ar-caris x 'unquote))
+  (cond ((true? ((g caris) x 'unquote))
          (arc-cadr x))
-        ((true? (ar-caris x 'unquote-splicing))
+        ((true? ((g caris) x 'unquote-splicing))
          (error "illegal use of ,@ in non-list quasiquote expansion"))
-        ((true? (ar-caris x 'quasiquote))
+        ((true? ((g caris) x 'quasiquote))
          ((g qq-expand) ((g qq-expand) (arc-cadr x))))
         ((mpair? x)
          ((g qq-expand-pair) x))
@@ -586,11 +593,11 @@
             ((g qq-expand) (mcdr x))))
 
 (ac-def qq-expand-list (x)
-  (cond ((true? (ar-caris x 'unquote))
+  (cond ((true? ((g caris) x 'unquote))
          (arc-list 'list (arc-cadr x)))
-        ((true? (ar-caris x 'unquote-splicing))
+        ((true? ((g caris) x 'unquote-splicing))
          (arc-cadr x))
-        ((true? (ar-caris x 'quasiquote))
+        ((true? ((g caris) x 'quasiquote))
          ((g qq-expand-list) ((g qq-expand) (arc-cadr x))))
         ((mpair? x)
          (arc-list 'list ((g qq-expand-pair) x)))
@@ -651,7 +658,7 @@
          ((g ac-assignn) x env)))
 
 (extend ac (s env)
-  (ar-caris s 'assign)
+  ((g caris) s 'assign)
   ((g ac-assign) (arc-cdr s) env))
 
 

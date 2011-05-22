@@ -178,6 +178,12 @@
           (test ((g type) x) 'mytype)
           (test ((g rep) x)  'foo))))
 
+    (after '(ac-def caris)
+      (let ((arc (test-arc)))
+        (test ((g caris) 4 'x)                'nil)
+        (test ((g caris) ((g list) 'y 'z) 'x) 'nil)
+        (test ((g caris) ((g list) 'x 'y) 'x) 't)))
+
     (after '(ac-def coerce)
       (let ((arc (test-arc)))
         (test ((g coerce) #\A                   'int)       65)
