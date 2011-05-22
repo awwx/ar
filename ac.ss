@@ -171,6 +171,19 @@
     (#t             x)))
 
 
+;; len
+
+(define (arc-list-len x)
+  (cond ((no? x)    0)
+        ((mpair? x) (+ 1 (arc-list-len (mcdr x))))
+        (else       (err "len expects a proper list"))))
+
+(ac-def len (x)
+  (cond ((string? x) (string-length x))
+        ((hash? x)   (hash-count x))
+        (else        (arc-list-len x))))
+
+
 ;; +
 
 (define (arc-list? x) (or (no? x) (mpair? x)))

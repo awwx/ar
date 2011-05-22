@@ -278,27 +278,6 @@
 (define (arc-< . args) (pairwise arc-<2 args))
 
 
-(define (arc-list-len x)
-  (cond ((no? x)    0)
-        ((mpair? x) (+ 1 (arc-list-len (mcdr x))))
-        (else       (err "len expects a proper list"))))
-
-(test (arc-list-len (arc-list))       0)
-(test (arc-list-len (arc-list 1))     1)
-(test (arc-list-len (arc-list 1 2))   2)
-(test (arc-list-len (arc-list 1 2 3)) 3)
-
-
-(define (arc-len x)
-  (cond ((string? x) (string-length x))
-        ((hash? x)   (hash-count x))
-        (else        (arc-list-len x))))
-
-(test (arc-len "abc")            3)
-(test (arc-len (hash 'a 1 'b 2)) 2)
-(test (arc-len (arc-list 1 2 3)) 3)
-
-
 (define ar-namespace*
   (hash '-                   -
         '/                   /
@@ -315,7 +294,6 @@
         'inside              get-output-string
         'instring            open-input-string
         'is                  arc-is
-        'len                 arc-len
         'list                arc-list
         'map1                arc-map1
         'nil                 'nil

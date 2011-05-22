@@ -193,6 +193,15 @@
         (test ((g coerce) 'nil                  'cons)      'nil)
         ))
 
+    (after '(ac-def len)
+      (let ((arc (test-arc)))
+        (test ((g len) "abc")            3)
+        (test ((g len) (hash 'a 1 'b 2)) 2)
+        (test ((g len) (arc-list))       0)
+        (test ((g len) (arc-list 1))     1)
+        (test ((g len) (arc-list 1 2))   2)
+        (test ((g len) (arc-list 1 2 3)) 3)))
+
     (after '(ac-def +)
       (let ((arc (test-arc)))
         (test ((g +))                             0)
