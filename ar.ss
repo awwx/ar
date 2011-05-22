@@ -4,7 +4,7 @@
 
 (provide arc-cadr
          arc-car arc-cddr arc-cdr arc-join arc-list arc-map1
-         deep-fromarc err hash list-fromarc new-ar
+         deep-fromarc hash list-fromarc new-ar
          no? noprint run-ar-tests tnil toarc true? write-to-string)
 
 (define ar-tests* '())
@@ -186,8 +186,6 @@
 (test (arc-join (arc-list 1 2) 3) (mcons 1 (mcons 2 3)))
 (test (arc-join (arc-list 1) (arc-list 2) (arc-list 3)) (arc-list 1 2 3))
 
-(define err error)
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -196,7 +194,6 @@
         'car                 arc-car
         'cdr                 arc-cdr
         'cons                mcons
-        'err                 err
         'join                arc-join
         'inside              get-output-string
         'instring            open-input-string

@@ -124,6 +124,12 @@
             `(ac-def-sig ,'name ,'racket-args)))))))
 
 
+;; err
+
+(ac-def err args
+  (apply error args))
+
+
 ;; type
 
 (define (exint? x) (and (integer? x) (exact? x)))
@@ -163,45 +169,45 @@
 
 (ac-def coerce (x type . args)
   (cond
-    ((tagged? x) (err "Can't coerce annotated object"))
+    ((tagged? x) ((g err) "Can't coerce annotated object"))
     ((eqv? type ((g type) x)) x)
     ((char? x)      (case type
                       ((int)     (char->integer x))
                       ((string)  (string x))
                       ((sym)     (string->symbol (string x)))
-                      (else      (err "Can't coerce" x type))))
+                      (else      ((g err) "Can't coerce" x type))))
     ((exint? x)     (case type
                       ((num)     x)
                       ((char)    (integer->char x))
                       ((string)  (apply number->string x args))
-                      (else      (err "Can't coerce" x type))))
+                      (else      ((g err) "Can't coerce" x type))))
     ((number? x)    (case type
                       ((int)     (iround x))
                       ((char)    (integer->char (iround x)))
                       ((string)  (apply number->string x args))
-                      (else      (err "Can't coerce" x type))))
+                      (else      ((g err) "Can't coerce" x type))))
     ((string? x)    (case type
                       ((sym)     (string->symbol x))
                       ((cons)    ((g r/list-toarc) (string->list x)))
                       ((num)     (or (apply string->number x args)
-                                     (err "Can't coerce" x type)))
+                                     ((g err) "Can't coerce" x type)))
                       ((int)     (let ((n (apply string->number x args)))
                                    (if n
                                        (iround n)
-                                       (err "Can't coerce" x type))))
-                      (else      (err "Can't coerce" x type))))
+                                       ((g err) "Can't coerce" x type))))
+                      (else      ((g err) "Can't coerce" x type))))
     ((mpair? x)     (case type
                       ((string)  (apply string-append
                                         (list-fromarc
                                          (arc-map1 (lambda (y) ((g coerce) y 'string)) x))))
-                      (else      (err "Can't coerce" x type))))
+                      (else      ((g err) "Can't coerce" x type))))
     ((eq? x 'nil)   (case type
                       ((string)  "")
                       ((cons)    'nil)
-                      (else      (err "Can't coerce" x type))))
+                      (else      ((g err) "Can't coerce" x type))))
     ((symbol? x)    (case type
                       ((string)  (symbol->string x))
-                      (else      (err "Can't coerce" x type))))
+                      (else      ((g err) "Can't coerce" x type))))
     (#t             x)))
 
 
@@ -264,15 +270,15 @@
 
 ;; len
 
-(define (arc-list-len x)
+(ac-def list-len (x)
   (cond ((no? x)    0)
-        ((mpair? x) (+ 1 (arc-list-len (mcdr x))))
-        (else       (err "len expects a proper list"))))
+        ((mpair? x) (+ 1 ((g list-len) (mcdr x))))
+        (else       ((g err) "len expects a proper list"))))
 
 (ac-def len (x)
   (cond ((string? x) (string-length x))
         ((hash? x)   (hash-count x))
-        (else        (arc-list-len x))))
+        (else        ((g list-len) x))))
 
 
 ;; +
@@ -344,7 +350,7 @@
                                        (car (cdr racket-arg-list))
                                        'nil)))
                      (lambda () default))))
-        (else (error "Function call on inappropriate object" fn racket-arg-list))))
+        (else ((g err) "Function call on inappropriate object" fn racket-arg-list))))
 
 
 ;; ar-funcall
@@ -654,7 +660,7 @@
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
-    (err "First arg to assign must be a symbol" a))
+    ((g err) "First arg to assign must be a symbol" a))
   (let ((result (gensym)))
     (arc-list 'racket-let
               (arc-list (arc-list result ((g ac) b1 env)))
@@ -712,7 +718,7 @@
         ((mpair? x)
          ((g ac-rest-param) (mcdr x)))
         (else
-         (error "not a dotted list"))))
+         ((g err) "not a dotted list"))))
 
 (ac-def ac-args-without-rest (x)
   (cond ((mpair? x)
@@ -787,7 +793,7 @@
         ((mpair? com)
          (set-mcar! (mlist-tail com ind) val))
         (else
-         (err "Can't set reference" com ind val)))
+         ((g err) "Can't set reference" com ind val)))
   val)
 
 
