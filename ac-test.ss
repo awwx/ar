@@ -1,7 +1,8 @@
 #lang scheme
 
 (require (only-in "ar.ss"
-           arc-car arc-list deep-fromarc hash no? toarc true? write-to-string))
+           arc-car arc-list deep-fromarc hash no? toarc tnil true?
+           write-to-string))
 (require (only-in "ac.ss"
            arc-eval new-arc ac-build-steps get g globals-implementation))
 
@@ -192,6 +193,14 @@
         (test ((g caris) 4 'x)                'nil)
         (test ((g caris) ((g list) 'y 'z) 'x) 'nil)
         (test ((g caris) ((g list) 'x 'y) 'x) 't)))
+
+    (after '(ac-def map1)
+      (let ((arc (test-arc)))
+        (test ((g map1)
+               (lambda (x)
+                 (tnil (odd? x)))
+               ((g list) 1 2 3 4))
+              ((g list) 't 'nil 't 'nil))))
 
     (after '(ac-def coerce)
       (let ((arc (test-arc)))

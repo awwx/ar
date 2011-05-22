@@ -3,7 +3,7 @@
 (require scheme/mpair)
 
 (provide arc-cadr
-         arc-car arc-cddr arc-cdr arc-list arc-map1
+         arc-car arc-cddr arc-cdr arc-list
          deep-fromarc hash list-fromarc new-ar
          no? noprint r/list-toarc run-ar-tests tnil toarc true?
          write-to-string)
@@ -165,13 +165,6 @@
 
 (define (tnil x) (if x 't 'nil))
 
-(define (arc-map1 f xs)
-  (if (no? xs)
-      'nil
-      (mcons (f (arc-car xs)) (arc-map1 f (arc-cdr xs)))))
-
-(test (arc-map1 (lambda (x) (tnil (odd? x))) (arc-list 1 2 3 4)) (arc-list 't 'nil 't 'nil))
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -183,7 +176,6 @@
         'inside              get-output-string
         'instring            open-input-string
         'list                arc-list
-        'map1                arc-map1
         'nil                 'nil
         'outstring           open-output-string
         'r/list-toarc        r/list-toarc

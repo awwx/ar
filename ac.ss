@@ -163,6 +163,14 @@
         (else               'unknown)))
 
 
+;; map1
+
+(ac-def map1 (f xs)
+  (if (no? xs)
+       'nil
+       (mcons (f ((g car) xs)) ((g map1) f ((g cdr) xs)))))
+
+
 ;; coerce
 
 (define (iround x) (inexact->exact (round x)))
@@ -199,7 +207,7 @@
     ((mpair? x)     (case type
                       ((string)  (apply string-append
                                         (list-fromarc
-                                         (arc-map1 (lambda (y) ((g coerce) y 'string)) x))))
+                                         ((g map1) (lambda (y) ((g coerce) y 'string)) x))))
                       (else      ((g err) "Can't coerce" x type))))
     ((eq? x 'nil)   (case type
                       ((string)  "")
@@ -539,7 +547,7 @@
 ; later.
 
 (ac-def ac-body (body env)
-  (arc-map1 (lambda (x) ((g ac) x env)) body))
+  ((g map1) (lambda (x) ((g ac) x env)) body))
 
 (ac-def ac-body* (body env)
   (if (no? body)
