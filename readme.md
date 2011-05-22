@@ -62,6 +62,7 @@ Todo
   have ac return an Arc list representing Racket code) is a bit
   confused... a clearer way to distinguish nil and () would be better.
 * would be nice if typing ^C returned to the REPL
+* pipe-from
 * ac-nameit, ac-dbname
 * atstrings
 * ac-binaries
