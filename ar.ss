@@ -5,7 +5,7 @@
 (provide pairwise ar-caris
          ar-rep arc-cadr
          arc-car arc-cddr arc-cdr arc-join arc-list arc-map1
-         arc-type deep-fromarc err exint? hash list-fromarc new-ar
+         deep-fromarc err exint? hash list-fromarc new-ar
          no? noprint run-ar-tests tagged? tnil toarc true? write-to-string)
 
 (define ar-tests* '())
@@ -228,26 +228,6 @@
 
 (define (exint? x) (and (integer? x) (exact? x)))
 
-(define (arc-type x)
-  (cond ((tagged? x)        (vector-ref x 1))
-        ((mpair? x)         'cons)
-        ((symbol? x)        'sym)
-        ((parameter? x)     'parameter)
-        ((procedure? x)     'fn)
-        ((char? x)          'char)
-        ((string? x)        'string)
-        ((exint? x)         'int)
-        ((number? x)        'num)     ; unsure about this
-        ((hash? x)          'table)
-        ((output-port? x)   'output)
-        ((input-port? x)    'input)
-        ((tcp-listener? x)  'socket)
-        ((exn? x)           'exception)
-        ((thread? x)        'thread)
-        ((thread-cell? x)   'thread-cell)
-        ((semaphore? x)     'semaphore)
-        (else               'unknown)))
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -272,7 +252,6 @@
         'racket-stderr       current-error-port
         't                   't
         'ar-toarc            toarc
-        'type                arc-type
         'uniq                gensym
         ))
 

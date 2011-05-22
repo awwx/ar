@@ -123,6 +123,29 @@
                 (lambda racket-args body ...)))
             `(ac-def-sig ,'name ,'racket-args)))))))
 
+;; type
+
+(ac-def type (x)
+  (cond ((tagged? x)        (vector-ref x 1))
+        ((mpair? x)         'cons)
+        ((symbol? x)        'sym)
+        ((parameter? x)     'parameter)
+        ((procedure? x)     'fn)
+        ((char? x)          'char)
+        ((string? x)        'string)
+        ((exint? x)         'int)
+        ((number? x)        'num)
+        ((hash? x)          'table)
+        ((output-port? x)   'output)
+        ((input-port? x)    'input)
+        ((tcp-listener? x)  'socket)
+        ((exn? x)           'exception)
+        ((thread? x)        'thread)
+        ((thread-cell? x)   'thread-cell)
+        ((semaphore? x)     'semaphore)
+        (else               'unknown)))
+
+
 ;; coerce
 
 (define (iround x) (inexact->exact (round x)))
@@ -130,7 +153,7 @@
 (ac-def coerce (x type . args)
   (cond
     ((tagged? x) (err "Can't coerce annotated object"))
-    ((eqv? type (arc-type x)) x)
+    ((eqv? type ((g type) x)) x)
     ((char? x)      (case type
                       ((int)     (char->integer x))
                       ((string)  (string x))
@@ -174,7 +197,7 @@
 ;; annotate
 
 (ac-def annotate (type rep)
-  (cond ((eqv? (arc-type rep) type) rep)
+  (cond ((eqv? ((g type) rep) type) rep)
         (else (vector 'tagged type rep))))
 
 
@@ -623,18 +646,14 @@
 
 ;; macro
 
-(define (mac? x)
-  (and (tagged? x)
-       (eq? (arc-type x) 'mac)))
-
 (ac-def ac-macro? (fn)
-  (cond ((mac? fn)
+  (cond ((eq? ((g type) fn) 'mac)
          (ar-rep fn))
         ((symbol? fn)
          (let ((v (get-default arc fn (lambda () 'nil))))
-           (if (mac? v)
-               (ar-rep v)
-               'nil)))
+           (if (eq? ((g type) v) 'mac)
+                (ar-rep v)
+                'nil)))
         (else
          'nil)))
 
