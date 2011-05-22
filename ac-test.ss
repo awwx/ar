@@ -212,6 +212,23 @@
         (test ((g ar-funcall3) + 3 4 5)               12)
         (test ((g ar-funcall4) + 3 4 5 6)             18)))
 
+    (after '(ac-def-sig ar-combine-args)
+      (let ((arc (test-arc)))
+        (test ((g ar-combine-args) (list))                        '())
+        (test ((g ar-combine-args) (list ((g list))))             '())
+        (test ((g ar-combine-args) (list ((g list) 'a)))          '(a))
+        (test ((g ar-combine-args) (list ((g list) 'a 'b 'c)))    '(a b c))
+        (test ((g ar-combine-args) (list 'a ((g list))))          '(a))
+        (test ((g ar-combine-args) (list 'a ((g list) 'b 'c 'd))) '(a b c d))
+        (test ((g ar-combine-args) (list 'a 'b ((g list) 'c 'd))) '(a b c d))))
+
+    (after '(ac-def apply)
+      (let ((arc (test-arc)))
+        (test ((g apply) +) 0)
+        (test ((g apply) (g join) 'nil (toarc '((a b) (c d))))
+              (toarc '(a b c d)))
+        (test ((g apply) + 1 2 ((g list) 3 4)) 10)))
+
     (after '(ac-def ac (s env))
       (test-expect-error
        (let ((arc (test-arc)))

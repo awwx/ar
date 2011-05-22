@@ -3,7 +3,7 @@
 (require scheme/mpair)
 
 (provide ar-apply ar-caris
-         ar-rep arc-apply arc-cadr
+         ar-rep arc-cadr
          arc-car arc-cddr arc-cdr arc-isa arc-join arc-list arc-map1
          arc-type deep-fromarc err exint? hash list-fromarc new-ar
          no? noprint run-ar-tests tagged? tnil toarc true? write-to-string)
@@ -321,31 +321,6 @@
 (test (ar-apply (hash 'a 1 'b 2) 'x 3) 3)
 
 
-(define (combine as (accum '()))
-  (cond ((null? as)
-         accum)
-        ((null? (cdr as))
-         (append accum (list-fromarc (car as))))
-        (else
-         (combine (cdr as) (append accum (list (car as)))))))
-
-(test (combine (list))                        '())
-(test (combine (list (arc-list)))             '())
-(test (combine (list (arc-list 'a)))          '(a))
-(test (combine (list (arc-list 'a 'b 'c)))    '(a b c))
-(test (combine (list 'a (arc-list)))          '(a))
-(test (combine (list 'a (arc-list 'b 'c 'd))) '(a b c d))
-(test (combine (list 'a 'b (arc-list 'c 'd))) '(a b c d))
-
-
-(define (arc-apply fn . args)
-  (apply ar-apply fn (combine args)))
-
-(test (arc-apply +) 0)
-(test (arc-apply arc-join 'nil (toarc '((a b) (c d)))) (toarc '(a b c d)))
-(test (arc-apply + 1 2 (arc-list 3 4)) 10)
-
-
 (define ar-namespace*
   (hash '-                   -
         '/                   /
@@ -353,7 +328,6 @@
         '<                   arc-<
         '>                   arc->
         'annotate            ar-tag
-        'apply               arc-apply
         'car                 arc-car
         'caris               ar-caris
         'cdr                 arc-cdr

@@ -252,6 +252,21 @@
       (ar-apply fn arg1 arg2 arg3 arg4)))
 
 
+;; apply
+
+(ac-def-sig ar-combine-args (as (accum '()))
+                            (as (o accum racket-null))
+  (cond ((null? as)
+         accum)
+        ((null? (cdr as))
+         (append accum (list-fromarc (car as))))
+        (else
+         ((g ar-combine-args) (cdr as) (append accum (list (car as)))))))
+
+(ac-def apply (fn . args)
+  (apply ar-apply fn ((g ar-combine-args) args)))
+
+
 ;; The Arc compiler!
 
 (ac-def ac (s env)
@@ -559,7 +574,7 @@
          'nil)))
 
 (ac-def ac-mac-call (m args env)
-  (let ((x1 (arc-apply m args)))
+  (let ((x1 ((g apply) m args)))
     (let ((x2 ((g ac) x1 env)))
       x2)))
 
