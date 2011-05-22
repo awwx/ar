@@ -2,7 +2,7 @@
 
 (require scheme/mpair)
 
-(provide arc-car arc-cdr arc-list
+(provide arc-list
          deep-fromarc hash list-fromarc new-ar
          no? noprint r/list-toarc run-ar-tests toarc true?
          write-to-string)
@@ -138,29 +138,11 @@
 (define (true? x)
   (not (no? x)))
 
-(define (arc-car x)
-  (if (eq? x 'nil)
-       'nil
-       (mcar x)))
-
-(test (equal? (arc-car 'nil)             'nil)
-      (equal? (arc-car (arc-list 1 2 3)) 1))
-
-(define (arc-cdr x)
-  (if (eq? x 'nil)
-       'nil
-       (mcdr x)))
-
-(test (arc-cdr 'nil)             'nil)
-(test (arc-cdr (arc-list 1 2 3)) (arc-list 2 3))
-
 
 (define ar-namespace*
   (hash '-                   -
         '/                   /
         '*                   *
-        'car                 arc-car
-        'cdr                 arc-cdr
         'cons                mcons
         'inside              get-output-string
         'instring            open-input-string

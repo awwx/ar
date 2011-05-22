@@ -130,6 +130,19 @@
   (apply error args))
 
 
+;; car, cdr
+
+(ac-def car (x)
+  (if (eq? x 'nil)
+       'nil
+       (mcar x)))
+
+(ac-def cdr (x)
+  (if (eq? x 'nil)
+       'nil
+       (mcdr x)))
+
+
 ;; cadr, cddr
 
 (ac-def cadr (x)
@@ -548,7 +561,7 @@
 
 (extend ac (s env)
   ((g ar-tnil) (mpair? s))
-  ((g ac-call) (arc-car s) (arc-cdr s) env))
+  ((g ac-call) ((g car) s) ((g cdr) s) env))
 
 
 ;; quote
@@ -708,7 +721,7 @@
   (if (no? x)
       'nil
       ;; todo: Arc 3.1 calls ac-macex here
-      (mcons ((g ac-assign1) (arc-car x) ((g cadr) x) env)
+      (mcons ((g ac-assign1) ((g car) x) ((g cadr) x) env)
              ((g ac-assignn) ((g cddr) x) env))))
 
 (ac-def ac-assign (x env)
@@ -717,7 +730,7 @@
 
 (extend ac (s env)
   ((g caris) s 'assign)
-  ((g ac-assign) (arc-cdr s) env))
+  ((g ac-assign) ((g cdr) s) env))
 
 
 ;; macro
@@ -757,7 +770,7 @@
 
 (ac-def ac-args-without-rest (x)
   (cond ((mpair? x)
-         ((g join) (arc-list (arc-car x)) ((g ac-args-without-rest) (mcdr x))))
+         ((g join) (arc-list ((g car) x)) ((g ac-args-without-rest) (mcdr x))))
         (else
          'nil)))
 

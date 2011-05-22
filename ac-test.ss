@@ -1,7 +1,7 @@
 #lang scheme
 
 (require (only-in "ar.ss"
-           arc-car arc-list deep-fromarc hash no? toarc true?
+           arc-list deep-fromarc hash no? toarc true?
            write-to-string))
 (require (only-in "ac.ss"
            arc-eval new-arc ac-build-steps get g globals-implementation))
@@ -172,6 +172,16 @@
 
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
+
+    (after '(ac-def car)
+      (let ((arc (test-arc)))
+        (test ((g car) 'nil)             'nil)
+        (test ((g car) ((g list) 1 2 3)) 1)))
+
+    (after '(ac-def cdr)
+      (let ((arc (test-arc)))
+        (test ((g cdr) 'nil)             'nil)
+        (test ((g cdr) ((g list) 1 2 3)) ((g list) 2 3))))
 
     (after '(ac-def cadr)
       (let ((arc (test-arc)))
@@ -365,9 +375,10 @@
             ((table) "undefined global variable: foo")
             ((namespace) "reference to undefined identifier: foo"))))
 
-      (arc-test
-       (( car ) arc-car)
-       (( nil ) 'nil)))
+      (let ((arc (test-arc)))
+        (arc-test
+         (( car ) (g car))
+         (( nil ) 'nil))))
 
     (after '(extend ac (s env) ((g ar-tnil) (mpair? s)))
       (arc-test
