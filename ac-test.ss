@@ -202,6 +202,16 @@
         (test ((g +) (arc-list 1 2) (arc-list 3)) (arc-list 1 2 3))
         (test ((g +) 1 2 3)                       6)))
 
+    (after '(ac-def ar-apply)
+      (let ((arc (test-arc)))
+        (test ((g ar-apply) + 1 2 3) 6)
+        (test ((g ar-apply) ((g list) 1 2 3) 1) 2)
+        (test ((g ar-apply) "abcde" 2) #\c)
+        (test ((g ar-apply) (hash 'a 1 'b 2) 'b) 2)
+        (test ((g ar-apply) (hash 'a 1 'b 2) 'x) 'nil)
+        (test ((g ar-apply) (hash 'a 1 'b 2) 'x 3) 3)
+        ))
+
     (after '(ac-def ar-funcall4)
       (let ((arc (test-arc)))
         (test ((g ar-funcall0) +)                     0)

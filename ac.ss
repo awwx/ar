@@ -224,32 +224,51 @@
       (dynamic-require r/module sym))))
 
 
+;; ar-apply
+
+(ac-def ar-apply (fn . racket-arg-list)
+  (cond ((procedure? fn)
+         (apply fn racket-arg-list))
+        ((mpair? fn)
+         (mlist-ref fn (car racket-arg-list)))
+        ((string? fn)
+         (string-ref fn (car racket-arg-list)))
+        ((hash? fn)
+         (hash-ref fn
+                   (car racket-arg-list)
+                   (let ((default (if (pair? (cdr racket-arg-list))
+                                       (car (cdr racket-arg-list))
+                                       'nil)))
+                     (lambda () default))))
+        (else (error "Function call on inappropriate object" fn racket-arg-list))))
+
+
 ;; ar-funcall
 
 (ac-def ar-funcall0 (fn)
   (if (procedure? fn)
       (fn)
-      (ar-apply fn)))
+      ((g ar-apply) fn)))
 
 (ac-def ar-funcall1 (fn arg1)
   (if (procedure? fn)
       (fn arg1)
-      (ar-apply fn arg1)))
+      ((g ar-apply) fn arg1)))
 
 (ac-def ar-funcall2 (fn arg1 arg2)
   (if (procedure? fn)
       (fn arg1 arg2)
-      (ar-apply fn arg1 arg2)))
+      ((g ar-apply) fn arg1 arg2)))
 
 (ac-def ar-funcall3 (fn arg1 arg2 arg3)
   (if (procedure? fn)
       (fn arg1 arg2 arg3)
-      (ar-apply fn arg1 arg2 arg3)))
+      ((g ar-apply) fn arg1 arg2 arg3)))
 
 (ac-def ar-funcall4 (fn arg1 arg2 arg3 arg4)
   (if (procedure? fn)
       (fn arg1 arg2 arg3 arg4)
-      (ar-apply fn arg1 arg2 arg3 arg4)))
+      ((g ar-apply) fn arg1 arg2 arg3 arg4)))
 
 
 ;; apply
@@ -264,7 +283,7 @@
          ((g ar-combine-args) (cdr as) (append accum (list (car as)))))))
 
 (ac-def apply (fn . args)
-  (apply ar-apply fn ((g ar-combine-args) args)))
+  (apply (g ar-apply) fn ((g ar-combine-args) args)))
 
 
 ;; The Arc compiler!
@@ -378,7 +397,7 @@
              ((2) (g ar-funcall2))
              ((3) (g ar-funcall3))
              ((4) (g ar-funcall4))
-             (else ar-apply))
+             (else (g ar-apply)))
            (mcons ((g ac) f env)
                   ((g map1) (lambda (arg) ((g ac) arg env)) args))))))
 

@@ -2,7 +2,7 @@
 
 (require scheme/mpair)
 
-(provide ar-apply ar-caris
+(provide ar-caris
          ar-rep arc-cadr
          arc-car arc-cddr arc-cdr arc-isa arc-join arc-list arc-map1
          arc-type deep-fromarc err exint? hash list-fromarc new-ar
@@ -297,28 +297,6 @@
 (test (arc-len "abc")            3)
 (test (arc-len (hash 'a 1 'b 2)) 2)
 (test (arc-len (arc-list 1 2 3)) 3)
-
-
-(define (ar-apply fn . r/args)
-  (cond ((procedure? fn)
-         (apply fn r/args))
-        ((mpair? fn)
-         (mlist-ref fn (car r/args)))
-        ((string? fn)
-         (string-ref fn (car r/args)))
-        ((hash? fn)
-         (hash-ref fn
-                   (car r/args)
-                   (let ((default (if (pair? (cdr r/args)) (car (cdr r/args)) 'nil)))
-                     (lambda () default))))
-        (else (error "Function call on inappropriate object" fn r/args))))
-
-(test (ar-apply + 1 2 3) 6)
-(test (ar-apply (arc-list 1 2 3) 1) 2)
-(test (ar-apply "abcde" 2) #\c)
-(test (ar-apply (hash 'a 1 'b 2) 'b) 2)
-(test (ar-apply (hash 'a 1 'b 2) 'x) 'nil)
-(test (ar-apply (hash 'a 1 'b 2) 'x 3) 3)
 
 
 (define ar-namespace*
