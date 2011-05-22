@@ -22,8 +22,6 @@
       `(assign-fn ,name ,parms (fn ,parms ,@body)))))
 
 (def caar (xs) (car (car xs)))
-(def cadr (xs) (car (cdr xs)))
-(def cddr (xs) (cdr (cdr xs)))
 
 (def no (x) (is x nil))
 

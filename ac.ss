@@ -130,6 +130,15 @@
   (apply error args))
 
 
+;; cadr, cddr
+
+(ac-def cadr (x)
+  ((g car) ((g cdr) x)))
+
+(ac-def cddr (x)
+  ((g cdr) ((g cdr) x)))
+
+
 ;; type
 
 (define (exint? x) (and (integer? x) (exact? x)))
@@ -524,7 +533,7 @@
    ;; have to use ar-apply
    ((and (mpair? f) (eq? (mcar f) 'fn))
     (mcons ((g ac) f env)
-           ((g ac-args) (arc-cadr f) args env)))
+           ((g ac-args) ((g cadr) f) args env)))
 
    (else
     (mcons (case ((g len) args)
@@ -549,7 +558,7 @@
 ; doesn't copy function values.
 
 (extend ac (s env) ((g caris) s 'quote)
-  (let ((v (arc-cadr s)))
+  (let ((v ((g cadr) s)))
     ((g list) ((g list) 'racket-quote (lambda () v)))))
 
 
@@ -595,7 +604,7 @@
 
 (extend ac (s env)
   ((g caris) s 'fn)
-  ((g ac-fn) (arc-cadr s) (arc-cddr s) env))
+  ((g ac-fn) ((g cadr) s) ((g cddr) s) env))
 
 
 ;; eval
@@ -626,11 +635,11 @@
 
 (ac-def qq-expand (x)
   (cond ((true? ((g caris) x 'unquote))
-         (arc-cadr x))
+         ((g cadr) x))
         ((true? ((g caris) x 'unquote-splicing))
          (error "illegal use of ,@ in non-list quasiquote expansion"))
         ((true? ((g caris) x 'quasiquote))
-         ((g qq-expand) ((g qq-expand) (arc-cadr x))))
+         ((g qq-expand) ((g qq-expand) ((g cadr) x))))
         ((mpair? x)
          ((g qq-expand-pair) x))
         (else
@@ -643,11 +652,11 @@
 
 (ac-def qq-expand-list (x)
   (cond ((true? ((g caris) x 'unquote))
-         (arc-list 'list (arc-cadr x)))
+         (arc-list 'list ((g cadr) x)))
         ((true? ((g caris) x 'unquote-splicing))
-         (arc-cadr x))
+         ((g cadr) x))
         ((true? ((g caris) x 'quasiquote))
-         ((g qq-expand-list) ((g qq-expand) (arc-cadr x))))
+         ((g qq-expand-list) ((g qq-expand) ((g cadr) x))))
         ((mpair? x)
          (arc-list 'list ((g qq-expand-pair) x)))
         (else
@@ -655,7 +664,7 @@
 
 (extend ac (s env)
   ((g caris) s 'quasiquote)
-  (let ((expansion ((g qq-expand) (arc-cadr s))))
+  (let ((expansion ((g qq-expand) ((g cadr) s))))
     ((g ac) expansion env)))
 
 
@@ -669,8 +678,8 @@
         (else
          (arc-list 'racket-if
                    (arc-list true? ((g ac) ((g car) args) env))
-                   ((g ac) (arc-cadr args) env)
-                   ((g ac-if) (arc-cddr args) env)))))
+                   ((g ac) ((g cadr) args) env)
+                   ((g ac-if) ((g cddr) args) env)))))
 
 (extend ac (s env)
   ((g caris) s 'if)
@@ -699,8 +708,8 @@
   (if (no? x)
       'nil
       ;; todo: Arc 3.1 calls ac-macex here
-      (mcons ((g ac-assign1) (arc-car x) (arc-cadr x) env)
-             ((g ac-assignn) (arc-cddr x) env))))
+      (mcons ((g ac-assign1) (arc-car x) ((g cadr) x) env)
+             ((g ac-assignn) ((g cddr) x) env))))
 
 (ac-def ac-assign (x env)
   (mcons 'racket-begin

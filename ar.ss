@@ -2,8 +2,7 @@
 
 (require scheme/mpair)
 
-(provide arc-cadr
-         arc-car arc-cddr arc-cdr arc-list
+(provide arc-car arc-cdr arc-list
          deep-fromarc hash list-fromarc new-ar
          no? noprint r/list-toarc run-ar-tests toarc true?
          write-to-string)
@@ -154,14 +153,6 @@
 
 (test (arc-cdr 'nil)             'nil)
 (test (arc-cdr (arc-list 1 2 3)) (arc-list 2 3))
-
-(define (arc-cadr x)
-  (arc-car (arc-cdr x)))
-
-(test (arc-cadr (arc-list 1 2 3)) 2)
-
-(define (arc-cddr x)
-  (arc-cdr (arc-cdr x)))
 
 
 (define ar-namespace*
