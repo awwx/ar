@@ -5,7 +5,7 @@
 (provide pairwise ar-caris
          ar-rep arc-cadr
          arc-car arc-cddr arc-cdr arc-join arc-list arc-map1
-         deep-fromarc err exint? hash list-fromarc new-ar
+         deep-fromarc err hash list-fromarc new-ar
          no? noprint run-ar-tests tagged? tnil toarc true? write-to-string)
 
 (define ar-tests* '())
@@ -225,8 +225,6 @@
   (if (tagged? x)
       (vector-ref x 2)
       x))
-
-(define (exint? x) (and (integer? x) (exact? x)))
 
 
 (define ar-namespace*

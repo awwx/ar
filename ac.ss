@@ -123,7 +123,10 @@
                 (lambda racket-args body ...)))
             `(ac-def-sig ,'name ,'racket-args)))))))
 
+
 ;; type
+
+(define (exint? x) (and (integer? x) (exact? x)))
 
 (ac-def type (x)
   (cond ((tagged? x)        (vector-ref x 1))
