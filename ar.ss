@@ -2,7 +2,7 @@
 
 (require scheme/mpair)
 
-(provide ar-caris
+(provide pairwise ar-caris
          ar-rep arc-cadr
          arc-car arc-cddr arc-cdr arc-isa arc-join arc-list arc-map1
          arc-type deep-fromarc err exint? hash list-fromarc new-ar
@@ -257,33 +257,11 @@
 
 (define (arc-list? x) (or (no? x) (mpair? x)))
 
-(define (arc->2 x y)
-  (tnil (cond ((and (number? x) (number? y)) (> x y))
-              ((and (string? x) (string? y)) (string>? x y))
-              ((and (symbol? x) (symbol? y)) (string>? (symbol->string x)
-                                                       (symbol->string y)))
-              ((and (char? x) (char? y)) (char>? x y))
-              (#t (> x y)))))
-
-(define (arc-> . args) (pairwise arc->2 args))
-
-(define (arc-<2 x y)
-  (tnil (cond ((and (number? x) (number? y)) (< x y))
-              ((and (string? x) (string? y)) (string<? x y))
-              ((and (symbol? x) (symbol? y)) (string<? (symbol->string x)
-                                                       (symbol->string y)))
-              ((and (char? x) (char? y)) (char<? x y))
-              (#t (< x y)))))
-
-(define (arc-< . args) (pairwise arc-<2 args))
-
 
 (define ar-namespace*
   (hash '-                   -
         '/                   /
         '*                   *
-        '<                   arc-<
-        '>                   arc->
         'annotate            ar-tag
         'car                 arc-car
         'caris               ar-caris

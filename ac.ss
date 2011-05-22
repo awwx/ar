@@ -171,6 +171,32 @@
     (#t             x)))
 
 
+;; <
+
+(ac-def <2 (x y)
+  (tnil (cond ((and (number? x) (number? y)) (< x y))
+              ((and (string? x) (string? y)) (string<? x y))
+              ((and (symbol? x) (symbol? y)) (string<? (symbol->string x)
+                                                       (symbol->string y)))
+              ((and (char? x) (char? y)) (char<? x y))
+              ((g err) "Can't <" x y))))
+
+(ac-def < args
+  (pairwise (g <2) (list-fromarc args)))
+
+
+(ac-def >2 (x y)
+  (tnil (cond ((and (number? x) (number? y)) (> x y))
+              ((and (string? x) (string? y)) (string>? x y))
+              ((and (symbol? x) (symbol? y)) (string>? (symbol->string x)
+                                                       (symbol->string y)))
+              ((and (char? x) (char? y)) (char>? x y))
+              ((g err) "Can't >" x y))))
+
+(ac-def > args
+  (pairwise (g >2) (list-fromarc args)))
+
+
 ;; len
 
 (define (arc-list-len x)
