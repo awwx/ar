@@ -4,7 +4,7 @@
 
 (provide pairwise ar-caris
          ar-rep arc-cadr
-         arc-car arc-cddr arc-cdr arc-isa arc-join arc-list arc-map1
+         arc-car arc-cddr arc-cdr arc-join arc-list arc-map1
          arc-type deep-fromarc err exint? hash list-fromarc new-ar
          no? noprint run-ar-tests tagged? tnil toarc true? write-to-string)
 
@@ -251,11 +251,6 @@
 (define (ar-tag type rep)
   (cond ((eqv? (arc-type rep) type) rep)
         (else (vector 'tagged type rep))))
-
-(define (arc-isa x y)
-  (arc-is (arc-type x) y))
-
-(define (arc-list? x) (or (no? x) (mpair? x)))
 
 
 (define ar-namespace*
