@@ -5,7 +5,7 @@
 (provide arc-cadr
          arc-car arc-cddr arc-cdr arc-list
          deep-fromarc hash list-fromarc new-ar
-         no? noprint r/list-toarc run-ar-tests tnil toarc true?
+         no? noprint r/list-toarc run-ar-tests toarc true?
          write-to-string)
 
 (define ar-tests* '())
@@ -162,8 +162,6 @@
 
 (define (arc-cddr x)
   (arc-cdr (arc-cdr x)))
-
-(define (tnil x) (if x 't 'nil))
 
 
 (define ar-namespace*

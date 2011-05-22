@@ -163,6 +163,12 @@
         (else               'unknown)))
 
 
+;; ar-tnil
+
+(ac-def ar-tnil (x)
+  (if x 't 'nil))
+
+
 ;; map1
 
 (ac-def map1 (f xs)
@@ -236,8 +242,9 @@
         (else 'nil)))
 
 (ac-def is2 (a b)
-  (tnil (or (eqv? a b)
-            (and (string? a) (string? b) (string=? a b)))))
+  ((g ar-tnil)
+   (or (eqv? a b)
+       (and (string? a) (string? b) (string=? a b)))))
 
 (ac-def is args
   (pairwise (g is2) (list-fromarc args)))
@@ -246,31 +253,34 @@
 ;; caris
 
 (ac-def caris (x val)
-  (tnil (and (mpair? x)
-             (true? ((g is) ((g car) x) val)))))
+  ((g ar-tnil)
+   (and (mpair? x)
+        (true? ((g is) ((g car) x) val)))))
 
 
 ;; <
 
 (ac-def <2 (x y)
-  (tnil (cond ((and (number? x) (number? y)) (< x y))
-              ((and (string? x) (string? y)) (string<? x y))
-              ((and (symbol? x) (symbol? y)) (string<? (symbol->string x)
-                                                       (symbol->string y)))
-              ((and (char? x) (char? y)) (char<? x y))
-              ((g err) "Can't <" x y))))
+  ((g ar-tnil)
+   (cond ((and (number? x) (number? y)) (< x y))
+         ((and (string? x) (string? y)) (string<? x y))
+         ((and (symbol? x) (symbol? y)) (string<? (symbol->string x)
+                                                  (symbol->string y)))
+         ((and (char? x) (char? y)) (char<? x y))
+         ((g err) "Can't <" x y))))
 
 (ac-def < args
   (pairwise (g <2) (list-fromarc args)))
 
 
 (ac-def >2 (x y)
-  (tnil (cond ((and (number? x) (number? y)) (> x y))
-              ((and (string? x) (string? y)) (string>? x y))
-              ((and (symbol? x) (symbol? y)) (string>? (symbol->string x)
-                                                       (symbol->string y)))
-              ((and (char? x) (char? y)) (char>? x y))
-              ((g err) "Can't >" x y))))
+  ((g ar-tnil)
+   (cond ((and (number? x) (number? y)) (> x y))
+         ((and (string? x) (string? y)) (string>? x y))
+         ((and (symbol? x) (symbol? y)) (string>? (symbol->string x)
+                                                  (symbol->string y)))
+         ((and (char? x) (char? y)) (char>? x y))
+         ((g err) "Can't >" x y))))
 
 (ac-def > args
   (pairwise (g >2) (list-fromarc args)))
@@ -447,10 +457,11 @@
 ;; literal
 
 (ac-def ac-literal? (x)
-  (tnil (or (char? x)
-            (string? x)
-            (number? x)
-            (procedure? x))))
+  ((g ar-tnil)
+   (or (char? x)
+       (string? x)
+       (number? x)
+       (procedure? x))))
 
 (extend ac (s env)
   ((g ac-literal?) s)
@@ -461,13 +472,14 @@
 
 ;; variables
 
-(define (mem v lst)
-  (tnil (and (mpair? lst)
-             (or (eqv? v (mcar lst))
-                 (true? (mem v (mcdr lst)))))))
+(ac-def ar-mem (v lst)
+  ((g ar-tnil)
+   (and (mpair? lst)
+        (or (eqv? v (mcar lst))
+            (true? ((g ar-mem) v (mcdr lst)))))))
 
 (ac-def ac-lex? (v env)
-  (mem v env))
+  ((g ar-mem) v env))
 
 (define (global-ref-err arc v)
   (let ((message (string-append "undefined global variable: "
@@ -495,7 +507,7 @@
        ((g ac-global) s)))
 
 (extend ac (s env)
-  (tnil (symbol? s))
+  ((g ar-tnil) (symbol? s))
   ((g ac-var-ref) s env))
 
 
@@ -526,7 +538,7 @@
                   ((g map1) (lambda (arg) ((g ac) arg env)) args))))))
 
 (extend ac (s env)
-  (tnil (mpair? s))
+  ((g ar-tnil) (mpair? s))
   ((g ac-call) (arc-car s) (arc-cdr s) env))
 
 
@@ -765,7 +777,8 @@
 
 (ac-def bound (name)
   (let ((undef (list 'undef)))
-    (tnil (not (eq? (get-default arc name (lambda () undef)) undef)))))
+    ((g ar-tnil)
+     (not (eq? (get-default arc name (lambda () undef)) undef)))))
 
 
 ;; disp, write
