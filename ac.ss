@@ -171,6 +171,13 @@
     (#t             x)))
 
 
+;; annotate
+
+(ac-def annotate (type rep)
+  (cond ((eqv? (arc-type rep) type) rep)
+        (else (vector 'tagged type rep))))
+
+
 ;; <
 
 (ac-def <2 (x y)

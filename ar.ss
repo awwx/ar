@@ -248,16 +248,11 @@
         ((semaphore? x)     'semaphore)
         (else               'unknown)))
 
-(define (ar-tag type rep)
-  (cond ((eqv? (arc-type rep) type) rep)
-        (else (vector 'tagged type rep))))
-
 
 (define ar-namespace*
   (hash '-                   -
         '/                   /
         '*                   *
-        'annotate            ar-tag
         'car                 arc-car
         'caris               ar-caris
         'cdr                 arc-cdr
