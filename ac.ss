@@ -128,6 +128,14 @@
 
 (define (exint? x) (and (integer? x) (exact? x)))
 
+(define (tagged? x)
+  (and (vector? x) (eq? (vector-ref x 0) 'tagged)))
+
+(ac-def rep (x)
+  (if (tagged? x)
+       (vector-ref x 2)
+       x))
+
 (ac-def type (x)
   (cond ((tagged? x)        (vector-ref x 1))
         ((mpair? x)         'cons)
@@ -651,11 +659,11 @@
 
 (ac-def ac-macro? (fn)
   (cond ((eq? ((g type) fn) 'mac)
-         (ar-rep fn))
+         ((g rep) fn))
         ((symbol? fn)
          (let ((v (get-default arc fn (lambda () 'nil))))
            (if (eq? ((g type) v) 'mac)
-                (ar-rep v)
+                ((g rep) v)
                 'nil)))
         (else
          'nil)))

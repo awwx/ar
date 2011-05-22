@@ -3,10 +3,10 @@
 (require scheme/mpair)
 
 (provide pairwise ar-caris
-         ar-rep arc-cadr
+         arc-cadr
          arc-car arc-cddr arc-cdr arc-join arc-list arc-map1
          deep-fromarc err hash list-fromarc new-ar
-         no? noprint run-ar-tests tagged? tnil toarc true? write-to-string)
+         no? noprint run-ar-tests tnil toarc true? write-to-string)
 
 (define ar-tests* '())
 
@@ -217,14 +217,6 @@
 (test (ar-caris 4 'x)                'nil)
 (test (ar-caris (arc-list 'y 'z) 'x) 'nil)
 (test (ar-caris (arc-list 'x 'y) 'x) 't)
-
-(define (tagged? x)
-  (and (vector? x) (eq? (vector-ref x 0) 'tagged)))
-
-(define (ar-rep x)
-  (if (tagged? x)
-      (vector-ref x 2)
-      x))
 
 
 (define ar-namespace*

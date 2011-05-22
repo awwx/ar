@@ -172,6 +172,12 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
+    (after '(ac-def annotate)
+      (let ((arc (test-arc)))
+        (let ((x ((g annotate) 'mytype 'foo)))
+          (test ((g type) x) 'mytype)
+          (test ((g rep) x)  'foo))))
+
     (after '(ac-def coerce)
       (let ((arc (test-arc)))
         (test ((g coerce) #\A                   'int)       65)
