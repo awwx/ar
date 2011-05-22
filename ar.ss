@@ -3,9 +3,10 @@
 (require scheme/mpair)
 
 (provide arc-cadr
-         arc-car arc-cddr arc-cdr arc-join arc-list arc-map1
+         arc-car arc-cddr arc-cdr arc-list arc-map1
          deep-fromarc hash list-fromarc new-ar
-         no? noprint run-ar-tests tnil toarc true? write-to-string)
+         no? noprint r/list-toarc run-ar-tests tnil toarc true?
+         write-to-string)
 
 (define ar-tests* '())
 
@@ -171,21 +172,6 @@
 
 (test (arc-map1 (lambda (x) (tnil (odd? x))) (arc-list 1 2 3 4)) (arc-list 't 'nil 't 'nil))
 
-(define (arc-join . args)
-  (r/list-toarc (apply append (map list-fromarc args))))
-
-(test (arc-join) 'nil)
-(test (arc-join (arc-list)) 'nil)
-(test (arc-join 1) 1)
-(test (arc-join (arc-list 1 2)) (arc-list 1 2))
-(test (arc-join (arc-list) (arc-list)) 'nil)
-(test (arc-join (arc-list 1 2) (arc-list)) (arc-list 1 2))
-(test (arc-join (arc-list 1 2) 3) (mcons 1 (mcons 2 3)))
-(test (arc-join (arc-list) (arc-list 1 2)) (arc-list 1 2))
-(test (arc-join (arc-list 1 2) (arc-list 3 4)) (arc-list 1 2 3 4))
-(test (arc-join (arc-list 1 2) 3) (mcons 1 (mcons 2 3)))
-(test (arc-join (arc-list 1) (arc-list 2) (arc-list 3)) (arc-list 1 2 3))
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -194,7 +180,6 @@
         'car                 arc-car
         'cdr                 arc-cdr
         'cons                mcons
-        'join                arc-join
         'inside              get-output-string
         'instring            open-input-string
         'list                arc-list

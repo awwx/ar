@@ -281,6 +281,12 @@
         (else        ((g list-len) x))))
 
 
+;; join
+
+(ac-def join args
+  (r/list-toarc (apply append (map list-fromarc (list-fromarc args)))))
+
+
 ;; +
 
 (define (arc-list? x) (or (no? x) (mpair? x)))
@@ -292,7 +298,7 @@
          (apply string-append
                 (map (lambda (a) ((g coerce) a 'string)) args)))
         ((arc-list? (car args))
-         (apply arc-join args))
+         (apply (g join) args))
         (else
          (apply + args))))
 
@@ -541,7 +547,7 @@
       ((g ac-body) body env)))
 
 (ac-def ac-body*x (args body env)
-  ((g ac-body*) body (arc-join ((g ac-arglist) args) env)))
+  ((g ac-body*) body ((g join) ((g ac-arglist) args) env)))
 
 (ac-def ac-arglist (a)
   (cond ((no? a) 'nil)
@@ -722,7 +728,7 @@
 
 (ac-def ac-args-without-rest (x)
   (cond ((mpair? x)
-         (arc-join (arc-list (arc-car x)) ((g ac-args-without-rest) (mcdr x))))
+         ((g join) (arc-list (arc-car x)) ((g ac-args-without-rest) (mcdr x))))
         (else
          'nil)))
 
