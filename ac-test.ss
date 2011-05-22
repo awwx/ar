@@ -1,7 +1,7 @@
 #lang scheme
 
 (require (only-in "ar.ss"
-           arc-list deep-fromarc hash toarc
+           arc-list hash toarc
            write-to-string))
 (require (only-in "ac.ss"
            arc-eval new-arc ac-build-steps get g globals-implementation))

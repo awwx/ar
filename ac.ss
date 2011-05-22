@@ -124,6 +124,36 @@
             `(ac-def-sig ,'name ,'racket-args)))))))
 
 
+;; ar-deep-fromarc
+
+; todo I think we just need some better way of representing a Racket
+; null in the Arc compiler.
+
+(define (strict-deep-fromarc x)
+  (cond ((eq? x 'nil)
+         '())
+        ((mpair? x)
+         (cons (strict-deep-fromarc (mcar x))
+               (strict-deep-fromarc (mcdr x))))
+        (else
+         x)))
+
+(ac-def ar-deep-fromarc (x)
+  (cond ((and (mpair? x) (eq? (mcar x) 'racket-list))
+         (strict-deep-fromarc (mcar (mcdr x))))
+
+        ;; nil in the car position isn't a list terminator, and so can
+        ;; be left alone.
+        ((mpair? x)
+         (cons (let ((a (mcar x)))
+                 (if (eq? a 'nil) 'nil ((g ar-deep-fromarc) a)))
+               (let ((b (mcdr x)))
+                 (if (eq? b 'nil) '() ((g ar-deep-fromarc) b)))))
+
+        (else
+         x)))
+
+
 ;; err
 
 (ac-def err args
@@ -388,7 +418,7 @@
 ;; racket-module-ref
 
 (ac-def racket-module-ref (a/module)
-  (let ((r/module (deep-fromarc a/module)))
+  (let ((r/module ((g ar-deep-fromarc) a/module)))
     (lambda (sym)
       (dynamic-require r/module sym))))
 
@@ -638,7 +668,7 @@
 (define (arc-eval arc form)
   (parameterize ((current-readtable (get-default arc 'arc-readtable* (lambda () #f)))
                  (compile-allow-set!-undefined #t))
-    (eval (deep-fromarc ((get arc 'ac) form 'nil))
+    (eval ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))
           (hash-ref arc 'racket-namespace*))))
 
 (ac-def eval (form (other-arc 'nil))

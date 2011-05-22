@@ -3,7 +3,7 @@
 (require scheme/mpair)
 
 (provide arc-list
-         deep-fromarc hash list-fromarc new-ar
+         hash list-fromarc new-ar
          noprint r/list-toarc run-ar-tests toarc
          write-to-string)
 
@@ -107,30 +107,6 @@
         ((string? x)
          (string-copy x))
         (else x)))
-
-(define (deep-fromarc x)
-  (cond ((and (mpair? x) (eq? (mcar x) 'racket-list))
-         (strict-deep-fromarc (mcar (mcdr x))))
-
-        ;; nil in the car position isn't a list terminator, and so can
-        ;; be left alone.
-        ((mpair? x)
-         (cons (let ((a (mcar x)))
-                 (if (eq? a 'nil) 'nil (deep-fromarc a)))
-               (let ((b (mcdr x)))
-                 (if (eq? b 'nil) '() (deep-fromarc b)))))
-
-        (else
-         x)))
-
-(define (strict-deep-fromarc x)
-  (cond ((eq? x 'nil)
-         '())
-        ((mpair? x)
-         (cons (strict-deep-fromarc (mcar x))
-               (strict-deep-fromarc (mcdr x))))
-        (else
-         x)))
 
 
 (define ar-namespace*
