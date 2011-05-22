@@ -191,10 +191,22 @@
   (if x 't 'nil))
 
 
+;; ar-no
+
+(ac-def ar-no (x)
+  (eq? x 'nil))
+
+
+;; ar-true
+
+(ac-def ar-true (x)
+  (not ((g ar-no) x)))
+
+
 ;; map1
 
 (ac-def map1 (f xs)
-  (if (no? xs)
+  (if ((g ar-no) xs)
        'nil
        (mcons (f ((g car) xs)) ((g map1) f ((g cdr) xs)))))
 
@@ -277,7 +289,7 @@
 (ac-def caris (x val)
   ((g ar-tnil)
    (and (mpair? x)
-        (true? ((g is) ((g car) x) val)))))
+        ((g ar-true) ((g is) ((g car) x) val)))))
 
 
 ;; <
@@ -311,9 +323,9 @@
 ;; len
 
 (ac-def list-len (x)
-  (cond ((no? x)    0)
-        ((mpair? x) (+ 1 ((g list-len) (mcdr x))))
-        (else       ((g err) "len expects a proper list"))))
+  (cond (((g ar-no) x) 0)
+        ((mpair? x)    (+ 1 ((g list-len) (mcdr x))))
+        (else          ((g err) "len expects a proper list"))))
 
 (ac-def len (x)
   (cond ((string? x) (string-length x))
@@ -329,7 +341,8 @@
 
 ;; +
 
-(define (arc-list? x) (or (no? x) (mpair? x)))
+(ac-def ar-alist (x)
+  (or ((g ar-no) x) (mpair? x)))
 
 (ac-def + args
   (cond ((null? args)
@@ -337,7 +350,7 @@
         ((or (char? (car args)) (string? (car args)))
          (apply string-append
                 (map (lambda (a) ((g coerce) a 'string)) args)))
-        ((arc-list? (car args))
+        (((g ar-alist) (car args))
          (apply (g join) args))
         (else
          (apply + args))))
@@ -459,7 +472,7 @@
        (set arc name
          (lambda args
            (let ((result (apply test arc args)))
-             (if (true? result)
+             (if ((g ar-true) result)
                   (apply body arc result args)
                   (apply previous args)))))))
    source))
@@ -498,7 +511,7 @@
   ((g ar-tnil)
    (and (mpair? lst)
         (or (eqv? v (mcar lst))
-            (true? ((g ar-mem) v (mcdr lst)))))))
+            ((g ar-true) ((g ar-mem) v (mcdr lst)))))))
 
 (ac-def ac-lex? (v env)
   ((g ar-mem) v env))
@@ -524,7 +537,7 @@
     ((namespace) v)))
 
 (ac-def ac-var-ref (s env)
-  (if (true? ((g ac-lex?) s env))
+  (if ((g ar-true) ((g ac-lex?) s env))
        s
        ((g ac-global) s)))
 
@@ -584,17 +597,17 @@
   ((g map1) (lambda (x) ((g ac) x env)) body))
 
 (ac-def ac-body* (body env)
-  (if (no? body)
-      ((g list) '(racket-quote nil))
-      ((g ac-body) body env)))
+  (if ((g ar-no) body)
+       ((g list) '(racket-quote nil))
+       ((g ac-body) body env)))
 
 (ac-def ac-body*x (args body env)
   ((g ac-body*) body ((g join) ((g ac-arglist) args) env)))
 
 (ac-def ac-arglist (a)
-  (cond ((no? a) 'nil)
+  (cond (((g ar-no) a) 'nil)
         ((symbol? a) (arc-list a))
-        ((and (symbol? (mcdr a)) (not (no? (mcdr a))))
+        ((and (symbol? (mcdr a)) (not ((g ar-no) (mcdr a))))
          (arc-list (mcar a) (mcdr a)))
         (else (mcons (mcar a) ((g ac-arglist) (mcdr a))))))
 
@@ -607,7 +620,7 @@
          'nil)))
 
 (ac-def ac-fn (args body env)
-  (if (true? ((g dotted-list?) args))
+  (if ((g ar-true) ((g dotted-list?) args))
        ((g ac-fn-rest) args body env)
        (mcons 'racket-lambda
               ;; TODO I think it would be better to have an explicit
@@ -629,7 +642,7 @@
           (hash-ref arc 'racket-namespace*))))
 
 (ac-def eval (form (other-arc 'nil))
-  (arc-eval (if (true? other-arc) other-arc arc) form))
+  (arc-eval (if ((g ar-true) other-arc) other-arc arc) form))
 
 
 ;; quasiquotation
@@ -647,11 +660,11 @@
 ; different expansion algorithm.
 
 (ac-def qq-expand (x)
-  (cond ((true? ((g caris) x 'unquote))
+  (cond (((g ar-true) ((g caris) x 'unquote))
          ((g cadr) x))
-        ((true? ((g caris) x 'unquote-splicing))
+        (((g ar-true) ((g caris) x 'unquote-splicing))
          (error "illegal use of ,@ in non-list quasiquote expansion"))
-        ((true? ((g caris) x 'quasiquote))
+        (((g ar-true) ((g caris) x 'quasiquote))
          ((g qq-expand) ((g qq-expand) ((g cadr) x))))
         ((mpair? x)
          ((g qq-expand-pair) x))
@@ -664,11 +677,11 @@
             ((g qq-expand) (mcdr x))))
 
 (ac-def qq-expand-list (x)
-  (cond ((true? ((g caris) x 'unquote))
+  (cond (((g ar-true) ((g caris) x 'unquote))
          (arc-list 'list ((g cadr) x)))
-        ((true? ((g caris) x 'unquote-splicing))
+        (((g ar-true) ((g caris) x 'unquote-splicing))
          ((g cadr) x))
-        ((true? ((g caris) x 'quasiquote))
+        (((g ar-true) ((g caris) x 'quasiquote))
          ((g qq-expand-list) ((g qq-expand) ((g cadr) x))))
         ((mpair? x)
          (arc-list 'list ((g qq-expand-pair) x)))
@@ -684,13 +697,13 @@
 ;; if
 
 (ac-def ac-if (args env)
-  (cond ((no? args)
+  (cond (((g ar-no) args)
          '(racket-quote nil))
-        ((no? ((g cdr) args))
+        (((g ar-no) ((g cdr) args))
          ((g ac) ((g car) args) env))
         (else
          (arc-list 'racket-if
-                   (arc-list true? ((g ac) ((g car) args) env))
+                   (arc-list (g ar-true) ((g ac) ((g car) args) env))
                    ((g ac) ((g cadr) args) env)
                    ((g ac-if) ((g cddr) args) env)))))
 
@@ -712,13 +725,13 @@
   (let ((result (gensym)))
     (arc-list 'racket-let
               (arc-list (arc-list result ((g ac) b1 env)))
-              (if (true? ((g ac-lex?) a env))
+              (if ((g ar-true) ((g ac-lex?) a env))
                    (arc-list 'racket-set! a result)
                    ((g ac-global-assign) a result))
               result)))
 
 (ac-def ac-assignn (x env)
-  (if (no? x)
+  (if ((g ar-no) x)
       'nil
       ;; todo: Arc 3.1 calls ac-macex here
       (mcons ((g ac-assign1) ((g car) x) ((g cadr) x) env)
@@ -752,7 +765,7 @@
       x2)))
 
 (extend ac-call (fn args env)
-  (if (true? ((g ac-lex?) fn env))
+  (if ((g ar-true) ((g ac-lex?) fn env))
        'nil
        ((g ac-macro?) fn))
   ((g ac-mac-call) it args env))

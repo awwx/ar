@@ -4,7 +4,7 @@
 
 (provide arc-list
          deep-fromarc hash list-fromarc new-ar
-         no? noprint r/list-toarc run-ar-tests toarc true?
+         noprint r/list-toarc run-ar-tests toarc
          write-to-string)
 
 (define ar-tests* '())
@@ -131,12 +131,6 @@
                (strict-deep-fromarc (mcdr x))))
         (else
          x)))
-
-(define (no? x)
-  (eq? x 'nil))
-
-(define (true? x)
-  (not (no? x)))
 
 
 (define ar-namespace*

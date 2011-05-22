@@ -1,7 +1,7 @@
 #lang scheme
 
 (require (only-in "ar.ss"
-           arc-list deep-fromarc hash no? toarc true?
+           arc-list deep-fromarc hash toarc
            write-to-string))
 (require (only-in "ac.ss"
            arc-eval new-arc ac-build-steps get g globals-implementation))
@@ -89,25 +89,25 @@
 (test (begins '(a b c d e) '(a x)) #f)
 (test (begins '(a b c d e) '(x)) #f)
 
-(define (test-t-impl thunk)
+(define (test-t-impl arc thunk)
   ;; todo
-  (unless (true? (thunk))
+  (unless ((g ar-true) (thunk))
     (error "not true")))
 
-(define (test-nil-impl thunk)
+(define (test-nil-impl arc thunk)
   ;; todo
-  (unless (no? (thunk))
+  (unless ((g ar-no) (thunk))
      (error "not nil")))
 
 (define-syntax test-t
   (syntax-rules ()
-    ((test-t body ...)
-     (test-t-impl (lambda () body ...)))))
+    ((test-t arc body ...)
+     (test-t-impl arc (lambda () body ...)))))
 
 (define-syntax test-nil
   (syntax-rules ()
-    ((test-nil body ...)
-     (test-nil-impl (lambda () body ...)))))
+    ((test-nil arc body ...)
+     (test-nil-impl arc (lambda () body ...)))))
 
 (define (arc-test-eval r/arc-program globals)
   (let ((final 'nil))
@@ -358,16 +358,17 @@
        (( "abc" ) "abc")))
 
     (after '(ac-def ac-lex?)
-      (test-t (let ((arc (test-arc)))
+      (let ((arc (test-arc)))
+        (test-t arc
                 ((g ac-lex?)
                  'y
-                 (arc-list 'x 'y 'z))))
-      (test-nil (let ((arc (test-arc)))
+                 (arc-list 'x 'y 'z)))
+        (test-nil arc
                   ((g ac-lex?)
                    'w
                    (arc-list 'x 'y 'z)))))
 
-    (after '(extend ac (s env) (ar-and ((g ar-tnil) (not (no? s))) ((g ar-tnil) (symbol? s))))
+    (after '(extend ac (s env) (ar-and ((g ar-tnil) (not ((g ar-no) s))) ((g ar-tnil) (symbol? s))))
       (let ((arc (test-arc)))
         (test-expect-error
           (arc-test-eval '( foo ) arc)
@@ -504,7 +505,7 @@
         123)))
 
     (after '(extend ac-call (fn args env)
-              (if (true? ((g ac-lex?) fn env))
+              (if ((g ar-true) ((g ac-lex?) fn env))
                    'nil
                    ((g ac-macro?) fn)))
       (arc-test
