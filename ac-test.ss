@@ -219,7 +219,7 @@
                ((g list) 1 2 3 4))
               ((g list) 't 'nil 't 'nil))))
 
-    (after '(ac-def coerce)
+    (after '(ar-def coerce)
       (let ((arc (test-arc)))
         (test ((g coerce) #\A                   'int)       65)
         (test ((g coerce) #\A                   'string)    "A")

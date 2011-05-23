@@ -222,8 +222,14 @@
 
 (define (exint? x) (and (integer? x) (exact? x)))
 
+(ac-def ar-exint (x)
+  (exint? x))
+
 (define (tagged? x)
   (and (vector? x) (eq? (vector-ref x 0) 'tagged)))
+
+(ac-def ar-tagged (x)
+  (tagged? x))
 
 (ac-def rep (x)
   (if (tagged? x)
@@ -281,50 +287,64 @@
 
 ;; coerce
 
-(define (iround x) (inexact->exact (round x)))
+(ar-def ar-iround (x)
+  (racket-define (ar-iround x)
+    (racket-inexact->exact (racket-round x))))
 
-(ac-def coerce (x type . args)
-  (cond
-    ((tagged? x) ((g err) "Can't coerce annotated object"))
-    ((eqv? type ((g type) x)) x)
-    ((char? x)      (case type
-                      ((int)     (char->integer x))
-                      ((string)  (string x))
-                      ((sym)     (string->symbol (string x)))
-                      (else      ((g err) "Can't coerce" x type))))
-    ((exint? x)     (case type
-                      ((num)     x)
-                      ((char)    (integer->char x))
-                      ((string)  (apply number->string x args))
-                      (else      ((g err) "Can't coerce" x type))))
-    ((number? x)    (case type
-                      ((int)     (iround x))
-                      ((char)    (integer->char (iround x)))
-                      ((string)  (apply number->string x args))
-                      (else      ((g err) "Can't coerce" x type))))
-    ((string? x)    (case type
-                      ((sym)     (string->symbol x))
-                      ((cons)    ((g r/list-toarc) (string->list x)))
-                      ((num)     (or (apply string->number x args)
-                                     ((g err) "Can't coerce" x type)))
-                      ((int)     (let ((n (apply string->number x args)))
-                                   (if n
-                                       (iround n)
-                                       ((g err) "Can't coerce" x type))))
-                      (else      ((g err) "Can't coerce" x type))))
-    ((mpair? x)     (case type
-                      ((string)  (apply string-append
-                                        (list-fromarc
-                                         ((g map1) (lambda (y) ((g coerce) y 'string)) x))))
-                      (else      ((g err) "Can't coerce" x type))))
-    ((eq? x 'nil)   (case type
-                      ((string)  "")
-                      ((cons)    'nil)
-                      (else      ((g err) "Can't coerce" x type))))
-    ((symbol? x)    (case type
-                      ((string)  (symbol->string x))
-                      (else      ((g err) "Can't coerce" x type))))
-    (#t             x)))
+(ar-def coerce (x totype . args)
+  (racket-define (coerce x totype . args)
+    (racket-cond
+      ((ar-tagged x)
+       (err "Can't coerce annotated object"))
+      ((racket-eqv? totype (type x))
+       x)
+      ((racket-char? x)
+       (racket-case totype
+         ((int)       (racket-char->integer x))
+         ((string)    (racket-string x))
+         ((sym)       (racket-string->symbol (racket-string x)))
+         (racket-else (err "Can't coerce" x type))))
+      ((ar-exint x)
+       (racket-case totype
+         ((num)       x)
+         ((char)      (racket-integer->char x))
+         ((string)    (racket-apply racket-number->string x args))
+         (racket-else (err "Can't coerce" x type))))
+      ((racket-number? x)
+       (racket-case totype
+         ((int)       (ar-iround x))
+         ((char)      (racket-integer->char (ar-iround x)))
+         ((string)    (racket-apply racket-number->string x args))
+         (racket-else (err "Can't coerce" x type))))
+      ((racket-string? x)
+       (racket-case totype
+         ((sym)       (racket-string->symbol x))
+         ((cons)      (r/list-toarc (racket-string->list x)))
+         ((num)       (racket-or (racket-apply racket-string->number x args)
+                                 (err "Can't coerce" x totype)))
+         ((int)       (racket-let ((n (racket-apply racket-string->number x args)))
+                        (racket-if n
+                                    (ar-iround n)
+                                    (err "Can't coerce" x totype))))
+         (racket-else (err "Can't coerce" x totype))))
+      ((racket-mpair? x)
+       (racket-case totype
+         ((string)    (racket-apply racket-string-append
+                                    (ar-list-fromarc
+                                     (map1 (racket-lambda (y)
+                                             (coerce y (racket-quote string)))
+                                           x))))
+         (racket-else (err "Can't coerce" x totype))))
+      ((racket-eq? x (racket-quote nil))
+       (racket-case totype
+         ((string)    "")
+         ((cons)      (racket-quote nil))
+         (racket-else (err "Can't coerce" x type))))
+      ((racket-symbol? x)
+       (racket-case totype
+         ((string)    (racket-symbol->string x))
+         (racket-else (err "Can't coerce" x type))))
+      (racket-else x))))
 
 
 ;; annotate
