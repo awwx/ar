@@ -172,6 +172,12 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
+    (after '(ar-def ar-list-fromarc)
+      (let ((arc (test-arc)))
+        (test ((g ar-list-fromarc) 'nil)           '())
+        (test ((g ar-list-fromarc) (arc-list 1 2)) '(1 2))
+        (test ((g ar-list-fromarc) (mcons 1 2))    '(1 . 2))))
+
     (after '(ac-def car)
       (let ((arc (test-arc)))
         (test ((g car) 'nil)             'nil)

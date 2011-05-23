@@ -137,6 +137,37 @@
             `(ac-def-sig ,'name ,'racket-args)))))))
 
 
+;; ar-def
+
+(defmacro ar-def (name signature . body)
+  `(add-ac-build-step
+    (lambda (arc)
+      (hash-set! (get arc 'sig) ',name (toarc ',signature))
+      ,@(map (lambda (form)
+               `(racket-eval arc ',form))
+             body))
+    '(ar-def ,name)))
+
+
+;; ar-list-fromarc
+
+(define (list-fromarc x)
+  (cond ((mpair? x)
+         (cons (mcar x) (list-fromarc (mcdr x))))
+        ((eq? x 'nil)
+         '())
+        (else x)))
+
+(ar-def ar-list-fromarc (x)
+  (racket-define (ar-list-fromarc x)
+    (racket-cond
+     ((racket-mpair? x)
+      (racket-cons (racket-mcar x) (ar-list-fromarc (racket-mcdr x))))
+     ((racket-eq? x (racket-quote nil))
+      (racket-quote ()))
+     (racket-else x))))
+
+
 ;; ar-toarc
 
 (ac-def ar-toarc (x)
@@ -193,18 +224,6 @@
   (if (eq? x 'nil)
        'nil
        (mcdr x)))
-
-
-;; ar-def
-
-(defmacro ar-def (name signature . body)
-  `(add-ac-build-step
-    (lambda (arc)
-      (hash-set! (get arc 'sig) ',name (toarc ',signature))
-      ,@(map (lambda (form)
-               `(racket-eval arc ',form))
-             body))
-    '(ar-def ,name)))
 
 
 ;; cadr, cddr

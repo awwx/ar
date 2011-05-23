@@ -3,7 +3,7 @@
 (require scheme/mpair)
 
 (provide arc-list
-         hash list-fromarc new-ar
+         hash new-ar
          noprint r/list-toarc run-ar-tests
          write-to-string)
 
@@ -87,23 +87,11 @@
 
 (test (arc-list 1 2 3) (mcons 1 (mcons 2 (mcons 3 'nil))))
 
-(define (list-fromarc x)
-  (cond ((mpair? x)
-         (cons (mcar x) (list-fromarc (mcdr x))))
-        ((eq? x 'nil)
-         '())
-        (else x)))
-
-(test (list-fromarc 'nil)           '())
-(test (list-fromarc (arc-list 1 2)) '(1 2))
-(test (list-fromarc (mcons 1 2))    '(1 . 2))
-
 
 (define ar-namespace*
   (hash '-                   -
         '/                   /
         '*                   *
-        'ar-list-fromarc     list-fromarc
         'cons                mcons
         'inside              get-output-string
         'instring            open-input-string
