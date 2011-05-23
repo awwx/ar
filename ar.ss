@@ -3,8 +3,7 @@
 (require scheme/mpair)
 
 (provide hash new-ar
-         noprint run-ar-tests
-         write-to-string)
+         noprint run-ar-tests)
 
 (define ar-tests* '())
 
@@ -63,12 +62,6 @@
   (display "run ar tests\n")
   (for-each (lambda (test) (test)) (reverse ar-tests*))
   (void))
-
-(define (write-to-string x)
-  (let ((port (open-output-string)))
-    (write x port)
-    (close-output-port port)
-    (get-output-string port)))
 
 
 (define ar-namespace*

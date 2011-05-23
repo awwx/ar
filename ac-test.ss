@@ -2,9 +2,7 @@
 
 (require mzlib/defmacro)
 
-(require (only-in "ar.ss"
-           hash
-           write-to-string))
+(require (only-in "ar.ss" hash))
 (require (only-in "ac.ss"
            arc-eval new-arc ac-build-steps get g))
 
@@ -36,6 +34,12 @@
   (syntax-rules ()
     ((test-expect-error expr expected-error-message)
      (test-expect-error-impl 'expr (lambda () expr) expected-error-message))))
+
+(define (write-to-string x)
+  (let ((port (open-output-string)))
+    (write x port)
+    (close-output-port port)
+    (get-output-string port)))
 
 (define (test-equal-impl source thunk expected)
  (let ((result (thunk)))
