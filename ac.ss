@@ -388,9 +388,9 @@
       ((racket-and (racket-char? x) (racket-char? y)) (racket-char<? x y))
       (racket-else (err "Can't <" x y))))))
 
-(ac-def < args
-  (pairwise (g <2) (list-fromarc args)))
-
+(ar-def < args
+  (racket-define (< . args)
+    (ar-pairwise <2 (ar-list-fromarc args))))
 
 (ac-def >2 (x y)
   ((g ar-tnil)
