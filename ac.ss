@@ -449,19 +449,24 @@
 
 ;; +
 
-(ac-def ar-alist (x)
-  (or ((g ar-no) x) (mpair? x)))
+(ar-def ar-alist (x)
+  (racket-define (ar-alist x)
+    (racket-or (ar-no x) (racket-mpair? x))))
 
-(ac-def + args
-  (cond ((null? args)
-         0)
-        ((or (char? (car args)) (string? (car args)))
-         (apply string-append
-                (map (lambda (a) ((g coerce) a 'string)) args)))
-        (((g ar-alist) (car args))
-         (apply (g join) args))
-        (else
-         (apply + args))))
+(ar-def + args
+  (racket-define (+ . args)
+    (racket-cond
+     ((racket-null? args)
+      0)
+     ((racket-or (racket-char? (racket-car args)) (racket-string? (racket-car args)))
+      (racket-apply racket-string-append
+                    (racket-map (racket-lambda (a)
+                                  (coerce a (racket-quote string)))
+                                args)))
+     ((ar-alist (racket-car args))
+      (racket-apply join args))
+     (racket-else
+      (racket-apply racket-+ args)))))
 
 
 ;; peekc

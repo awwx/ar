@@ -298,7 +298,7 @@
         (test ((g join) (arc-list 1 2) 3) (mcons 1 (mcons 2 3)))
         (test ((g join) (arc-list 1) (arc-list 2) (arc-list 3)) (arc-list 1 2 3))))
 
-    (after '(ac-def +)
+    (after '(ar-def +)
       (let ((arc (test-arc)))
         (test ((g +))                             0)
         (test ((g +) #\a "b" 'c 3)                "abc3")
