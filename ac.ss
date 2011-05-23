@@ -329,9 +329,11 @@
 
 ;; annotate
 
-(ac-def annotate (type rep)
-  (cond ((eqv? ((g type) rep) type) rep)
-        (else (vector 'tagged type rep))))
+(ar-def annotate (totype rep)
+  (racket-define (annotate totype rep)
+    (racket-cond
+     ((racket-eqv? (type rep) totype) rep)
+     (racket-else (racket-vector (racket-quote tagged) totype rep)))))
 
 
 ;; is

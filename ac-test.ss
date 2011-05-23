@@ -190,7 +190,7 @@
       (let ((arc (test-arc)))
         (test ((g cddr) ((g list) 1 2 3 4)) ((g list) 3 4))))
 
-    (after '(ac-def annotate)
+    (after '(ar-def annotate)
       (let ((arc (test-arc)))
         (let ((x ((g annotate) 'mytype 'foo)))
           (test ((g type) x) 'mytype)
