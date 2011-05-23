@@ -265,13 +265,9 @@
 
 ;; ar-true
 
-(add-ac-build-step
- (lambda (arc)
-   (racket-eval arc
-                '(racket-define (ar-true x)
-                   (racket-not (ar-no x))))
-   (hash-set! (get arc 'sig) 'ar-true (toarc '(x))))
- '(ac-def ar-true))
+(ar-def ar-true (x)
+  (racket-define (ar-true x)
+    (racket-not (ar-no x))))
 
 
 ;; map1
