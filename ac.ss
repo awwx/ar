@@ -475,10 +475,11 @@
 
 ;; racket-module-ref
 
-(ac-def racket-module-ref (a/module)
-  (let ((r/module ((g ar-deep-fromarc) a/module)))
-    (lambda (sym)
-      (dynamic-require r/module sym))))
+(ar-def racket-module-ref (a/module)
+  (racket-define (racket-module-ref a/module)
+    (racket-let ((r/module (ar-deep-fromarc a/module)))
+      (racket-lambda (sym)
+        (racket-dynamic-require r/module sym)))))
 
 
 ;; ar-apply
