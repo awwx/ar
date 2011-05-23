@@ -353,27 +353,17 @@
          (pairwise pred (cdr lst)))
         (else 'nil)))
 
-(add-ac-build-step
- (lambda (arc)
-   (racket-eval
-    arc
-    '(racket-define (is2 a b)
-       (ar-tnil
-        (racket-or (racket-eqv? a b)
-                   (racket-and (racket-string? a)
-                               (racket-string? b)
-                               (racket-string=? a b))))))
-   (hash-set! (get arc 'sig) 'is2 (toarc '(a b))))
- '(ac-def is2))
- 
-(add-ac-build-step
- (lambda (arc)
-   (racket-eval
-    arc
-    '(racket-define (is . args)
-       (ar-pairwise is2 (ar-list-fromarc args))))
-   (hash-set! (get arc 'sig) 'is 'args))
- '(ac-def is))
+(ar-def is2 (a b)
+  (racket-define (is2 a b)
+    (ar-tnil
+     (racket-or (racket-eqv? a b)
+                (racket-and (racket-string? a)
+                            (racket-string? b)
+                            (racket-string=? a b))))))
+
+(ar-def is args
+  (racket-define (is . args)
+    (ar-pairwise is2 (ar-list-fromarc args))))
 
 
 ;; caris
