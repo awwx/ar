@@ -16,6 +16,6 @@
       (unless (eof-object? v)
         (let ((expr (toarc v)))
           (let ((val ((get arc 'eval) expr)))
-            (write (deep-fromarc val))
+            (write (ar-deep-fromarc val))
             (newline)))
         (loop)))))
