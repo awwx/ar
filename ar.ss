@@ -2,10 +2,7 @@
 
 (require scheme/mpair)
 
-(provide hash new-ar
-         noprint run-ar-tests)
-
-(define ar-tests* '())
+(provide hash new-ar noprint)
 
 ; Wrap a module top level expression in noprint to keep Racket from
 ; printing out the value when the module is loaded.
@@ -33,36 +30,6 @@
   (let ((h (make-hash)))
     (add-to-hash h args)
     h))
-
-(define-syntax test
-  (syntax-rules ()
-    ((test expr expected)
-     (set! ar-tests*
-           (cons (lambda ()
-                   (let ((r expr))
-                     (if (equal? r expected)
-                          (begin
-                            (display "ok ")
-                            (write 'expr)
-                            (display " => ")
-                            (write r)
-                            (newline))
-                          (begin
-                            (display "bzzt! ")
-                            (write 'expr)
-                            (display " => ")
-                            (write r)
-                            (display " not ")
-                            (write expected)
-                            (newline)
-                            (error "test failed")))))
-                 ar-tests*)))))
-
-(define (run-ar-tests)
-  (display "run ar tests\n")
-  (for-each (lambda (test) (test)) (reverse ar-tests*))
-  (void))
-
 
 (define ar-namespace*
   (hash '-                   -
