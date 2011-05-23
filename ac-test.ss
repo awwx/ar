@@ -6,7 +6,7 @@
            arc-list hash
            write-to-string))
 (require (only-in "ac.ss"
-           arc-eval new-arc ac-build-steps get g globals-implementation))
+           arc-eval new-arc ac-build-steps get g))
 
 (define (test-expect-error-impl source thunk expected-error-message)
   (let ((actual-error
@@ -370,9 +370,7 @@
       (let ((arc (test-arc)))
         (test-expect-error
           (arc-test-eval '( foo ) arc)
-          (case (globals-implementation arc)
-            ((table) "undefined global variable: foo")
-            ((namespace) "reference to undefined identifier: foo"))))
+          "reference to undefined identifier: foo"))
 
       (let ((arc (test-arc)))
         (arc-test ( car ) (g car))

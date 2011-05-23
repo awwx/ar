@@ -5,35 +5,26 @@
 
 (provide (all-from-out "ar.ss") (all-defined-out))
 
-(define default-globals-implementation 'namespace)
-
-(define (globals-implementation arc)
-  (hash-ref arc 'globals-implementation* default-globals-implementation))
-
-;; note that these don't need to be particularly fast
+;; note these are slow
 
 (define (get arc varname)
-  (case (globals-implementation arc)
-    ((table) (hash-ref arc varname))
-    ((namespace) (namespace-variable-value varname #t #f
-                   (hash-ref arc 'racket-namespace*)))))
+  (namespace-variable-value
+   varname
+   #t
+   #f
+   (hash-ref arc 'racket-namespace*)))
 
 (define (get-default arc varname default)
-  (case (globals-implementation arc)
-    ((table) (hash-ref arc varname default))
-    ((namespace) (namespace-variable-value
-                  varname
-                  #t
-                  default
-                  (hash-ref arc 'racket-namespace*)))))
+  (namespace-variable-value
+    varname
+    #t
+    default
+    (hash-ref arc 'racket-namespace*)))
 
 (define (set arc varname value)
-  (case (globals-implementation arc)
-    ((table) (hash-set! arc varname value))
-    ((namespace)
-     (namespace-set-variable-value! varname value
-                   #t
-                   (hash-ref arc 'racket-namespace*)))))
+  (namespace-set-variable-value! varname value
+    #t
+    (hash-ref arc 'racket-namespace*)))
 
 
 ;; Arc compiler steps
@@ -635,19 +626,8 @@
     (lambda ()
       ((g err) message))))
 
-; An Arc global variable reference to "foo" such as in (+ foo 3) compiles into
-; the Racket expression
-; (#<procedure:hash-ref> #<hash:globals*> 'foo #<procedure:global-ref-err>)
-; ...and thus performs no lookups in Racket's namespace (don't know
-; yet if it makes a difference).
-
 (ac-def ac-global (v)
-  (case (globals-implementation arc)
-    ((table) (arc-list hash-ref
-                       arc
-                       (arc-list 'racket-quote v)
-                       (global-ref-err arc v)))
-    ((namespace) v)))
+  v)
 
 (ac-def ac-var-ref (s env)
   (if ((g ar-true) ((g ac-lex?) s env))
@@ -826,9 +806,7 @@
 ;; assign
 
 (ac-def ac-global-assign (a b)
-  (case (globals-implementation arc)
-    ((table) (arc-list hash-set! arc (arc-list 'racket-quote a) b))
-    ((namespace) (arc-list 'racket-set! a b))))
+  (arc-list 'racket-set! a b))
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
