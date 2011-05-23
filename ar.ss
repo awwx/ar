@@ -2,8 +2,7 @@
 
 (require scheme/mpair)
 
-(provide arc-list
-         hash new-ar
+(provide hash new-ar
          noprint r/list-toarc run-ar-tests
          write-to-string)
 
@@ -82,11 +81,6 @@
 (test (r/list-toarc '(1 2 3))   (mcons 1 (mcons 2 (mcons 3 'nil))))
 (test (r/list-toarc '(1 2 . 3)) (mcons 1 (mcons 2 3)))
 
-(define (arc-list . rest)
-  (r/list-toarc rest))
-
-(test (arc-list 1 2 3) (mcons 1 (mcons 2 (mcons 3 'nil))))
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -95,7 +89,6 @@
         'cons                mcons
         'inside              get-output-string
         'instring            open-input-string
-        'list                arc-list
         'nil                 'nil
         'outstring           open-output-string
         'r/list-toarc        r/list-toarc

@@ -149,6 +149,16 @@
     '(ar-def ,name)))
 
 
+;; list
+
+(define (arc-list . rest)
+  (r/list-toarc rest))
+
+(ar-def list args
+  (racket-define (list . args)
+    (r/list-toarc args)))
+
+
 ;; ar-list-fromarc
 
 (define (list-fromarc x)
