@@ -240,7 +240,7 @@
         (test ((g coerce) 'nil                  'cons)      'nil)
         ))
 
-    (after '(ac-def >)
+    (after '(ar-def >)
       (let ((arc (test-arc)))
         (test ((g <))             't)
         (test ((g <) 1)           't)
