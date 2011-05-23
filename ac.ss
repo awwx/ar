@@ -272,15 +272,11 @@
 
 ;; map1
 
-(add-ac-build-step
- (lambda (arc)
-   (racket-eval arc
-                '(racket-define (map1 f xs)
-                   (racket-if (ar-no xs)
-                               (racket-quote nil)
-                               (cons (f (car xs)) (map1 f (cdr xs))))))
-   (hash-set! (get arc 'sig) 'map1 (toarc '(f xs))))
- '(ac-def map1))
+(ar-def map1 (f xs)
+  (racket-define (map1 f xs)
+    (racket-if (ar-no xs)
+                (racket-quote nil)
+                (cons (f (car xs)) (map1 f (cdr xs))))))
 
 
 ;; coerce

@@ -211,7 +211,7 @@
         (test ((g caris) ((g list) 'y 'z) 'x) 'nil)
         (test ((g caris) ((g list) 'x 'y) 'x) 't)))
 
-    (after '(ac-def map1)
+    (after '(ar-def map1)
       (let ((arc (test-arc)))
         (test ((g map1)
                (lambda (x)
