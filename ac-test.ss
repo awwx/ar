@@ -186,7 +186,7 @@
       (let ((arc (test-arc)))
         (test ((g cadr) ((g list) 1 2 3)) 2)))
 
-    (after '(ac-def cddr)
+    (after '(ar-def cddr)
       (let ((arc (test-arc)))
         (test ((g cddr) ((g list) 1 2 3 4)) ((g list) 3 4))))
 

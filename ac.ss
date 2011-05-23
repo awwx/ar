@@ -213,13 +213,9 @@
   (racket-define (cadr x)
     (car (cdr x))))
 
-(add-ac-build-step
- (lambda (arc)
-   (racket-eval arc
-                '(racket-define (cddr x)
-                   (cdr (cdr x))))
-   (hash-set! (get arc 'sig) 'cddr (toarc '(x))))
- '(ac-def cddr))
+(ar-def cddr (x)
+  (racket-define (cddr x)
+    (cdr (cdr x))))
 
 
 ;; type
