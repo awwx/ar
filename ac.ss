@@ -376,14 +376,17 @@
 
 ;; <
 
-(ac-def <2 (x y)
-  ((g ar-tnil)
-   (cond ((and (number? x) (number? y)) (< x y))
-         ((and (string? x) (string? y)) (string<? x y))
-         ((and (symbol? x) (symbol? y)) (string<? (symbol->string x)
-                                                  (symbol->string y)))
-         ((and (char? x) (char? y)) (char<? x y))
-         ((g err) "Can't <" x y))))
+(ar-def <2 (x y)
+  (racket-define (<2 x y)
+    (ar-tnil
+     (racket-cond
+      ((racket-and (racket-number? x) (racket-number? y)) (racket-< x y))
+      ((racket-and (racket-string? x) (racket-string? y)) (racket-string<? x y))
+      ((racket-and (racket-symbol? x) (racket-symbol? y))
+       (racket-string<? (racket-symbol->string x)
+                        (racket-symbol->string y)))
+      ((racket-and (racket-char? x) (racket-char? y)) (racket-char<? x y))
+      (racket-else (err "Can't <" x y))))))
 
 (ac-def < args
   (pairwise (g <2) (list-fromarc args)))
