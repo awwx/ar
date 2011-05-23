@@ -5,9 +5,9 @@
   (annotate 'mac
     (fn (var val)
       `(do (if (bound ',var)
-               (do (racket-disp "*** redefining " (racket-stderr))
-                   (racket-disp ',var (racket-stderr))
-                   (racket-disp #\newline (racket-stderr))))
+               (do (racket-disp "*** redefining " (racket-current-error-port))
+                   (racket-disp ',var (racket-current-error-port))
+                   (racket-disp #\newline (racket-current-error-port))))
            (assign ,var ,val)))))
 
 (assign assign-fn
@@ -283,9 +283,9 @@
     `(make-implicit ,name (parameter ,init))))
 (sref sig '(name (o init)) 'implicit)
 
-(make-implicit stdin  racket-stdin)
-(make-implicit stdout racket-stdout)
-(make-implicit stderr racket-stderr)
+(make-implicit stdin  racket-current-input-port)
+(make-implicit stdout racket-current-output-port)
+(make-implicit stderr racket-current-error-port)
 
 (def print (primitive x port)
   (primitive x port))

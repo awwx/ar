@@ -2,9 +2,25 @@
 
 (require mzlib/defmacro)
 
-(require (only-in "ar.ss" hash))
 (require (only-in "ac.ss"
            arc-eval new-arc ac-build-steps get g))
+
+(define (pair xs)
+  (cond ((null? xs)
+         '())
+        (else
+         (cons (list (car xs) (cadr xs))
+               (pair (cddr xs))))))
+
+(define (add-to-hash h args)
+  (map (lambda (p)
+         (hash-set! h (car p) (cadr p)))
+       (pair args)))
+
+(define (hash . args)
+  (let ((h (make-hash)))
+    (add-to-hash h args)
+    h))
 
 (define (test-expect-error-impl source thunk expected-error-message)
   (let ((actual-error
@@ -158,7 +174,7 @@
     (thunk)))
 
 (define (test-arc)
-  (let ((options (hash)))
+  (let ((options (make-hash)))
     (hash-set! options 'build-steps (build-steps))
     (new-arc options)))
 

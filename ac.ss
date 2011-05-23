@@ -2,9 +2,8 @@
 
 (require scheme/mpair)
 (require mzlib/defmacro)
-(require "ar.ss")
 
-(provide (all-from-out "ar.ss") (all-defined-out))
+(provide (all-defined-out))
 
 ;; note these are slow
 
@@ -55,12 +54,9 @@
       (namespace-require '(prefix racket- racket/base)))
     ns))
 
-(define (new-arc (options (hash)))
-  (let ((arc (hash)))
+(define (new-arc (options (make-hash)))
+  (let ((arc (make-hash)))
     (hash-set! arc 'racket-namespace* (make-arc-racket-namespace))
-    (hash-for-each (new-ar)
-      (lambda (k v)
-        (set arc k v)))
     (for-each (lambda (pair)
                 (let ((step (car pair)))
                   (step arc)))
@@ -93,7 +89,7 @@
 
 (add-ac-build-step
  (lambda (arc)
-   (set arc 'sig (hash))))
+   (set arc 'sig (make-hash))))
 
 (define-syntax g
   (lambda (stx)
@@ -147,6 +143,32 @@
                `(racket-eval arc ',form))
              body))
     '(ar-def ,name)))
+
+
+;; primitives
+
+(add-ac-build-step
+  (lambda (arc)
+    (hash-set! (g sig) '-         (toarc 'args))
+    (hash-set! (g sig) '/         (toarc 'args))
+    (hash-set! (g sig) '*         (toarc 'args))
+    (hash-set! (g sig) 'cons      (toarc '(a b)))
+    (hash-set! (g sig) 'inside    (toarc '(s)))
+    (hash-set! (g sig) 'instring  (toarc '(str)))
+    (hash-set! (g sig) 'outstring (toarc '()))
+    (hash-set! (g sig) 'uniq      (toarc '()))
+    (racket-eval arc
+      `(racket-begin
+        (racket-define -         racket--)
+        (racket-define /         racket-/)
+        (racket-define *         racket-*)
+        (racket-define cons      racket-mcons)
+        (racket-define inside    racket-get-output-string)
+        (racket-define instring  racket-open-input-string)
+        (racket-define nil       (racket-quote nil))
+        (racket-define outstring racket-open-output-string)
+        (racket-define t         (racket-quote t))
+        (racket-define uniq      racket-gensym)))))
 
 
 ;; r/list-toarc
@@ -992,7 +1014,7 @@
 ;; table
 
 (ac-def table ((init #f))
-  (let ((h (hash)))
+  (let ((h (make-hash)))
     (when init (init h))
     h))
 

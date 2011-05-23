@@ -30,4 +30,5 @@
   (for-each (get arc 'load) files-to-load)
   (when run-repl
     ((get arc 'load) (string-append srcdir* "repl.arc"))
-    (noprint ((get arc 'repl)))))
+    ((get arc 'repl)))
+  (void))
