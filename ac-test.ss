@@ -275,7 +275,7 @@
         (test ((g >) #\a #\b)     'nil)
         ))
 
-    (after '(ac-def len)
+    (after '(ar-def len)
       (let ((arc (test-arc)))
         (test ((g len) "abc")            3)
         (test ((g len) (hash 'a 1 'b 2)) 2)

@@ -404,15 +404,19 @@
 
 ;; len
 
-(ac-def list-len (x)
-  (cond (((g ar-no) x) 0)
-        ((mpair? x)    (+ 1 ((g list-len) (mcdr x))))
-        (else          ((g err) "len expects a proper list"))))
+(ar-def list-len (x)
+  (racket-define (list-len x)
+    (racket-cond
+     ((ar-no x)         0)
+     ((racket-mpair? x) (racket-+ 1 (list-len (racket-mcdr x))))
+     (racket-else       (err "len expects a proper list")))))
 
-(ac-def len (x)
-  (cond ((string? x) (string-length x))
-        ((hash? x)   (hash-count x))
-        (else        ((g list-len) x))))
+(ar-def len (x)
+  (racket-define (len x)
+    (racket-cond
+     ((racket-string? x) (racket-string-length x))
+     ((racket-hash? x)   (racket-hash-count x))
+     (racket-else        (list-len x)))))
 
 
 ;; join
