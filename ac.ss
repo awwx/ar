@@ -1,6 +1,7 @@
 #lang scheme
 
 (require scheme/mpair)
+(require mzlib/defmacro)
 (require "ar.ss")
 
 (provide (all-from-out "ar.ss") (all-defined-out))
@@ -194,15 +195,23 @@
        (mcdr x)))
 
 
+;; ar-def
+
+(defmacro ar-def (name signature . body)
+  `(add-ac-build-step
+    (lambda (arc)
+      (hash-set! (get arc 'sig) ',name (toarc ',signature))
+      ,@(map (lambda (form)
+               `(racket-eval arc ',form))
+             body))
+    '(ar-def ,name)))
+
+
 ;; cadr, cddr
 
-(add-ac-build-step
-  (lambda (arc)
-    (racket-eval arc
-                 '(racket-define (cadr x)
-                    (car (cdr x))))
-   (hash-set! (get arc 'sig) 'cadr (toarc '(x))))
-  '(ac-def cadr))
+(ar-def cadr (x)
+  (racket-define (cadr x)
+    (car (cdr x))))
 
 (add-ac-build-step
  (lambda (arc)

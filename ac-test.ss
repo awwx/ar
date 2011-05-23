@@ -182,7 +182,7 @@
         (test ((g cdr) 'nil)             'nil)
         (test ((g cdr) ((g list) 1 2 3)) ((g list) 2 3))))
 
-    (after '(ac-def cadr)
+    (after '(ar-def cadr)
       (let ((arc (test-arc)))
         (test ((g cadr) ((g list) 1 2 3)) 2)))
 
