@@ -205,7 +205,7 @@
         (test ((g is) 4 4 5) 'nil)
         (test ((g is) 4 4 4) 't)))
 
-    (after '(ac-def caris)
+    (after '(ar-def caris)
       (let ((arc (test-arc)))
         (test ((g caris) 4 'x)                'nil)
         (test ((g caris) ((g list) 'y 'z) 'x) 'nil)

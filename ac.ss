@@ -361,10 +361,11 @@
 
 ;; caris
 
-(ac-def caris (x val)
-  ((g ar-tnil)
-   (and (mpair? x)
-        ((g ar-true) ((g is) ((g car) x) val)))))
+(ar-def caris (x val)
+  (racket-define (caris x val)
+    (ar-tnil
+     (racket-and (racket-mpair? x)
+                 (ar-true (is (car x) val))))))
 
 
 ;; <
