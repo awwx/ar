@@ -149,6 +149,25 @@
     '(ar-def ,name)))
 
 
+;; r/list-toarc
+
+(define (r/list-toarc x)
+  (cond ((pair? x)
+         (mcons (car x) (r/list-toarc (cdr x))))
+        ((null? x)
+         'nil)
+        (else x)))
+
+(ar-def ar-r/list-toarc (x)
+  (racket-define (ar-r/list-toarc x)
+    (racket-cond
+     ((racket-pair? x)
+      (racket-mcons (racket-car x) (ar-r/list-toarc (racket-cdr x))))
+     ((racket-null? x)
+      (racket-quote nil))
+     (racket-else x))))
+
+
 ;; list
 
 (define (arc-list . rest)
@@ -156,7 +175,7 @@
 
 (ar-def list args
   (racket-define (list . args)
-    (r/list-toarc args)))
+    (ar-r/list-toarc args)))
 
 
 ;; ar-list-fromarc
@@ -348,7 +367,7 @@
       ((racket-string? x)
        (racket-case totype
          ((sym)       (racket-string->symbol x))
-         ((cons)      (r/list-toarc (racket-string->list x)))
+         ((cons)      (ar-r/list-toarc (racket-string->list x)))
          ((num)       (racket-or (racket-apply racket-string->number x args)
                                  (err "Can't coerce" x totype)))
          ((int)       (racket-let ((n (racket-apply racket-string->number x args)))
@@ -931,7 +950,7 @@
       ((g ar-toarc)
        '(fn (args r/rest rest body env)
           `(racket-lambda ,(join args r/rest)
-             (racket-let ((,rest (,r/list-toarc ,r/rest)))
+             (racket-let ((,rest (,ar-r/list-toarc ,r/rest)))
                ,@(ac-body*x (join args (list rest)) body env)))) )))))
 
 (ac-def ac-fn-rest (args body env)

@@ -3,7 +3,7 @@
 (require scheme/mpair)
 
 (provide hash new-ar
-         noprint r/list-toarc run-ar-tests
+         noprint run-ar-tests
          write-to-string)
 
 (define ar-tests* '())
@@ -70,17 +70,6 @@
     (close-output-port port)
     (get-output-string port)))
 
-(define (r/list-toarc x)
-  (cond ((pair? x)
-         (mcons (car x) (r/list-toarc (cdr x))))
-        ((null? x)
-         'nil)
-        (else x)))
-
-(test (r/list-toarc '())        'nil)
-(test (r/list-toarc '(1 2 3))   (mcons 1 (mcons 2 (mcons 3 'nil))))
-(test (r/list-toarc '(1 2 . 3)) (mcons 1 (mcons 2 3)))
-
 
 (define ar-namespace*
   (hash '-                   -
@@ -91,7 +80,6 @@
         'instring            open-input-string
         'nil                 'nil
         'outstring           open-output-string
-        'r/list-toarc        r/list-toarc
         'racket-stdin        current-input-port
         'racket-stdout       current-output-port
         'racket-stderr       current-error-port
