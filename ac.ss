@@ -336,20 +336,16 @@
 
 ;; is
 
-(add-ac-build-step
- (lambda (arc)
-   (racket-eval
-    arc
-    '(racket-define (ar-pairwise pred lst)
-       (racket-cond
-        ((racket-null? lst) (racket-quote t))
-        ((racket-null? (racket-cdr lst)) (racket-quote t))
-        ((racket-not (racket-eqv? (pred (racket-car lst) (racket-cadr lst))
-                                  (racket-quote nil)))
-         (ar-pairwise pred (racket-cdr lst)))
-        (racket-else (racket-quote nil)))))
-   (hash-set! (get arc 'sig) 'ar-pairwise (toarc '(pred lst)))))
-
+(ar-def ar-pairwise (pred lst)
+  (racket-define (ar-pairwise pred lst)
+    (racket-cond
+      ((racket-null? lst) (racket-quote t))
+      ((racket-null? (racket-cdr lst)) (racket-quote t))
+      ((racket-not (racket-eqv? (pred (racket-car lst) (racket-cadr lst))
+                                (racket-quote nil)))
+       (ar-pairwise pred (racket-cdr lst)))
+      (racket-else (racket-quote nil)))))
+  
 (define (pairwise pred lst)
   (cond ((null? lst) 't)
         ((null? (cdr lst)) 't)
