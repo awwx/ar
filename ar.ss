@@ -103,6 +103,7 @@
   (hash '-                   -
         '/                   /
         '*                   *
+        'ar-list-fromarc     list-fromarc
         'cons                mcons
         'inside              get-output-string
         'instring            open-input-string

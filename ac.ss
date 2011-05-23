@@ -89,6 +89,14 @@
         (else x)))
 
 
+;; racket-eval
+
+(define (racket-eval arc form)
+  (parameterize ((current-readtable (get-default arc 'arc-readtable* (lambda () #f)))
+                 (compile-allow-set!-undefined #t))
+    (eval form (hash-ref arc 'racket-namespace*))))
+
+
 ;; sig
 
 (add-ac-build-step
@@ -157,7 +165,7 @@
         (else
          x)))
 
-(ac-def ar-deep-fromarc (x)
+(define (ar-deep-fromarc x)
   (cond ((and (mpair? x) (eq? (mcar x) 'racket-list))
          (strict-deep-fromarc (mcar (mcdr x))))
 
@@ -165,12 +173,15 @@
         ;; be left alone.
         ((mpair? x)
          (cons (let ((a (mcar x)))
-                 (if (eq? a 'nil) 'nil ((g ar-deep-fromarc) a)))
+                 (if (eq? a 'nil) 'nil (ar-deep-fromarc a)))
                (let ((b (mcdr x)))
-                 (if (eq? b 'nil) '() ((g ar-deep-fromarc) b)))))
+                 (if (eq? b 'nil) '() (ar-deep-fromarc b)))))
 
         (else
          x)))
+
+(ac-def ar-deep-fromarc (x)
+  (ar-deep-fromarc x))
 
 
 ;; err
@@ -194,11 +205,21 @@
 
 ;; cadr, cddr
 
-(ac-def cadr (x)
-  ((g car) ((g cdr) x)))
+(add-ac-build-step
+  (lambda (arc)
+    (racket-eval arc
+                 '(racket-define (cadr x)
+                    (car (cdr x))))
+   (hash-set! (get arc 'sig) 'cadr (toarc '(x))))
+  '(ac-def cadr))
 
-(ac-def cddr (x)
-  ((g cdr) ((g cdr) x)))
+(add-ac-build-step
+ (lambda (arc)
+   (racket-eval arc
+                '(racket-define (cddr x)
+                   (cdr (cdr x))))
+   (hash-set! (get arc 'sig) 'cddr (toarc '(x))))
+ '(ac-def cddr))
 
 
 ;; type
@@ -248,16 +269,26 @@
 
 ;; ar-true
 
-(ac-def ar-true (x)
-  (not ((g ar-no) x)))
+(add-ac-build-step
+ (lambda (arc)
+   (racket-eval arc
+                '(racket-define (ar-true x)
+                   (racket-not (ar-no x))))
+   (hash-set! (get arc 'sig) 'ar-true (toarc '(x))))
+ '(ac-def ar-true))
 
 
 ;; map1
 
-(ac-def map1 (f xs)
-  (if ((g ar-no) xs)
-       'nil
-       (mcons (f ((g car) xs)) ((g map1) f ((g cdr) xs)))))
+(add-ac-build-step
+ (lambda (arc)
+   (racket-eval arc
+                '(racket-define (map1 f xs)
+                   (racket-if (ar-no xs)
+                               (racket-quote nil)
+                               (cons (f (car xs)) (map1 f (cdr xs))))))
+   (hash-set! (get arc 'sig) 'map1 (toarc '(f xs))))
+ '(ac-def map1))
 
 
 ;; coerce
@@ -317,6 +348,20 @@
 
 ;; is
 
+(add-ac-build-step
+ (lambda (arc)
+   (racket-eval
+    arc
+    '(racket-define (ar-pairwise pred lst)
+       (racket-cond
+        ((racket-null? lst) (racket-quote t))
+        ((racket-null? (racket-cdr lst)) (racket-quote t))
+        ((racket-not (racket-eqv? (pred (racket-car lst) (racket-cadr lst))
+                                  (racket-quote nil)))
+         (ar-pairwise pred (racket-cdr lst)))
+        (racket-else (racket-quote nil)))))
+   (hash-set! (get arc 'sig) 'ar-pairwise (toarc '(pred lst)))))
+
 (define (pairwise pred lst)
   (cond ((null? lst) 't)
         ((null? (cdr lst)) 't)
@@ -324,13 +369,27 @@
          (pairwise pred (cdr lst)))
         (else 'nil)))
 
-(ac-def is2 (a b)
-  ((g ar-tnil)
-   (or (eqv? a b)
-       (and (string? a) (string? b) (string=? a b)))))
-
-(ac-def is args
-  (pairwise (g is2) (list-fromarc args)))
+(add-ac-build-step
+ (lambda (arc)
+   (racket-eval
+    arc
+    '(racket-define (is2 a b)
+       (ar-tnil
+        (racket-or (racket-eqv? a b)
+                   (racket-and (racket-string? a)
+                               (racket-string? b)
+                               (racket-string=? a b))))))
+   (hash-set! (get arc 'sig) 'is2 (toarc '(a b))))
+ '(ac-def is2))
+ 
+(add-ac-build-step
+ (lambda (arc)
+   (racket-eval
+    arc
+    '(racket-define (is . args)
+       (ar-pairwise is2 (ar-list-fromarc args))))
+   (hash-set! (get arc 'sig) 'is 'args))
+ '(ac-def is))
 
 
 ;; caris
@@ -491,17 +550,22 @@
 
 ;; apply
 
-(ac-def-sig ar-combine-args (as (accum '()))
-                            (as (o accum racket-null))
-  (cond ((null? as)
+(ac-def ar-combine-args (as)
+  (let next ((as as) (accum '()))
+    (cond ((null? as)
          accum)
         ((null? (cdr as))
          (append accum (list-fromarc (car as))))
         (else
-         ((g ar-combine-args) (cdr as) (append accum (list (car as)))))))
+         (next (cdr as) (append accum (list (car as))))))))
 
-(ac-def apply (fn . args)
-  (apply (g ar-apply) fn ((g ar-combine-args) args)))
+(add-ac-build-step
+ (lambda (arc)
+   (racket-eval arc
+                '(racket-define (apply fn . args)
+                   (racket-apply ar-apply fn (ar-combine-args args))))
+   (hash-set! (get arc 'sig) 'apply (toarc '(fn . args))))
+ '(ac-def apply))
 
 
 ;; The Arc compiler!
@@ -685,10 +749,8 @@
 ;; eval
 
 (define (arc-eval arc form)
-  (parameterize ((current-readtable (get-default arc 'arc-readtable* (lambda () #f)))
-                 (compile-allow-set!-undefined #t))
-    (eval ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))
-          (hash-ref arc 'racket-namespace*))))
+  (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
+          
 
 (ac-def eval (form (other-arc 'nil))
   (arc-eval (if ((g ar-true) other-arc) other-arc arc) form))
