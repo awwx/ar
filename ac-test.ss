@@ -337,7 +337,7 @@
         (test ((g ar-combine-args) (list 'a ((g list) 'b 'c 'd))) '(a b c d))
         (test ((g ar-combine-args) (list 'a 'b ((g list) 'c 'd))) '(a b c d))))
 
-    (after '(ac-def apply)
+    (after '(ar-def apply)
       (let ((arc (test-arc)))
         (test ((g apply) +) 0)
         (test ((g apply) (g join) 'nil ((g ar-toarc) '((a b) (c d))))

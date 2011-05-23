@@ -533,13 +533,9 @@
         (else
          (next (cdr as) (append accum (list (car as))))))))
 
-(add-ac-build-step
- (lambda (arc)
-   (racket-eval arc
-                '(racket-define (apply fn . args)
-                   (racket-apply ar-apply fn (ar-combine-args args))))
-   (hash-set! (get arc 'sig) 'apply (toarc '(fn . args))))
- '(ac-def apply))
+(ar-def apply (fn . args)
+  (racket-define (apply fn . args)
+    (racket-apply ar-apply fn (ar-combine-args args))))
 
 
 ;; The Arc compiler!
