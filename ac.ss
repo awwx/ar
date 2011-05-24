@@ -295,9 +295,6 @@
   (racket-define (ar-exint x)
     (racket-and (racket-integer? x) (racket-exact? x))))
 
-(define (tagged? x)
-  (and (vector? x) (eq? (vector-ref x 0) 'tagged)))
-
 (ar-def ar-tagged (x)
   (racket-define (ar-tagged x)
     (racket-and (racket-vector? x)
