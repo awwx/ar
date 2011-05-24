@@ -264,8 +264,8 @@
 
 ;; err
 
-(ac-def err args
-  (apply error args))
+(ar-def err args
+  (racket-define err racket-error))
 
 
 ;; car, cdr
