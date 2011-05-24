@@ -161,7 +161,7 @@
 (define (take match)
   (define (step lst acc)
     (cond ((null? lst)
-           (reverse acc))
+           (error "source not found"))
           ((let ((s (cadr (car lst))))
              (if s (match s) #f))
            (reverse (cons (car lst) acc)))
@@ -170,6 +170,8 @@
   (step ac-build-steps '()))
 
 (define (after-impl pattern thunk)
+  (newline)
+  (write pattern) (newline)
   (parameterize ((build-steps (take (lambda (s) (begins s pattern)))))
     (thunk)))
 
@@ -402,7 +404,7 @@
                    'w
                    ((g list) 'x 'y 'z)))))
 
-    (after '(extend ac (s env) (ar-and ((g ar-tnil) (not ((g ar-no) s))) ((g ar-tnil) (symbol? s))))
+    (after '(extend ac (s env) ((g ar-tnil) (symbol? s)))
       (let ((arc (test-arc)))
         (test-expect-error
           (arc-test-eval '( foo ) arc)
@@ -419,7 +421,7 @@
       (arc-test ( (+ 1 2 3 4)   ) 10)
       (arc-test ( (+ 1 2 3 4 5) ) 15))
 
-    (after '(extend ac (s env) ((g caris) s 'quote))
+    (after '(extend ac (s env) ((g caris) s (quote quote)))
       (arc-test ( 'abc     ) 'abc)
       (arc-test ( '()      ) 'nil)
       (arc-test ( '(a)     ) ((g list) 'a))
@@ -489,7 +491,7 @@
       (arc-test ( (if 9 1 2 3)   ) 1)
       (arc-test ( (if nil 1 2 3) ) 3))
 
-    (after '(extend ac (s env) (ar-caris s 'assign))
+    (after '(extend ac (s env) ((g caris) s (quote assign)))
       (arc-test ( (assign x 123) ) 123)
 
       (arc-test ( ((fn ()
