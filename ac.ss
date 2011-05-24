@@ -221,8 +221,10 @@
 
 ;; ar-toarc
 
-(ac-def ar-toarc (x)
-  (toarc x))
+(add-ac-build-step
+ (lambda (arc)
+   (ac-def-fn arc 'ar-toarc '(x) toarc))
+ '(ar-toarc))
 
 
 ;; ar-deep-fromarc
