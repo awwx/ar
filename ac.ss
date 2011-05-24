@@ -567,10 +567,10 @@
 
 ;; readc
 
-(ac-def-sig readc ((port (current-input-port)) (eof 'nil))
-                  ((o port stdin) (o eof nil))
-  (let ((c (read-char port)))
-    (if (eof-object? c) eof c)))
+(ar-def readc ((o port stdin) (o eof nil))
+  (racket-define (readc (port (current-input-port)) (eof (racket-quote nil)))
+    (racket-let ((c (racket-read-char port)))
+      (racket-if (racket-eof-object? c) eof c))))
 
 
 ;; writec
