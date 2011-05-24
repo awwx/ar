@@ -380,7 +380,7 @@
               ((g ar-toarc) '(a b c d)))
         (test ((g apply) + 1 2 ((g list) 3 4)) 10)))
 
-    (after '(ac-def ac (s env))
+    (after '(ar-def ac)
       (test-expect-error
        (let ((arc (test-arc)))
          ((g ac) (lambda () 'foo) 'nil))

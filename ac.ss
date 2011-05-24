@@ -678,8 +678,9 @@
 
 ;; The Arc compiler!
 
-(ac-def ac (s env)
-  ((g err) "Bad object in expression" s))
+(ar-def ac (s env)
+  (racket-define (ac s env)
+    (err "Bad object in expression" s)))
 
 ; ...which is extended to do more below :-)
 
