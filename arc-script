@@ -1,0 +1,43 @@
+#!/usr/bin/env racket
+#lang racket/load
+
+(require racket/cmdline)
+
+(define arguments (vector->list (current-command-line-arguments)))
+
+
+;; Path to the Arc script file which invoked us.
+
+(define script-file (car arguments))
+
+
+;; The remaining command line arguments (the ones which the user
+;; actually typed on the command line) are left in
+;; current-command-line-arguments.
+
+(current-command-line-arguments (list->vector (cdr arguments)))
+
+
+;; The directory containing this "arc-script" file.
+
+(define arcdir*
+  (path->string
+   (let-values (((base _2 _3)
+                 (split-path (normalize-path
+                              (find-system-path 'run-file)))))
+     base)))
+
+
+;; The directory containing the Arc script file which invoked us.
+
+(define scriptdir* (path->string (path-only (normalize-path script-file))))
+
+
+(namespace-require `(file ,(string-append arcdir* "ac.ss")))
+
+(let ((arc (new-arc)))
+  (set arc 'arcdir* arcdir*)
+  (set arc 'scriptdir* scriptdir*)
+  (aload arc (string-append arcdir* "arc.arc"))
+  ((get arc 'load) (string-append arcdir* "arc3.1/strings.arc"))
+  ((get arc 'load) script-file))

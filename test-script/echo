@@ -1,0 +1,6 @@
+#!/usr/bin/env arc-script
+
+(let args (racket (ar-toarc
+                   (racket-vector->list
+                    (racket-current-command-line-arguments))))
+  (prn args))

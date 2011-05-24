@@ -39,12 +39,28 @@ or, if you want to execute your Arc program without entering the REPL:
 
     /path/to/ar/arc --no-repl foo.arc bar.arc
 
+With `arc-script`, you can write a shell script in Arc.  (Though still
+todo is conveniently accessing the command line arguments).
+
+For example, if the file "hello" contained:
+
+    #!/path/to/ar/arc-script
+    (prn "hello there")
+
+you could run this script with:
+
+    $ chmod +x hello
+    $ ./hello    
+
+if you have ar on your path, you can also use env to avoid hard coding
+the path to ar:
+
+    #!/usr/bin/env arc-script
+    (prn "hello there")
+
 Run tests with:
 
-    racket ar-test.ss
-    racket ac-test.ss
-    racket arc-test.ss
-    racket strings-test.ss
+    ./tests.sh
 
 Bug reports are *greatly* appreciated!
 
