@@ -208,12 +208,12 @@
         (test ((g ar-list-fromarc) ((g list) 1 2)) '(1 2))
         (test ((g ar-list-fromarc) (mcons 1 2))    '(1 . 2))))
 
-    (after '(ac-def car)
+    (after '(ar-def car)
       (let ((arc (test-arc)))
         (test ((g car) 'nil)             'nil)
         (test ((g car) ((g list) 1 2 3)) 1)))
 
-    (after '(ac-def cdr)
+    (after '(ar-def cdr)
       (let ((arc (test-arc)))
         (test ((g cdr) 'nil)             'nil)
         (test ((g cdr) ((g list) 1 2 3)) ((g list) 2 3))))
