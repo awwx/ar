@@ -326,6 +326,25 @@ Changes
   list isn't actually represented by a cons cell.
 
 
+* embedding other runtimes based on ar
+
+  Multiple runtimes can loaded and run within the same memory space.
+  Each runtime has its own set of global variables, and can have a
+  different set of definitions loaded.  Thus the other runtimes can be
+  a hacked version of ar, or have some other language than Arc loaded.
+
+         arc> (load "embed.arc")
+         nil
+         arc> (= a (new-arc))
+         #<procedure>
+         arc> a!+
+         #<procedure:+>
+         arc> (a!ar-load "arc.arc")
+         nil
+         arc> (a!eval '(map odd '(1 2 3 4 5 6)))
+         (t nil t nil t nil)
+
+
 Contributors
 ------------
 

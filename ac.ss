@@ -106,7 +106,6 @@
 
 (add-ac-build-step
  (lambda (arc)
-   (ac-def-fn arc 'new-arc '((o options)) new-arc)
    (ac-def-fn arc 'namespace-get '(namespace varname) get)
    (ac-def-fn arc 'namespace-set '(namespace varname value)
      (lambda (namespace varname value)
@@ -1100,7 +1099,8 @@
      (racket-lambda (filename)
        (racket-call-with-input-file filename
          (racket-lambda (p) (ar-aload1 p))))
-     filenames)))
+     filenames)
+    nil))
 
 (add-ac-build-step
  (lambda (arc)
