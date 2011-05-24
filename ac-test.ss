@@ -343,7 +343,7 @@
         (test ((g +) ((g list) 1 2) ((g list) 3)) ((g list) 1 2 3))
         (test ((g +) 1 2 3)                       6)))
 
-    (after '(ac-def ar-apply)
+    (after '(ar-def ar-apply)
       (let ((arc (test-arc)))
         (test ((g ar-apply) + 1 2 3) 6)
         (test ((g ar-apply) ((g list) 1 2 3) 1) 2)
