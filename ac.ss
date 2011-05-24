@@ -660,14 +660,16 @@
 
 ;; apply
 
-(ac-def ar-combine-args (as)
-  (let next ((as as) (accum '()))
-    (cond ((null? as)
-         accum)
-        ((null? (cdr as))
-         (append accum (list-fromarc (car as))))
-        (else
-         (next (cdr as) (append accum (list (car as))))))))
+(ar-def ar-combine-args (as)
+  (racket-define (ar-combine-args as)
+    (racket-let next ((as as) (accum (racket-list)))
+      (racket-cond
+       ((racket-null? as)
+        accum)
+       ((racket-null? (racket-cdr as))
+        (racket-append accum (ar-list-fromarc (racket-car as))))
+       (racket-else
+        (next (racket-cdr as) (racket-append accum (racket-list (racket-car as)))))))))
 
 (ar-def apply (fn . args)
   (racket-define (apply fn . args)

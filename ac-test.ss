@@ -363,7 +363,7 @@
         (test ((g ar-funcall3) + 3 4 5)               12)
         (test ((g ar-funcall4) + 3 4 5 6)             18)))
 
-    (after '(ac-def-sig ar-combine-args)
+    (after '(ar-def ar-combine-args)
       (let ((arc (test-arc)))
         (test ((g ar-combine-args) (list))                        '())
         (test ((g ar-combine-args) (list ((g list))))             '())
