@@ -246,8 +246,11 @@
            b (if (cdr args) (cadr args) 10))
       (coerce x 'int b))))
 
+(def primitive-parameterize (param val f)
+  (racket (racket-parameterize ((param val)) (f))))
+
 (mac parameterize (param val . body)
-  `(racket-parameterize ,param ,val (fn () ,@body)))
+  `(primitive-parameterize ,param ,val (fn () ,@body)))
 
 (assign dynamic-parameter* (table))
 
@@ -261,7 +264,7 @@
   `(dynamic-parameter* ',name))
 
 (mac dlet (name val . body)
-  `(racket-parameterize (paramfor ,name) ,val (fn () ,@body)))
+  `(primitive-parameterize (paramfor ,name) ,val (fn () ,@body)))
 
 (mac dynamic args
   (with (name (car args)

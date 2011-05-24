@@ -581,13 +581,6 @@
     (racket-write-char c port)))
 
 
-;; racket-parameterize
-
-(ac-def racket-parameterize (parameter value body)
-  (parameterize ((parameter value))
-    (body)))
-
-
 ;; racket-module-ref
 
 (ar-def racket-module-ref (a/module)
