@@ -349,8 +349,9 @@
 
 ;; ar-no
 
-(ac-def ar-no (x)
-  (eq? x 'nil))
+(ar-def ar-no (x)
+  (racket-define (ar-no x)
+    (racket-eq? x (racket-quote nil))))
 
 
 ;; ar-true
