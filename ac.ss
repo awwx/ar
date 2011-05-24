@@ -560,7 +560,7 @@
 ;; peekc
 
 (ar-def peekc ((o port stdin))
-  (racket-define (peekc (port (current-input-port)))
+  (racket-define (peekc (port (racket-current-input-port)))
     (racket-let ((c (racket-peek-char port)))
       (racket-if (racket-eof-object? c) (racket-quote nil) c))))
 
@@ -568,7 +568,8 @@
 ;; readc
 
 (ar-def readc ((o port stdin) (o eof nil))
-  (racket-define (readc (port (current-input-port)) (eof (racket-quote nil)))
+  (racket-define (readc (port (racket-current-input-port))
+                        (eof (racket-quote nil)))
     (racket-let ((c (racket-read-char port)))
       (racket-if (racket-eof-object? c) eof c))))
 
