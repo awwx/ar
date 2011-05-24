@@ -1080,12 +1080,13 @@
   (parameterize ((current-readtable (g racket-readtable*)))
     (read (open-input-string str))))
 
-(define (arc-read arc input)
-  (parameterize ((current-readtable (g arc-readtable*)))
-    (read input)))
+(ar-def ar-read (input)
+  (racket-define (ar-read input)
+    (racket-parameterize ((racket-current-readtable arc-readtable*))
+      (racket-read input))))
 
 (define (aload1 arc p)
-  (let ((x (arc-read arc p)))
+  (let ((x ((g ar-read) p)))
     (if (eof-object? x)
          'nil
          (begin (arc-eval arc ((g ar-toarc) x))
