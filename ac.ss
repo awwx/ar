@@ -305,8 +305,10 @@
 (define (tagged? x)
   (and (vector? x) (eq? (vector-ref x 0) 'tagged)))
 
-(ac-def ar-tagged (x)
-  (tagged? x))
+(ar-def ar-tagged (x)
+  (racket-define (ar-tagged x)
+    (racket-and (racket-vector? x)
+                (racket-eq? (racket-vector-ref x 0) (racket-quote tagged)))))
 
 (ac-def rep (x)
   (if (tagged? x)
