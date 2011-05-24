@@ -204,13 +204,6 @@
 
 ;; ar-list-fromarc
 
-(define (list-fromarc x)
-  (cond ((mpair? x)
-         (cons (mcar x) (list-fromarc (mcdr x))))
-        ((eq? x 'nil)
-         '())
-        (else x)))
-
 (ar-def ar-list-fromarc (x)
   (racket-define (ar-list-fromarc x)
     (racket-cond
