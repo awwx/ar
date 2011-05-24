@@ -576,9 +576,9 @@
 
 ;; writec
 
-(ac-def-sig writec (c (port (current-output-port)))
-                   (c (o port stdout))
-  (write-char c port))
+(ar-def writec (c (o port stdout))
+  (racket-define (writec c (port (racket-current-output-port)))
+    (racket-write-char c port)))
 
 
 ;; racket-parameterize
