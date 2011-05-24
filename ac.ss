@@ -1085,16 +1085,20 @@
     (racket-parameterize ((racket-current-readtable arc-readtable*))
       (racket-read input))))
 
-(define (aload1 arc p)
-  (let ((x ((g ar-read) p)))
-    (if (eof-object? x)
-         'nil
-         (begin (arc-eval arc ((g ar-toarc) x))
-                (aload1 arc p)))))
+(ar-def ar-aload1 (p)
+  (racket-define (ar-aload1 p)
+    (racket-let ((x (ar-read p)))
+      (racket-if (racket-eof-object? x)
+                  (racket-quote nil)
+                  (racket-begin
+                   (eval (ar-toarc x))
+                   (ar-aload1 p))))))
 
 (define (aload arc . filenames)
   (for-each (lambda (filename)
-              (call-with-input-file filename (lambda (p) (aload1 arc p))))
+              (call-with-input-file filename
+                (lambda (p)
+                  ((g ar-aload1) p))))
             filenames))
 
 (add-ac-build-step
