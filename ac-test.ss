@@ -353,7 +353,7 @@
         (test ((g ar-apply) (hash 'a 1 'b 2) 'x 3) 3)
         ))
 
-    (after '(ac-def ar-funcall4)
+    (after '(ar-def ar-funcall4)
       (let ((arc (test-arc)))
         (test ((g ar-funcall0) +)                     0)
         (test ((g ar-funcall1) + 3)                   3)
