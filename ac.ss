@@ -310,10 +310,11 @@
     (racket-and (racket-vector? x)
                 (racket-eq? (racket-vector-ref x 0) (racket-quote tagged)))))
 
-(ac-def rep (x)
-  (if (tagged? x)
-       (vector-ref x 2)
-       x))
+(ar-def rep (x)
+  (racket-define (rep x)
+    (racket-if (ar-tagged x)
+                (racket-vector-ref x 2)
+                x)))
 
 (ac-def type (x)
   (cond ((tagged? x)        (vector-ref x 1))
