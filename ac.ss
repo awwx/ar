@@ -52,6 +52,7 @@
     (parameterize ((current-namespace ns))
       (namespace-require '(only racket/base #%app #%datum #%top))
       (namespace-require '(prefix racket- racket/base))
+      (namespace-require '(prefix racket- racket/mpair))
       (namespace-require '(prefix racket- racket/tcp)))
     ns))
 
@@ -592,21 +593,24 @@
 
 ;; ar-apply
 
-(ac-def ar-apply (fn . racket-arg-list)
-  (cond ((procedure? fn)
-         (apply fn racket-arg-list))
-        ((mpair? fn)
-         (mlist-ref fn (car racket-arg-list)))
-        ((string? fn)
-         (string-ref fn (car racket-arg-list)))
-        ((hash? fn)
-         (hash-ref fn
-                   (car racket-arg-list)
-                   (let ((default (if (pair? (cdr racket-arg-list))
-                                       (car (cdr racket-arg-list))
-                                       'nil)))
-                     (lambda () default))))
-        (else ((g err) "Function call on inappropriate object" fn racket-arg-list))))
+(ar-def ar-apply (fn . racket-arg-list)
+  (racket-define (ar-apply fn . racket-arg-list)
+      (racket-cond
+       ((racket-procedure? fn)
+        (racket-apply fn racket-arg-list))
+       ((racket-mpair? fn)
+        (racket-mlist-ref fn (racket-car racket-arg-list)))
+       ((racket-string? fn)
+        (racket-string-ref fn (racket-car racket-arg-list)))
+       ((racket-hash? fn)
+        (racket-hash-ref fn
+          (racket-car racket-arg-list)
+          (racket-let ((default (racket-if (racket-pair? (racket-cdr racket-arg-list))
+                                            (racket-car (racket-cdr racket-arg-list))
+                                            (racket-quote nil))))
+            (racket-lambda () default))))
+       (racket-else
+        (err "Function call on inappropriate object" fn racket-arg-list)))))
 
 
 ;; ar-funcall
