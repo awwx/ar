@@ -593,13 +593,17 @@
 
 ;; ar-apply
 
+(ar-def ar-apply-cons (fn . racket-arg-list)
+  (racket-define (ar-apply-cons fn . racket-arg-list)
+    (racket-mlist-ref fn (racket-car racket-arg-list))))
+
 (ar-def ar-apply (fn . racket-arg-list)
   (racket-define (ar-apply fn . racket-arg-list)
       (racket-cond
        ((racket-procedure? fn)
         (racket-apply fn racket-arg-list))
        ((racket-mpair? fn)
-        (racket-mlist-ref fn (racket-car racket-arg-list)))
+        (racket-apply ar-apply-cons fn racket-arg-list))
        ((racket-string? fn)
         (racket-string-ref fn (racket-car racket-arg-list)))
        ((racket-hash? fn)
