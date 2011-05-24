@@ -291,8 +291,6 @@
 
 ;; type
 
-(define (exint? x) (and (integer? x) (exact? x)))
-
 (ar-def ar-exint (x)
   (racket-define (ar-exint x)
     (racket-and (racket-integer? x) (racket-exact? x))))
