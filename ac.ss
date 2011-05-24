@@ -559,9 +559,10 @@
 
 ;; peekc
 
-(ac-def-sig peekc ((port (current-input-port))) ((o port stdin))
-  (let ((c (peek-char port)))
-    (if (eof-object? c) 'nil c)))
+(ar-def peekc ((o port stdin))
+  (racket-define (peekc (port (current-input-port)))
+    (racket-let ((c (racket-peek-char port)))
+      (racket-if (racket-eof-object? c) (racket-quote nil) c))))
 
 
 ;; readc
