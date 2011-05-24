@@ -675,22 +675,21 @@
 
 ; Extending the Arc compiler
 
-(define (extend-impl name test body source)
-  (add-ac-build-step
-   (lambda (arc)
-     (let ((previous (get arc name)))
-       (set arc name
-         (lambda args
-           (let ((result (apply test arc args)))
-             (if ((g ar-true) result)
-                  (apply body arc result args)
-                  (apply previous args)))))))
-   source))
+(ac-def ar-extend-impl (name test body)
+  (let ((previous (get arc name)))
+    (set arc name
+      (lambda args
+        (let ((result (apply test arc args)))
+          (if ((g ar-true) result)
+               (apply body arc result args)
+               (apply previous args)))))))
 
 (defmacro extend (name args test . body)
-  `(extend-impl ',name
-     (lambda (arc . ,args) ,test)
-     (lambda (arc it . ,args) ,@body)
+  `(add-ac-build-step
+     (lambda (arc)
+       ((g ar-extend-impl) ',name
+        (lambda (arc . ,args) ,test)
+        (lambda (arc it . ,args) ,@body)))
      '(extend ,name ,args ,test)))
 
 
