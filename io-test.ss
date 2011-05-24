@@ -2,4 +2,9 @@
 
 (require "ac.ss")
 
-(aload (new-arc) "arc.arc" "io.arc" "equal-wrt-testing.arc" "test.arc" "io.t")
+(let ((arc (new-arc)))
+  ((get arc 'ar-load)
+   "arc.arc"
+   "io.arc"
+   "equal-wrt-testing.arc" "test.arc"
+   "io.t"))

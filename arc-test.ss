@@ -2,4 +2,5 @@
 
 (require "ac.ss")
 
-(aload (new-arc) "arc.arc" "equal-wrt-testing.arc" "test.arc" "arc.t")
+(let ((arc (new-arc)))
+  ((get arc 'ar-load) "arc.arc" "equal-wrt-testing.arc" "test.arc" "arc.t"))

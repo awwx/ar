@@ -1094,14 +1094,14 @@
                    (eval (ar-toarc x))
                    (ar-aload1 p))))))
 
-(define (aload arc . filenames)
-  (for-each (lambda (filename)
-              (call-with-input-file filename
-                (lambda (p)
-                  ((g ar-aload1) p))))
-            filenames))
+(ar-def ar-load filenames
+  (racket-define (ar-load . filenames)
+    (racket-for-each
+     (racket-lambda (filename)
+       (racket-call-with-input-file filename
+         (racket-lambda (p) (ar-aload1 p))))
+     filenames)))
 
 (add-ac-build-step
  (lambda (arc)
-   (ac-def-fn arc 'aload '(namespace . filenames) aload)
    (ac-def-fn arc 'this-namespace '() (lambda () arc))))

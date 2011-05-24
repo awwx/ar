@@ -38,6 +38,6 @@
 (let ((arc (new-arc)))
   (set arc 'arcdir* arcdir*)
   (set arc 'scriptdir* scriptdir*)
-  (aload arc (string-append arcdir* "arc.arc"))
+  ((get arc 'ar-load) (string-append arcdir* "arc.arc"))
   ((get arc 'load) (string-append arcdir* "arc3.1/strings.arc"))
   ((get arc 'load) script-file))

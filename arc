@@ -25,7 +25,7 @@
 (namespace-require `(file ,(string-append srcdir* "ac.ss")))
 
 (let ((arc (new-arc)))
-  (aload arc (string-append srcdir* "arc.arc"))
+  ((get arc 'ar-load) (string-append srcdir* "arc.arc"))
   ((get arc 'load) (string-append srcdir* "arc3.1/strings.arc"))
   (for-each (get arc 'load) files-to-load)
   (when run-repl

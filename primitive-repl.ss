@@ -9,7 +9,7 @@
 (require "ac.ss")
 
 (let ((arc (new-arc)))
-  (aload arc "arc.arc")
+  ((get arc 'ar-load) "arc.arc")
   (let loop ()
     (display "arc> ")
     (let ((v ((get arc 'ar-read) (current-input-port))))
