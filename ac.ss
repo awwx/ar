@@ -256,8 +256,10 @@
         (else
          x)))
 
-(ac-def ar-deep-fromarc (x)
-  (ar-deep-fromarc x))
+(add-ac-build-step
+ (lambda (arc)
+   (ac-def-fn arc 'ar-deep-fromarc '(x) ar-deep-fromarc))
+ '(ar-deep-fromarc))
 
 
 ;; err
