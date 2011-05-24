@@ -528,8 +528,11 @@
 
 ;; join
 
-(ac-def join args
-  (r/list-toarc (apply append (map list-fromarc (list-fromarc args)))))
+(ar-def join args
+  (racket-define (join . args)
+    (ar-r/list-toarc
+     (racket-apply racket-append
+                   (racket-map ar-list-fromarc (ar-list-fromarc args))))))
 
 
 ;; +

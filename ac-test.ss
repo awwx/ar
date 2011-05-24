@@ -320,7 +320,7 @@
         (test ((g len) ((g list) 1 2))   2)
         (test ((g len) ((g list) 1 2 3)) 3)))
 
-    (after '(ac-def join)
+    (after '(ar-def join)
       (let ((arc (test-arc)))
         (test ((g join)) 'nil)
         (test ((g join) ((g list))) 'nil)
