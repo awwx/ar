@@ -699,16 +699,11 @@
                   (apply previous args)))))))
    source))
 
-(define-syntax extend
-  (lambda (stx)
-    (syntax-case stx ()
-      ((extend name args test body ...)
-       (with-syntax ((arc (datum->syntax #'args 'arc))
-                     (it       (datum->syntax #'args 'it)))
-         #'(extend-impl 'name
-            (lambda (arc . args) test)
-            (lambda (arc it . args) body ...)
-            `(extend ,'name ,'args ,'test)))))))
+(defmacro extend (name args test . body)
+  `(extend-impl ',name
+     (lambda (arc . ,args) ,test)
+     (lambda (arc it . ,args) ,@body)
+     '(extend ,name ,args ,test)))
 
 
 ;; literal
