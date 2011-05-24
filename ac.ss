@@ -612,17 +612,17 @@
 
 (ar-def ar-apply (fn . racket-arg-list)
   (racket-define (ar-apply fn . racket-arg-list)
-      (racket-cond
-       ((racket-procedure? fn)
-        (racket-apply fn racket-arg-list))
-       ((racket-mpair? fn)
-        (racket-apply ar-apply-cons fn racket-arg-list))
-       ((racket-string? fn)
-        (racket-apply ar-apply-string fn racket-arg-list))
-       ((racket-hash? fn)
-        (racket-apply ar-apply-hash fn racket-arg-list))
-       (racket-else
-        (err "Function call on inappropriate object" fn racket-arg-list)))))
+    (racket-cond
+     ((racket-procedure? fn)
+      (racket-apply fn racket-arg-list))
+     ((racket-mpair? fn)
+      (racket-apply ar-apply-cons fn racket-arg-list))
+     ((racket-string? fn)
+      (racket-apply ar-apply-string fn racket-arg-list))
+     ((racket-hash? fn)
+      (racket-apply ar-apply-hash fn racket-arg-list))
+     (racket-else
+      (err "Function call on inappropriate object" fn racket-arg-list)))))
 
 
 ;; ar-funcall
