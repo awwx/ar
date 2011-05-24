@@ -270,15 +270,17 @@
 
 ;; car, cdr
 
-(ac-def car (x)
-  (if (eq? x 'nil)
-       'nil
-       (mcar x)))
+(ar-def car (x)
+  (racket-define (car x)
+    (racket-if (racket-eq? x (racket-quote nil))
+                (racket-quote nil)
+                (racket-mcar x))))
 
-(ac-def cdr (x)
-  (if (eq? x 'nil)
-       'nil
-       (mcdr x)))
+(ar-def cdr (x)
+  (racket-define (cdr x)
+    (racket-if (racket-eq? x (racket-quote nil))
+                (racket-quote nil)
+                (racket-mcdr x))))
 
 
 ;; cadr, cddr
