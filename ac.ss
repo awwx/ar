@@ -342,8 +342,9 @@
 
 ;; ar-tnil
 
-(ac-def ar-tnil (x)
-  (if x 't 'nil))
+(ar-def ar-tnil (x)
+  (racket-define (ar-tnil x)
+    (racket-if x (racket-quote t) (racket-quote nil))))
 
 
 ;; ar-no
