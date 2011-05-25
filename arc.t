@@ -253,6 +253,10 @@
 (testis (ac-tokens [is _ #\:] '(#\a #\: #\b #\c) nil nil nil)
         '((#\a) (#\b #\c)))
 
+(testis (read "[3]")              '(square-bracket 3))
+(testis (read (instring "[3]"))   '(square-bracket 3))
+(testis (fromstring "[3]" (read)) '(square-bracket 3))
+
 (testis (point foo (foo 5) 6) 5)
 
 (testis (catch 1 2 (throw 3) 4 5) 3)

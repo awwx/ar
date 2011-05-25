@@ -478,7 +478,8 @@
   (racket (racket-if x (racket-quote t) (racket-quote nil))))
 
 (def sread (p eof)
-  (let v (racket-read p)
+  (let v (primitive-parameterize racket-current-readtable arc-readtable*
+           (fn () (racket-read p)))
     (if (racket-true (racket-eof-object? v))
          eof
          (ar-toarc v))))
