@@ -22,6 +22,7 @@
       (racket-dynamic-require
        (racket-string->path acpath)
        (racket-quote new-arc)))
+     arcdir
      options)))
 
 (def new-arc ((o arcdir) (o options))

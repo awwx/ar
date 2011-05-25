@@ -1,0 +1,7 @@
+(racket-define (ar-r/list-toarc x)
+  (racket-cond
+   ((racket-pair? x)
+    (racket-mcons (racket-car x) (ar-r/list-toarc (racket-cdr x))))
+   ((racket-null? x)
+    (racket-quote nil))
+   (racket-else x)))

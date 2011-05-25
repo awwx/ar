@@ -56,9 +56,10 @@
       (namespace-require '(prefix racket- racket/tcp)))
     ns))
 
-(define (new-arc (options (make-hash)))
+(define (new-arc arcdir (options (make-hash)))
   (let ((arc (make-hash)))
     (hash-set! arc 'racket-namespace* (make-arc-racket-namespace))
+    (set arc 'arcdir* arcdir)
     (for-each (lambda (pair)
                 (let ((step (car pair)))
                   (step arc)))
@@ -172,6 +173,26 @@
         (racket-define uniq      racket-gensym)))))
 
 
+;; ail-load
+
+(define (ail-load arc filename)
+  (call-with-input-file filename
+    (lambda (in)
+      (let loop ()
+        (let ((form (read in)))
+          (unless (eof-object? form)
+            (racket-eval arc form)
+            (loop))))))
+  'nil)
+
+
+;; ac.ail
+
+(add-ac-build-step
+ (lambda (arc)
+   (ail-load arc (string-append (get arc 'arcdir*) "/ac.ail"))))
+
+
 ;; r/list-toarc
 
 (define (r/list-toarc x)
@@ -180,15 +201,6 @@
         ((null? x)
          'nil)
         (else x)))
-
-(ar-def ar-r/list-toarc (x)
-  (racket-define (ar-r/list-toarc x)
-    (racket-cond
-     ((racket-pair? x)
-      (racket-mcons (racket-car x) (ar-r/list-toarc (racket-cdr x))))
-     ((racket-null? x)
-      (racket-quote nil))
-     (racket-else x))))
 
 
 ;; list

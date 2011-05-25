@@ -3,7 +3,16 @@
 (require mzlib/defmacro)
 
 (require (only-in "ac.ss"
-           arc-eval new-arc ac-build-steps get g))
+           arc-eval new-arc ac-build-steps get set g))
+
+;; todo code duplication with arc
+
+(define arcdir*
+  (path->string
+   (let-values (((base _2 _3)
+                 (split-path (normalize-path
+                              (find-system-path 'run-file)))))
+     base)))
 
 (define (pair xs)
   (cond ((null? xs)
@@ -178,7 +187,7 @@
 (define (test-arc)
   (let ((options (make-hash)))
     (hash-set! options 'build-steps (build-steps))
-    (new-arc options)))
+    (new-arc arcdir* options)))
 
 (define-syntax after
   (syntax-rules ()
@@ -194,11 +203,11 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def ar-r/list-toarc)
-      (let ((arc (test-arc)))
-        (test ((g ar-r/list-toarc) '())        'nil)
-        (test ((g ar-r/list-toarc) '(1 2 3))   (mcons 1 (mcons 2 (mcons 3 'nil))))
-        (test ((g ar-r/list-toarc) '(1 2 . 3)) (mcons 1 (mcons 2 3)))))
+    ;; (after '(ar-def ar-r/list-toarc)
+    ;;   (let ((arc (test-arc)))
+    ;;     (test ((g ar-r/list-toarc) '())        'nil)
+    ;;     (test ((g ar-r/list-toarc) '(1 2 3))   (mcons 1 (mcons 2 (mcons 3 'nil))))
+    ;;     (test ((g ar-r/list-toarc) '(1 2 . 3)) (mcons 1 (mcons 2 3)))))
 
     (after '(ar-def list)
       (let ((arc (test-arc)))
