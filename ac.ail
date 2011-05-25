@@ -16,3 +16,6 @@
    ((racket-null? x)
     (racket-quote nil))
    (racket-else x)))
+
+(racket-define (list . args)
+  (ar-r/list-toarc args))

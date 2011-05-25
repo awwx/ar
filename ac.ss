@@ -182,10 +182,6 @@
 (define (arc-list . rest)
   (r/list-toarc rest))
 
-(ar-def list args
-  (racket-define (list . args)
-    (ar-r/list-toarc args)))
-
 
 ;; ar-list-fromarc
 

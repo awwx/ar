@@ -7,6 +7,7 @@
          cons            (a b)
          inside          (s)
          instring        (str)
+         list            args
          outstring       ()
          uniq            ()))
   (= sig.name signature))

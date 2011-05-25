@@ -65,3 +65,6 @@
   (testis (a!ar-r/list-toarc (rq "()"))        'nil)
   (testis (a!ar-r/list-toarc (rq "(1 2 3)"))   '(1 2 3))
   (testis (a!ar-r/list-toarc (rq "(1 2 . 3)")) '(1 2 . 3)))
+
+(testfor (racket-define (list . args))
+  (testis (a!list 1 2 3) '(1 2 3)))

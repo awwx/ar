@@ -203,10 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def list)
-      (let ((arc (test-arc)))
-        (test ((g list) 1 2 3) (mcons 1 (mcons 2 (mcons 3 'nil))))))
-
     (after '(ar-def ar-list-fromarc)
       (let ((arc (test-arc)))
         (test ((g ar-list-fromarc) 'nil)           '())
