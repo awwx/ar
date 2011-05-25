@@ -38,3 +38,32 @@
    ((racket-string? x)
     (racket-string-copy x))
    (racket-else x)))
+
+(racket-define (ar-strict-deep-fromarc x)
+  (racket-cond ((racket-eq? x nil)
+                (racket-quote ()))
+               ((racket-mpair? x)
+                (racket-cons (ar-strict-deep-fromarc (racket-mcar x))
+                             (ar-strict-deep-fromarc (racket-mcdr x))))
+               (racket-else
+                x)))
+
+(racket-define (ar-deep-fromarc x)
+  (racket-cond
+   ((racket-and (racket-mpair? x)
+                (racket-eq? (racket-mcar x) (racket-quote racket-list)))
+    (ar-strict-deep-fromarc (racket-mcar (racket-mcdr x))))
+
+   ;; nil in the car position isn't a list terminator, and so can
+   ;; be left alone.
+   ((racket-mpair? x)
+    (racket-cons (racket-let ((a (racket-mcar x)))
+                   (racket-if (racket-eq? a nil)
+                                nil
+                                (ar-deep-fromarc a)))
+                 (racket-let ((b (racket-mcdr x)))
+                   (racket-if (racket-eq? b nil)
+                               (racket-quote ())
+                               (ar-deep-fromarc b)))))
+   (racket-else
+    x)))

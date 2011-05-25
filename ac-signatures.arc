@@ -3,6 +3,7 @@
        '(-               args
          /               args
          *               args
+         ar-deep-fromarc (x)
          ar-list-fromarc (x)
          ar-r/list-toarc (x)
          ar-toarc        (x)
