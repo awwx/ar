@@ -19,3 +19,11 @@
 
 (racket-define (list . args)
   (ar-r/list-toarc args))
+
+(racket-define (ar-list-fromarc x)
+  (racket-cond
+   ((racket-mpair? x)
+    (racket-cons (racket-mcar x) (ar-list-fromarc (racket-mcdr x))))
+   ((racket-eq? x (racket-quote nil))
+    (racket-quote ()))
+   (racket-else x)))

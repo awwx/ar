@@ -183,18 +183,6 @@
   (r/list-toarc rest))
 
 
-;; ar-list-fromarc
-
-(ar-def ar-list-fromarc (x)
-  (racket-define (ar-list-fromarc x)
-    (racket-cond
-     ((racket-mpair? x)
-      (racket-cons (racket-mcar x) (ar-list-fromarc (racket-mcdr x))))
-     ((racket-eq? x (racket-quote nil))
-      (racket-quote ()))
-     (racket-else x))))
-
-
 ;; ar-toarc
 
 (add-ac-build-step

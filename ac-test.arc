@@ -5,14 +5,26 @@
 (def matches (pattern form)
   (iso (firstn len.pattern form) pattern))
 
+;; returns an Arc list of Racket forms
+
+(def rreadfile (filename)
+  (w/infile in filename
+    (accum a
+      ((afn ()
+        (racket
+          (racket-let ((form (racket-read in)))
+            (racket-unless (racket-eof-object? form)
+              (a form)
+              (self)))))))))
+
 (def ac-upto (pattern)
   (prn)
   (write pattern) (prn)
   (let arc (new-arc (racket-path->string (racket-current-directory)))
     (catch
-     (each form (readfile "ac.ail")
-       (arc!ar-racket-eval arc!arc* (ar-deep-fromarc form))
-       (when (matches pattern form) (throw nil)))
+     (each form (rreadfile "ac.ail")
+       (arc!ar-racket-eval arc!arc* form)
+       (when (matches pattern (ar-toarc form)) (throw nil)))
      (err "pattern not found in source" pattern))
     arc))
 
@@ -68,3 +80,14 @@
 
 (testfor (racket-define (list . args))
   (testis (a!list 1 2 3) '(1 2 3)))
+
+(testfor (racket-define (ar-list-fromarc x))
+  (testis (racket-equal? (a!ar-list-fromarc '())
+                         (rq "()"))
+          (rq "#t"))
+  (testis (racket-equal? (a!ar-list-fromarc '(1 2))
+                         (rq "(1 2)"))
+          (rq "#t"))
+  (testis (racket-equal? (a!ar-list-fromarc '(1 . 2))
+                         (rq "(1 . 2)"))
+          (rq "#t")))
