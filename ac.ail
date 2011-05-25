@@ -1,5 +1,13 @@
-(racket-define - racket--)
-(racket-define / racket-/)
+(racket-define -         racket--)
+(racket-define /         racket-/)
+(racket-define *         racket-*)
+(racket-define cons      racket-mcons)
+(racket-define inside    racket-get-output-string)
+(racket-define instring  racket-open-input-string)
+(racket-define nil       (racket-quote nil))
+(racket-define outstring racket-open-output-string)
+(racket-define t         (racket-quote t))
+(racket-define uniq      racket-gensym)
 
 (racket-define (ar-r/list-toarc x)
   (racket-cond

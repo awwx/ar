@@ -16,14 +16,52 @@
      (err "pattern not found in source" pattern))
     arc))
 
-(let a (ac-upto '(racket-define -))
-  (testis (a!- 5)        -5)
-  (testis (a!- 20 4 3 2) 11))
-
 (mac rq (lit)
   `(racket ,(+ "(racket-quote " lit ")")))
 
-(let a (ac-upto '(racket-define (ar-r/list-toarc x)))
+(mac testfor (pattern . body)
+  `(let a (ac-upto ',pattern)
+     ,@body))
+
+(testfor (racket-define -)
+  (testis (a!- 5)        -5)
+  (testis (a!- 20 4 3 2) 11))
+
+(testfor (racket-define /)
+  (testis (a!/ 24 3 2) 4))
+
+(testfor (racket-define *)
+  (testis (a!*)       1)
+  (testis (a!* 5)     5)
+  (testis (a!* 3 4 7) 84))
+
+(testfor (racket-define cons)
+  (testis (a!cons 1 2) '(1 . 2)))
+
+(testfor (racket-define inside)
+  (let s (outstring)
+    (disp "foo" s)
+    (testis (a!inside s) "foo")))
+
+(testfor (racket-define instring)
+  (let s (a!instring "foo")
+    (testis (n-of 3 (readc s)) '(#\f #\o #\o))))
+
+(testfor (racket-define nil)
+  (testis a!nil nil))
+
+(testfor (racket-define outstring)
+  (let s (a!outstring)
+    (disp "foo" s)
+    (testis (inside s) "foo")))
+
+(testfor (racket-define t)
+  (testis a!t t))
+
+(testfor (racket-define uniq)
+  (testis (type (a!uniq)) 'sym))
+
+(testfor (racket-define (ar-r/list-toarc x))
   (testis (a!ar-r/list-toarc (rq "()"))        'nil)
   (testis (a!ar-r/list-toarc (rq "(1 2 3)"))   '(1 2 3))
   (testis (a!ar-r/list-toarc (rq "(1 2 . 3)")) '(1 2 . 3)))

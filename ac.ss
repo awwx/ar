@@ -147,30 +147,6 @@
     '(ar-def ,name)))
 
 
-;; primitives
-
-(add-ac-build-step
-  (lambda (arc)
-    (hash-set! (g sig) '*         (toarc 'args))
-    (hash-set! (g sig) 'cons      (toarc '(a b)))
-    (hash-set! (g sig) 'inside    (toarc '(s)))
-    (hash-set! (g sig) 'instring  (toarc '(str)))
-    (hash-set! (g sig) 'outstring (toarc '()))
-    (hash-set! (g sig) 'uniq      (toarc '()))
-    (racket-eval arc
-      `(racket-begin
-        (racket-define -         racket--)
-        (racket-define /         racket-/)
-        (racket-define *         racket-*)
-        (racket-define cons      racket-mcons)
-        (racket-define inside    racket-get-output-string)
-        (racket-define instring  racket-open-input-string)
-        (racket-define nil       (racket-quote nil))
-        (racket-define outstring racket-open-output-string)
-        (racket-define t         (racket-quote t))
-        (racket-define uniq      racket-gensym)))))
-
-
 ;; ail-load
 
 (define (ail-load arc filename)
