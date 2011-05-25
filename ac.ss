@@ -103,14 +103,6 @@
   (hash-set! (get arc 'sig) name (toarc signature))
   (set arc name fn))
 
-(add-ac-build-step
- (lambda (arc)
-   (ac-def-fn arc 'namespace-get '(namespace varname) get)
-   (ac-def-fn arc 'namespace-set '(namespace varname value)
-     (lambda (namespace varname value)
-       (set namespace varname value)
-       'nil))))
-
 (define-syntax ac-def
   (lambda (stx)
     (syntax-case stx ()
