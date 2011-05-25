@@ -151,7 +151,6 @@
 
 (add-ac-build-step
   (lambda (arc)
-    (hash-set! (g sig) '/         (toarc 'args))
     (hash-set! (g sig) '*         (toarc 'args))
     (hash-set! (g sig) 'cons      (toarc '(a b)))
     (hash-set! (g sig) 'inside    (toarc '(s)))

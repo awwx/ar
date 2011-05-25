@@ -1,4 +1,5 @@
 (racket-define - racket--)
+(racket-define / racket-/)
 
 (racket-define (ar-r/list-toarc x)
   (racket-cond
