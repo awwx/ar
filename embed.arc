@@ -16,17 +16,15 @@
 ;; (t nil t nil t nil)
 
 (def arc-runtime ((o arcdir) (o options))
-  (with (acpath (string (or arcdir arcdir*) "/ac.ss")
-         options (or options (table)))
+  (let acpath (string (or arcdir arcdir*) "/ac.ss")
     ((racket
       (racket-dynamic-require
        (racket-string->path acpath)
-       (racket-quote new-arc)))
-     arcdir
-     options)))
+       (racket-quote new-arc2)))
+     arcdir)))
 
-(def new-arc ((o arcdir) (o options))
-  (let runtime (arc-runtime arcdir options)
+(def new-arc ((o arcdir))
+  (let runtime (arc-runtime arcdir)
     (fn args
       (if (is len.args 1)
            (with (varname (car args))

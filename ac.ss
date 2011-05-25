@@ -66,6 +66,15 @@
               (hash-ref options 'build-steps ac-build-steps))
     arc))
 
+(define (new-arc2 arcdir)
+  (let ((arc (make-hash)))
+    (hash-set! arc 'racket-namespace* (make-arc-racket-namespace))
+    (set arc 'arc* arc)
+    (set arc 'arcdir* arcdir)
+    (set arc 'ar-racket-eval racket-eval)
+    (set arc 'ar-ail-load ail-load)
+    arc))
+
 
 ;; toarc
 
@@ -142,7 +151,6 @@
 
 (add-ac-build-step
   (lambda (arc)
-    (hash-set! (g sig) '-         (toarc 'args))
     (hash-set! (g sig) '/         (toarc 'args))
     (hash-set! (g sig) '*         (toarc 'args))
     (hash-set! (g sig) 'cons      (toarc '(a b)))
