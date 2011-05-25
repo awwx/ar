@@ -183,14 +183,6 @@
   (r/list-toarc rest))
 
 
-;; ar-toarc
-
-(add-ac-build-step
- (lambda (arc)
-   (ac-def-fn arc 'ar-toarc '(x) toarc))
- '(ar-toarc))
-
-
 ;; ar-deep-fromarc
 
 ; todo I think we just need some better way of representing a Racket

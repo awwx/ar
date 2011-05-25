@@ -27,3 +27,14 @@
    ((racket-eq? x (racket-quote nil))
     (racket-quote ()))
    (racket-else x)))
+
+(racket-define (ar-toarc x)
+  (racket-cond
+   ((racket-pair? x)
+    (racket-mcons (ar-toarc (racket-car x))
+                  (ar-toarc (racket-cdr x))))
+   ((racket-null? x)
+    nil)
+   ((racket-string? x)
+    (racket-string-copy x))
+   (racket-else x)))

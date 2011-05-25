@@ -5,6 +5,7 @@
          *               args
          ar-list-fromarc (x)
          ar-r/list-toarc (x)
+         ar-toarc        (x)
          cons            (a b)
          inside          (s)
          instring        (str)

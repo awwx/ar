@@ -91,3 +91,7 @@
   (testis (racket-equal? (a!ar-list-fromarc '(1 . 2))
                          (rq "(1 . 2)"))
           (rq "#t")))
+
+(testfor (racket-define (ar-toarc x))
+  (testis (a!ar-toarc (rq "(1 2 (3 . 4) 5 () 6)"))
+          '(1 2 (3 . 4) 5 nil 6)))
