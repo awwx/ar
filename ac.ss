@@ -82,8 +82,7 @@
 ;; racket-eval
 
 (define (racket-eval arc form)
-  (parameterize ((current-readtable (get-default arc 'arc-readtable* (lambda () #f)))
-                 (compile-allow-set!-undefined #t))
+  (parameterize ((compile-allow-set!-undefined #t))
     (eval form (hash-ref arc 'racket-namespace*))))
 
 
