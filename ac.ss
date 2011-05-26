@@ -198,7 +198,7 @@
          x)))
 
 (define (ar-deep-fromarc x)
-  (cond ((and (mpair? x) (eq? (mcar x) 'racket-list))
+  (cond ((and (mpair? x) (eq? (mcar x) 'kGsx4AFTTn-racket-list))
          (strict-deep-fromarc (mcar (mcdr x))))
 
         ;; nil in the car position isn't a list terminator, and so can
@@ -385,7 +385,7 @@
        (mcons 'racket-lambda
               ;; TODO I think it would be better to have an explicit
               ;; representation for nil instead
-              (mcons (arc-list 'racket-list args)
+              (mcons (arc-list 'kGsx4AFTTn-racket-list args)
                      ((g ac-body*x) args body env)))))
 
 (extend ac (s env)
