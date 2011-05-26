@@ -295,3 +295,8 @@
 
 (racket-define (writec c (port (racket-current-output-port)))
   (racket-write-char c port))
+
+(racket-define (racket-module-ref a/module)
+  (racket-let ((r/module (ar-deep-fromarc a/module)))
+    (racket-lambda (sym)
+      (racket-dynamic-require r/module sym))))

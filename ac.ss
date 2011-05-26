@@ -213,15 +213,6 @@
          x)))
 
 
-;; racket-module-ref
-
-(ar-def racket-module-ref (a/module)
-  (racket-define (racket-module-ref a/module)
-    (racket-let ((r/module (ar-deep-fromarc a/module)))
-      (racket-lambda (sym)
-        (racket-dynamic-require r/module sym)))))
-
-
 ;; ar-apply
 
 (ar-def ar-apply-cons (fn . racket-arg-list)
