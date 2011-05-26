@@ -67,3 +67,21 @@
                                (ar-deep-fromarc b)))))
    (racket-else
     x)))
+
+(racket-define err racket-error)
+
+(racket-define (car x)
+  (racket-if (racket-eq? x (racket-quote nil))
+              (racket-quote nil)
+              (racket-mcar x)))
+
+(racket-define (cdr x)
+  (racket-if (racket-eq? x (racket-quote nil))
+              (racket-quote nil)
+              (racket-mcdr x)))
+
+(racket-define (cadr x)
+  (car (cdr x)))
+
+(racket-define (cddr x)
+  (cdr (cdr x)))

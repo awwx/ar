@@ -95,3 +95,17 @@
 (testfor (racket-define (ar-toarc x))
   (testis (a!ar-toarc (rq "(1 2 (3 . 4) 5 () 6)"))
           '(1 2 (3 . 4) 5 nil 6)))
+
+(testfor (racket-define (car x))
+  (testis (a!car 'nil)     'nil)
+  (testis (a!car '(1 2 3)) 1))
+
+(testfor (racket-define (cdr x))
+  (testis (a!cdr 'nil)     'nil)
+  (testis (a!cdr '(1 2 3)) '(2 3)))
+
+(testfor (racket-define (cadr x))
+  (testis (a!cadr '(1 2 3)) 2))
+
+(testfor (racket-define (cddr x))
+  (testis (a!cddr '(1 2 3 4)) '(3 4)))

@@ -213,38 +213,6 @@
          x)))
 
 
-;; err
-
-(ar-def err args
-  (racket-define err racket-error))
-
-
-;; car, cdr
-
-(ar-def car (x)
-  (racket-define (car x)
-    (racket-if (racket-eq? x (racket-quote nil))
-                (racket-quote nil)
-                (racket-mcar x))))
-
-(ar-def cdr (x)
-  (racket-define (cdr x)
-    (racket-if (racket-eq? x (racket-quote nil))
-                (racket-quote nil)
-                (racket-mcdr x))))
-
-
-;; cadr, cddr
-
-(ar-def cadr (x)
-  (racket-define (cadr x)
-    (car (cdr x))))
-
-(ar-def cddr (x)
-  (racket-define (cddr x)
-    (cdr (cdr x))))
-
-
 ;; type
 
 (ar-def ar-exint (x)

@@ -203,24 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def car)
-      (let ((arc (test-arc)))
-        (test ((g car) 'nil)             'nil)
-        (test ((g car) ((g list) 1 2 3)) 1)))
-
-    (after '(ar-def cdr)
-      (let ((arc (test-arc)))
-        (test ((g cdr) 'nil)             'nil)
-        (test ((g cdr) ((g list) 1 2 3)) ((g list) 2 3))))
-
-    (after '(ar-def cadr)
-      (let ((arc (test-arc)))
-        (test ((g cadr) ((g list) 1 2 3)) 2)))
-
-    (after '(ar-def cddr)
-      (let ((arc (test-arc)))
-        (test ((g cddr) ((g list) 1 2 3 4)) ((g list) 3 4))))
-
     (after '(ar-def annotate)
       (let ((arc (test-arc)))
         (let ((x ((g annotate) 'mytype 'foo)))
