@@ -213,28 +213,6 @@
          x)))
 
 
-;; +
-
-(ar-def ar-alist (x)
-  (racket-define (ar-alist x)
-    (racket-or (ar-no x) (racket-mpair? x))))
-
-(ar-def + args
-  (racket-define (+ . args)
-    (racket-cond
-     ((racket-null? args)
-      0)
-     ((racket-or (racket-char? (racket-car args)) (racket-string? (racket-car args)))
-      (racket-apply racket-string-append
-                    (racket-map (racket-lambda (a)
-                                  (coerce a (racket-quote string)))
-                                args)))
-     ((ar-alist (racket-car args))
-      (racket-apply join args))
-     (racket-else
-      (racket-apply racket-+ args)))))
-
-
 ;; peekc
 
 (ar-def peekc ((o port stdin))

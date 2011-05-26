@@ -205,3 +205,11 @@
   (testis (a!join '(1 2) '(3 4))  '(1 2 3 4))
   (testis (a!join '(1 2) 3)       '(1 2 . 3))
   (testis (a!join '(1) '(2) '(3)) '(1 2 3)))
+
+(testfor (racket-define (+ . args))
+  (testis (a!+)               0)
+  (testis (a!+ #\a "b" 'c 3)  "abc3")
+  (testis (a!+ "a" 'b #\c)    "abc")
+  (testis (a!+ 'nil '(1 2 3)) '(1 2 3))
+  (testis (a!+ '(1 2) '(3))   '(1 2 3))
+  (testis (a!+ 1 2 3)         6))

@@ -203,15 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def +)
-      (let ((arc (test-arc)))
-        (test ((g +))                             0)
-        (test ((g +) #\a "b" 'c 3)                "abc3")
-        (test ((g +) "a" 'b #\c)                  "abc")
-        (test ((g +) 'nil ((g list) 1 2 3))       ((g list) 1 2 3))
-        (test ((g +) ((g list) 1 2) ((g list) 3)) ((g list) 1 2 3))
-        (test ((g +) 1 2 3)                       6)))
-
     (after '(ar-def ar-apply)
       (let ((arc (test-arc)))
         (test ((g ar-apply) + 1 2 3) 6)

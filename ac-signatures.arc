@@ -7,6 +7,7 @@
          <               args
          >2              (x y)
          >               args
+         +               args
          annotate        (totype rep)
          ar-deep-fromarc (x)
          ar-exint        (x)
