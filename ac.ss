@@ -213,15 +213,6 @@
          x)))
 
 
-;; join
-
-(ar-def join args
-  (racket-define (join . args)
-    (ar-r/list-toarc
-     (racket-apply racket-append
-                   (racket-map ar-list-fromarc (ar-list-fromarc args))))))
-
-
 ;; +
 
 (ar-def ar-alist (x)

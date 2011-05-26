@@ -31,6 +31,7 @@
          instring        (str)
          is              args
          is2             (a b)
+         join            args
          len             x
          list            args
          list-len        x
