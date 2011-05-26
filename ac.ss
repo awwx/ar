@@ -608,24 +608,6 @@
   (lambda (arc)
     (set arc 'arc-readtable* (bracket-readtable #f))))
 
-(ar-def ar-aload1 (p)
-  (racket-define (ar-aload1 p)
-    (racket-let ((x (ar-read p)))
-      (racket-if (racket-eq? x (racket-quote nil))
-                  (racket-quote nil)
-                  (racket-begin
-                   (eval x)
-                   (ar-aload1 p))))))
-
-(ar-def ar-load filenames
-  (racket-define (ar-load . filenames)
-    (racket-for-each
-     (racket-lambda (filename)
-       (racket-call-with-input-file filename
-         (racket-lambda (p) (ar-aload1 p))))
-     filenames)
-    nil))
-
 (add-ac-build-step
  (lambda (arc)
    (ac-def-fn arc 'this-namespace '() (lambda () arc))))
