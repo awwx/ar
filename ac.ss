@@ -213,57 +213,6 @@
          x)))
 
 
-;; <
-
-(ar-def <2 (x y)
-  (racket-define (<2 x y)
-    (ar-tnil
-     (racket-cond
-      ((racket-and (racket-number? x) (racket-number? y)) (racket-< x y))
-      ((racket-and (racket-string? x) (racket-string? y)) (racket-string<? x y))
-      ((racket-and (racket-symbol? x) (racket-symbol? y))
-       (racket-string<? (racket-symbol->string x)
-                        (racket-symbol->string y)))
-      ((racket-and (racket-char? x) (racket-char? y)) (racket-char<? x y))
-      (racket-else (err "Can't <" x y))))))
-
-(ar-def < args
-  (racket-define (< . args)
-    (ar-pairwise <2 (ar-list-fromarc args))))
-
-(ar-def >2 (x y)
-  (racket-define (>2 x y)
-    (ar-tnil
-     (racket-cond
-      ((racket-and (racket-number? x) (racket-number? y)) (racket-> x y))
-      ((racket-and (racket-string? x) (racket-string? y)) (racket-string>? x y))
-      ((racket-and (racket-symbol? x) (racket-symbol? y))
-       (racket-string>? (racket-symbol->string x) (racket-symbol->string y)))
-      ((racket-and (racket-char? x) (racket-char? y)) (racket-char>? x y))
-      (racket-else (err "Can't >" x y))))))
-
-(ar-def > args
-  (racket-define (> . args)
-    (ar-pairwise >2 (ar-list-fromarc args))))
-
-
-;; len
-
-(ar-def list-len (x)
-  (racket-define (list-len x)
-    (racket-cond
-     ((ar-no x)         0)
-     ((racket-mpair? x) (racket-+ 1 (list-len (racket-mcdr x))))
-     (racket-else       (err "len expects a proper list")))))
-
-(ar-def len (x)
-  (racket-define (len x)
-    (racket-cond
-     ((racket-string? x) (racket-string-length x))
-     ((racket-hash? x)   (racket-hash-count x))
-     (racket-else        (list-len x)))))
-
-
 ;; join
 
 (ar-def join args

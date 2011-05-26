@@ -3,6 +3,10 @@
        '(-               args
          /               args
          *               args
+         <2              (x y)
+         <               args
+         >2              (x y)
+         >               args
          annotate        (totype rep)
          ar-deep-fromarc (x)
          ar-exint        (x)
@@ -27,7 +31,9 @@
          instring        (str)
          is              args
          is2             (a b)
+         len             x
          list            args
+         list-len        x
          map1            (f xs)
          outstring       ()
          rep             (x)
