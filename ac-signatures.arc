@@ -9,6 +9,10 @@
          >                 args
          +                 args
          annotate          (totype rep)
+         ar-apply          (fn . racket-arg-list)
+         ar-apply-cons     (fn . racket-arg-list)
+         ar-apply-table    (fn . racket-arg-list)
+         ar-apply-string   (fn . racket-arg-list)
          ar-deep-fromarc   (x)
          ar-exint          (x)
          ar-iround         (x)

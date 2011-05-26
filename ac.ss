@@ -213,40 +213,6 @@
          x)))
 
 
-;; ar-apply
-
-(ar-def ar-apply-cons (fn . racket-arg-list)
-  (racket-define (ar-apply-cons fn . racket-arg-list)
-    (racket-mlist-ref fn (racket-car racket-arg-list))))
-
-(ar-def ar-apply-string (fn . racket-arg-list)
-  (racket-define (ar-apply-string fn . racket-arg-list)
-    (racket-string-ref fn (racket-car racket-arg-list))))
-
-(ar-def ar-apply-hash (fn . racket-arg-list)
-  (racket-define (ar-apply-hash fn . racket-arg-list)  
-    (racket-hash-ref fn
-      (racket-car racket-arg-list)
-      (racket-let ((default (racket-if (racket-pair? (racket-cdr racket-arg-list))
-                                        (racket-car (racket-cdr racket-arg-list))
-                                        (racket-quote nil))))
-        (racket-lambda () default)))))
-
-(ar-def ar-apply (fn . racket-arg-list)
-  (racket-define (ar-apply fn . racket-arg-list)
-    (racket-cond
-     ((racket-procedure? fn)
-      (racket-apply fn racket-arg-list))
-     ((racket-mpair? fn)
-      (racket-apply ar-apply-cons fn racket-arg-list))
-     ((racket-string? fn)
-      (racket-apply ar-apply-string fn racket-arg-list))
-     ((racket-hash? fn)
-      (racket-apply ar-apply-hash fn racket-arg-list))
-     (racket-else
-      (err "Function call on inappropriate object" fn racket-arg-list)))))
-
-
 ;; ar-funcall
 
 (ar-def ar-funcall0 (fn)

@@ -213,3 +213,11 @@
   (testis (a!+ 'nil '(1 2 3)) '(1 2 3))
   (testis (a!+ '(1 2) '(3))   '(1 2 3))
   (testis (a!+ 1 2 3)         6))
+
+(testfor (racket-define (ar-apply fn . racket-arg-list))
+  (testis (a!ar-apply + 1 2 3)            6)
+  (testis (a!ar-apply '(1 2 3) 1)         2)
+  (testis (a!ar-apply "abcde" 2)          #\c)
+  (testis (a!ar-apply (obj a 1 b 2) 'b)   2)
+  (testis (a!ar-apply (obj a 1 b 2) 'x)   nil)
+  (testis (a!ar-apply (obj a 1 b 2) 'x 3) 3))

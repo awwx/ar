@@ -300,3 +300,31 @@
   (racket-let ((r/module (ar-deep-fromarc a/module)))
     (racket-lambda (sym)
       (racket-dynamic-require r/module sym))))
+
+(racket-define (ar-apply-cons fn . racket-arg-list)
+  (racket-mlist-ref fn (racket-car racket-arg-list)))
+
+(racket-define (ar-apply-string fn . racket-arg-list)
+  (racket-string-ref fn (racket-car racket-arg-list)))
+
+(racket-define (ar-apply-table fn . racket-arg-list)  
+  (racket-hash-ref fn
+    (racket-car racket-arg-list)
+    (racket-let ((default
+                  (racket-if (racket-pair? (racket-cdr racket-arg-list))
+                              (racket-car (racket-cdr racket-arg-list))
+                              (racket-quote nil))))
+      (racket-lambda () default))))
+
+(racket-define (ar-apply fn . racket-arg-list)
+  (racket-cond
+   ((racket-procedure? fn)
+    (racket-apply fn racket-arg-list))
+   ((racket-mpair? fn)
+    (racket-apply ar-apply-cons fn racket-arg-list))
+   ((racket-string? fn)
+    (racket-apply ar-apply-string fn racket-arg-list))
+   ((racket-hash? fn)
+    (racket-apply ar-apply-table fn racket-arg-list))
+   (racket-else
+    (err "Function call on inappropriate object" fn racket-arg-list))))
