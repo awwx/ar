@@ -265,3 +265,6 @@
 (testfor (ar-def ac (s env))
   (testis (a!ac + nil)
           (makeerr "Bad object in expression #<procedure:+>")))
+
+(testfor (racket-define (eval form (runtime (racket-quote nil))))
+  (testis (a!eval '(ail-code "3")) 3))

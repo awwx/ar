@@ -70,8 +70,13 @@
                (racket-else
                 x)))
 
+(racket-struct ar-tunnel (v))
+
 (ar-def ar-deep-fromarc (x)
   (racket-cond
+   ((ar-tunnel? x)
+    (ar-tunnel-v x))
+
    ((racket-and (racket-mpair? x)
                 (racket-eq? (racket-mcar x)
                             (racket-quote kGsx4AFTTn-racket-list)))
@@ -401,5 +406,16 @@
 (ar-def apply (fn . args)
   (racket-apply ar-apply fn (ar-combine-args args)))
 
+(ar-def ar-rread-from-string (str)
+  (racket-parameterize ((racket-current-readtable #f))
+    (racket-read (racket-open-input-string str))))
+
 (ar-def ac (s env)
-  (err "Bad object in expression" s))
+  (racket-if (ar-true (caris s (racket-quote ail-code)))
+              (ar-tunnel (ar-rread-from-string (cadr s)))
+              (err "Bad object in expression" s)))
+
+(racket-define (eval form (runtime (racket-quote nil)))
+  (ar-racket-eval
+   (racket-if (ar-true runtime) runtime arc*)
+   (ar-deep-fromarc (ac form (racket-quote nil)))))

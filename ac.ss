@@ -59,7 +59,9 @@
 (define (new-arc arcdir (options (make-hash)))
   (let ((arc (make-hash)))
     (hash-set! arc 'racket-namespace* (make-arc-racket-namespace))
+    (set arc 'arc* arc)
     (set arc 'arcdir* arcdir)
+    (set arc 'ar-racket-eval racket-eval)
     (for-each (lambda (pair)
                 (let ((step (car pair)))
                   (step arc)))
@@ -360,14 +362,10 @@
   ((g ac-fn) ((g cadr) s) ((g cddr) s) env))
 
 
-;; eval
+;; arc-eval
 
 (define (arc-eval arc form)
   (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
-          
-
-(ac-def eval (form (other-arc 'nil))
-  (arc-eval (if ((g ar-true) other-arc) other-arc arc) form))
 
 
 ;; quasiquotation
@@ -609,10 +607,6 @@
   (lambda (arc)
     (set arc 'racket-readtable* #f)
     (set arc 'arc-readtable* (bracket-readtable #f))))
-
-(ac-def racket-read-from-string (str)
-  (parameterize ((current-readtable (g racket-readtable*)))
-    (read (open-input-string str))))
 
 (ar-def ar-read (input)
   (racket-define (ar-read input)

@@ -267,10 +267,6 @@
       (arc-test ( ((fn (a b) b) 1 2)         ) 2)
       (arc-test ( ((fn (a b) (+ a b 3)) 1 2) ) 6))
 
-    (after '(ac-def eval)
-      (arc-test ( (eval 3)        ) 3)
-      (arc-test ( (eval '(+ 1 2)) ) 3))
-
     (after '(extend ac (s env) ((g caris) s 'quasiquote))
        (arc-test ( `nil     ) 'nil)
        (arc-test ( `3       ) 3)

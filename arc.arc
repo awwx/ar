@@ -209,7 +209,7 @@
 (defrule ac (caris s 'racket)
   (let x (cadr s)
     (if (isa x 'string)
-         (racket-read-from-string x)
+         (ar-rread-from-string x)
          x)))
 
 (assign ac-defined-vars* (table))
