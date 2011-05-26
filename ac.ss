@@ -606,7 +606,6 @@
 
 (add-ac-build-step
   (lambda (arc)
-    (set arc 'racket-readtable* #f)
     (set arc 'arc-readtable* (bracket-readtable #f))))
 
 (ar-def ar-aload1 (p)
