@@ -96,12 +96,6 @@
     (eval form (hash-ref arc 'racket-namespace*))))
 
 
-;; sig
-
-(add-ac-build-step
- (lambda (arc)
-   (set arc 'sig (make-hash))))
-
 (define-syntax g
   (lambda (stx)
     (syntax-case stx ()

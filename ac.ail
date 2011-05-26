@@ -1,3 +1,5 @@
+(racket-define sig       (racket-make-hash))
+
 (racket-define -         racket--)
 (racket-define /         racket-/)
 (racket-define *         racket-*)
