@@ -433,3 +433,19 @@
     (racket-if (racket-eof-object? v)
                 eof
                 (ar-toarc v))))
+
+(ar-def ar-aload1 (p)
+  (racket-let ((x (ar-read p)))
+    (racket-if (ar-no x)
+                nil
+                (racket-begin
+                 (eval x)
+                 (ar-aload1 p)))))
+
+(ar-def ar-load filenames
+  (racket-for-each
+   (racket-lambda (filename)
+     (racket-call-with-input-file filename
+       (racket-lambda (p) (ar-aload1 p))))
+   filenames)
+  nil)
