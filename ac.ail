@@ -283,3 +283,15 @@
     (racket-apply join args))
    (racket-else
     (racket-apply racket-+ args))))
+
+(racket-define (peekc (port (racket-current-input-port)))
+  (racket-let ((c (racket-peek-char port)))
+    (racket-if (racket-eof-object? c) (racket-quote nil) c)))
+
+(racket-define (readc (port (racket-current-input-port))
+                      (eof (racket-quote nil)))
+  (racket-let ((c (racket-read-char port)))
+    (racket-if (racket-eof-object? c) eof c)))
+
+(racket-define (writec c (port (racket-current-output-port)))
+  (racket-write-char c port))

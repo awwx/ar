@@ -38,7 +38,10 @@
          list-len        x
          map1            (f xs)
          outstring       ()
+         peekc           ((o port stdin))
+         readc           ((o port stdin) (o eof nil))
          rep             (x)
          type            (x)
+         writec          (c (o port stdout))
          uniq            ()))
   (= sig.name signature))
