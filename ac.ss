@@ -207,15 +207,6 @@
          x)))
 
 
-;; The Arc compiler!
-
-(ar-def ac (s env)
-  (racket-define (ac s env)
-    (err "Bad object in expression" s)))
-
-; ...which is extended to do more below :-)
-
-
 ; Extending the Arc compiler
 
 (ac-def ar-extend-impl (name test body)

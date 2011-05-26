@@ -203,12 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def ac)
-      (test-expect-error
-       (let ((arc (test-arc)))
-         ((g ac) (lambda () 'foo) 'nil))
-       "Bad object in expression"))
-
     (after '(extend ac (s env) ((g ac-literal?) s))
       (arc-test ( 123   ) 123)
       (arc-test ( #\a   ) #\a)

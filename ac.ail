@@ -370,3 +370,8 @@
 
 (racket-define (apply fn . args)
   (racket-apply ar-apply fn (ar-combine-args args)))
+
+(racket-hash-set! sig (racket-quote ac) (ar-toarc (racket-quote (s env))))
+
+(racket-define (ac s env)
+  (err "Bad object in expression" s))

@@ -261,3 +261,7 @@
   (testis (a!apply join nil '((a b) (c d)))
           '(a b c d))
   (testis (a!apply + 1 2 '(3 4)) 10))
+
+(testfor (racket-define (ac s env))
+  (testis (a!ac + nil)
+          (makeerr "Bad object in expression #<procedure:+>")))
