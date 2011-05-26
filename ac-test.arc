@@ -221,3 +221,20 @@
   (testis (a!ar-apply (obj a 1 b 2) 'b)   2)
   (testis (a!ar-apply (obj a 1 b 2) 'x)   nil)
   (testis (a!ar-apply (obj a 1 b 2) 'x 3) 3))
+
+(testfor (racket-define (ar-funcall0 fn))
+  (testis (a!ar-funcall0 +)        0))
+
+(testfor (racket-define (ar-funcall1 fn arg1))
+  (testis (a!ar-funcall1 + 3)      3)
+  (testis (a!ar-funcall1 "abcd" 2) #\c))
+
+(testfor (racket-define (ar-funcall2 fn arg1 arg2))
+  (testis (a!ar-funcall2 + 3 4)        7)
+  (testis (a!ar-funcall2 (obj a 1 b 2) 'x 3) 3))
+
+(testfor (racket-define (ar-funcall3 fn arg1 arg2 arg3))
+  (testis (a!ar-funcall3 + 3 4 5) 12))
+
+(testfor (racket-define (ar-funcall4 fn arg1 arg2 arg3 arg4))
+  (testis (a!ar-funcall4 + 3 4 5 6) 18))

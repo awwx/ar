@@ -328,3 +328,28 @@
     (racket-apply ar-apply-table fn racket-arg-list))
    (racket-else
     (err "Function call on inappropriate object" fn racket-arg-list))))
+
+(racket-define (ar-funcall0 fn)
+  (racket-if (racket-procedure? fn)
+              (fn)
+              (ar-apply fn)))
+
+(racket-define (ar-funcall1 fn arg1)
+  (racket-if (racket-procedure? fn)
+               (fn arg1)
+               (ar-apply fn arg1)))
+
+(racket-define (ar-funcall2 fn arg1 arg2)
+  (racket-if (racket-procedure? fn)
+              (fn arg1 arg2)
+              (ar-apply fn arg1 arg2)))
+
+(racket-define (ar-funcall3 fn arg1 arg2 arg3)
+  (racket-if (racket-procedure? fn)
+              (fn arg1 arg2 arg3)
+              (ar-apply fn arg1 arg2 arg3)))
+
+(racket-define (ar-funcall4 fn arg1 arg2 arg3 arg4)
+  (racket-if (racket-procedure? fn)
+              (fn arg1 arg2 arg3 arg4)
+              (ar-apply fn arg1 arg2 arg3 arg4)))

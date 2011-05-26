@@ -203,16 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def ar-funcall4)
-      (let ((arc (test-arc)))
-        (test ((g ar-funcall0) +)                     0)
-        (test ((g ar-funcall1) + 3)                   3)
-        (test ((g ar-funcall1) "abcd" 2)              #\c)
-        (test ((g ar-funcall2) + 3 4)                 7)
-        (test ((g ar-funcall2) (hash 'a 1 'b 2) 'x 3) 3)
-        (test ((g ar-funcall3) + 3 4 5)               12)
-        (test ((g ar-funcall4) + 3 4 5 6)             18)))
-
     (after '(ar-def ar-combine-args)
       (let ((arc (test-arc)))
         (test ((g ar-combine-args) (list))                        '())

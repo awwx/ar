@@ -213,39 +213,6 @@
          x)))
 
 
-;; ar-funcall
-
-(ar-def ar-funcall0 (fn)
-  (racket-define (ar-funcall0 fn)
-    (racket-if (racket-procedure? fn)
-                (fn)
-                (ar-apply fn))))
-
-(ar-def ar-funcall1 (fn arg1)
-  (racket-define (ar-funcall1 fn arg1)
-    (racket-if (racket-procedure? fn)
-                 (fn arg1)
-                 (ar-apply fn arg1))))
-
-(ar-def ar-funcall2 (fn arg1 arg2)
-  (racket-define (ar-funcall2 fn arg1 arg2)
-    (racket-if (racket-procedure? fn)
-                (fn arg1 arg2)
-                (ar-apply fn arg1 arg2))))
-
-(ar-def ar-funcall3 (fn arg1 arg2 arg3)
-  (racket-define (ar-funcall3 fn arg1 arg2 arg3)
-    (racket-if (racket-procedure? fn)
-                (fn arg1 arg2 arg3)
-                (ar-apply fn arg1 arg2 arg3))))
-
-(ar-def ar-funcall4 (fn arg1 arg2 arg3 arg4)
-  (racket-define (ar-funcall4 fn arg1 arg2 arg3 arg4)
-    (racket-if (racket-procedure? fn)
-                (fn arg1 arg2 arg3 arg4)
-                (ar-apply fn arg1 arg2 arg3 arg4))))
-
-
 ;; apply
 
 (ar-def ar-combine-args (as)
