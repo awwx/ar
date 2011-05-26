@@ -51,7 +51,8 @@
 (racket-define (ar-deep-fromarc x)
   (racket-cond
    ((racket-and (racket-mpair? x)
-                (racket-eq? (racket-mcar x) (racket-quote racket-list)))
+                (racket-eq? (racket-mcar x)
+                            (racket-quote kGsx4AFTTn-racket-list)))
     (ar-strict-deep-fromarc (racket-mcar (racket-mcdr x))))
 
    ;; nil in the car position isn't a list terminator, and so can
@@ -353,3 +354,17 @@
   (racket-if (racket-procedure? fn)
               (fn arg1 arg2 arg3 arg4)
               (ar-apply fn arg1 arg2 arg3 arg4)))
+
+(racket-define (ar-combine-args as)
+  (racket-let next ((as as) (accum (racket-list)))
+    (racket-cond
+     ((racket-null? as)
+      accum)
+     ((racket-null? (racket-cdr as))
+      (racket-append accum (ar-list-fromarc (racket-car as))))
+     (racket-else
+      (next (racket-cdr as)
+            (racket-append accum (racket-list (racket-car as))))))))
+
+(racket-define (apply fn . args)
+  (racket-apply ar-apply fn (ar-combine-args args)))

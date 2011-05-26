@@ -213,24 +213,6 @@
          x)))
 
 
-;; apply
-
-(ar-def ar-combine-args (as)
-  (racket-define (ar-combine-args as)
-    (racket-let next ((as as) (accum (racket-list)))
-      (racket-cond
-       ((racket-null? as)
-        accum)
-       ((racket-null? (racket-cdr as))
-        (racket-append accum (ar-list-fromarc (racket-car as))))
-       (racket-else
-        (next (racket-cdr as) (racket-append accum (racket-list (racket-car as)))))))))
-
-(ar-def apply (fn . args)
-  (racket-define (apply fn . args)
-    (racket-apply ar-apply fn (ar-combine-args args))))
-
-
 ;; The Arc compiler!
 
 (ar-def ac (s env)

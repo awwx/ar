@@ -203,23 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def ar-combine-args)
-      (let ((arc (test-arc)))
-        (test ((g ar-combine-args) (list))                        '())
-        (test ((g ar-combine-args) (list ((g list))))             '())
-        (test ((g ar-combine-args) (list ((g list) 'a)))          '(a))
-        (test ((g ar-combine-args) (list ((g list) 'a 'b 'c)))    '(a b c))
-        (test ((g ar-combine-args) (list 'a ((g list))))          '(a))
-        (test ((g ar-combine-args) (list 'a ((g list) 'b 'c 'd))) '(a b c d))
-        (test ((g ar-combine-args) (list 'a 'b ((g list) 'c 'd))) '(a b c d))))
-
-    (after '(ar-def apply)
-      (let ((arc (test-arc)))
-        (test ((g apply) +) 0)
-        (test ((g apply) (g join) 'nil ((g ar-toarc) '((a b) (c d))))
-              ((g ar-toarc) '(a b c d)))
-        (test ((g apply) + 1 2 ((g list) 3 4)) 10)))
-
     (after '(ar-def ac)
       (test-expect-error
        (let ((arc (test-arc)))
