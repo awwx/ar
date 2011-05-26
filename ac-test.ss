@@ -203,12 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def annotate)
-      (let ((arc (test-arc)))
-        (let ((x ((g annotate) 'mytype 'foo)))
-          (test ((g type) x) 'mytype)
-          (test ((g rep) x)  'foo))))
-
     (after '(ar-def is)
       (let ((arc (test-arc)))
         (test ((g is))       't)

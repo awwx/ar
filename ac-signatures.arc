@@ -3,9 +3,12 @@
        '(-               args
          /               args
          *               args
+         annotate        (totype rep)
          ar-deep-fromarc (x)
+         ar-exint        (x)
          ar-list-fromarc (x)
          ar-r/list-toarc (x)
+         ar-tagged       (x)
          ar-toarc        (x)
          car             (x)
          cadr            (x)
@@ -17,5 +20,7 @@
          instring        (str)
          list            args
          outstring       ()
+         rep             (x)
+         type            (x)
          uniq            ()))
   (= sig.name signature))

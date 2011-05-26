@@ -213,46 +213,6 @@
          x)))
 
 
-;; type
-
-(ar-def ar-exint (x)
-  (racket-define (ar-exint x)
-    (racket-and (racket-integer? x) (racket-exact? x))))
-
-(ar-def ar-tagged (x)
-  (racket-define (ar-tagged x)
-    (racket-and (racket-vector? x)
-                (racket-eq? (racket-vector-ref x 0) (racket-quote tagged)))))
-
-(ar-def rep (x)
-  (racket-define (rep x)
-    (racket-if (ar-tagged x)
-                (racket-vector-ref x 2)
-                x)))
-
-(ar-def type (x)
-  (racket-define (type x)
-    (racket-cond
-     ((ar-tagged x)             (racket-vector-ref x 1))
-     ((racket-mpair? x)         (racket-quote cons))
-     ((racket-symbol? x)        (racket-quote sym))
-     ((racket-parameter? x)     (racket-quote parameter))
-     ((racket-procedure? x)     (racket-quote fn))
-     ((racket-char? x)          (racket-quote char))
-     ((racket-string? x)        (racket-quote string))
-     ((ar-exint x)              (racket-quote int))
-     ((racket-number? x)        (racket-quote num))
-     ((racket-hash? x)          (racket-quote table))
-     ((racket-output-port? x)   (racket-quote output))
-     ((racket-input-port? x)    (racket-quote input))
-     ((racket-tcp-listener? x)  (racket-quote socket))
-     ((racket-exn? x)           (racket-quote exception))
-     ((racket-thread? x)        (racket-quote thread))
-     ((racket-thread-cell? x)   (racket-quote thread-cell))
-     ((racket-semaphore? x)     (racket-quote semaphore))
-     (racket-else               (racket-quote unknown)))))
-
-
 ;; ar-tnil
 
 (ar-def ar-tnil (x)
@@ -343,15 +303,6 @@
          ((string)    (racket-symbol->string x))
          (racket-else (err "Can't coerce" x type))))
       (racket-else x))))
-
-
-;; annotate
-
-(ar-def annotate (totype rep)
-  (racket-define (annotate totype rep)
-    (racket-cond
-     ((racket-eqv? (type rep) totype) rep)
-     (racket-else (racket-vector (racket-quote tagged) totype rep)))))
 
 
 ;; is

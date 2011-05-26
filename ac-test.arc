@@ -109,3 +109,8 @@
 
 (testfor (racket-define (cddr x))
   (testis (a!cddr '(1 2 3 4)) '(3 4)))
+
+(testfor (racket-define (annotate totype rep))
+  (let x (a!annotate 'mytype 'foo)
+    (testis (a!type x) 'mytype)
+    (testis (a!rep x) 'foo)))
