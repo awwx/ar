@@ -213,40 +213,6 @@
          x)))
 
 
-;; is
-
-(ar-def ar-pairwise (pred lst)
-  (racket-define (ar-pairwise pred lst)
-    (racket-cond
-      ((racket-null? lst) (racket-quote t))
-      ((racket-null? (racket-cdr lst)) (racket-quote t))
-      ((racket-not (racket-eqv? (pred (racket-car lst) (racket-cadr lst))
-                                (racket-quote nil)))
-       (ar-pairwise pred (racket-cdr lst)))
-      (racket-else (racket-quote nil)))))
-  
-(ar-def is2 (a b)
-  (racket-define (is2 a b)
-    (ar-tnil
-     (racket-or (racket-eqv? a b)
-                (racket-and (racket-string? a)
-                            (racket-string? b)
-                            (racket-string=? a b))))))
-
-(ar-def is args
-  (racket-define (is . args)
-    (ar-pairwise is2 (ar-list-fromarc args))))
-
-
-;; caris
-
-(ar-def caris (x val)
-  (racket-define (caris x val)
-    (ar-tnil
-     (racket-and (racket-mpair? x)
-                 (ar-true (is (car x) val))))))
-
-
 ;; <
 
 (ar-def <2 (x y)

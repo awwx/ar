@@ -137,3 +137,16 @@
   (testis (a!coerce '("a" b #\c)  'string)    "abc")
   (testis (a!coerce 'nil          'string)    "")
   (testis (a!coerce 'nil          'cons)      'nil))
+
+(testfor (racket-define (is . args))
+  (testis (a!is)       't)
+  (testis (a!is 4)     't)
+  (testis (a!is 3 4)   'nil)
+  (testis (a!is 4 4)   't)
+  (testis (a!is 4 4 5) 'nil)
+  (testis (a!is 4 4 4) 't))
+
+(testfor (racket-define (caris x val))
+  (testis (a!caris 4 'x)      'nil)
+  (testis (a!caris '(y z) 'x) 'nil)
+  (testis (a!caris '(x y) 'x) 't))

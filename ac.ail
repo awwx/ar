@@ -194,3 +194,28 @@
        ((string)    (racket-symbol->string x))
        (racket-else (err "Can't coerce" x type))))
     (racket-else x)))
+
+(racket-define (ar-pairwise pred lst)
+  (racket-cond
+    ((racket-null? lst) (racket-quote t))
+    ((racket-null? (racket-cdr lst)) (racket-quote t))
+    ((racket-not (racket-eqv? (pred (racket-car lst) (racket-cadr lst))
+                              (racket-quote nil)))
+     (ar-pairwise pred (racket-cdr lst)))
+    (racket-else (racket-quote nil))))
+  
+(racket-define (is2 a b)
+  (ar-tnil
+   (racket-or (racket-eqv? a b)
+              (racket-and (racket-string? a)
+                          (racket-string? b)
+                          (racket-string=? a b)))))
+
+(racket-define (is . args)
+  (ar-pairwise is2 (ar-list-fromarc args)))
+
+
+(racket-define (caris x val)
+  (ar-tnil
+   (racket-and (racket-mpair? x)
+               (ar-true (is (car x) val)))))

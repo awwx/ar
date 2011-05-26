@@ -203,21 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ar-def is)
-      (let ((arc (test-arc)))
-        (test ((g is))       't)
-        (test ((g is) 4)     't)
-        (test ((g is) 3 4)   'nil)
-        (test ((g is) 4 4)   't)
-        (test ((g is) 4 4 5) 'nil)
-        (test ((g is) 4 4 4) 't)))
-
-    (after '(ar-def caris)
-      (let ((arc (test-arc)))
-        (test ((g caris) 4 'x)                'nil)
-        (test ((g caris) ((g list) 'y 'z) 'x) 'nil)
-        (test ((g caris) ((g list) 'x 'y) 'x) 't)))
-
     (after '(ar-def >)
       (let ((arc (test-arc)))
         (test ((g <))             't)

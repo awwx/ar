@@ -9,6 +9,7 @@
          ar-iround       (x)
          ar-list-fromarc (x)
          ar-no           (x)
+         ar-pairwise     (pred lst)
          ar-r/list-toarc (x)
          ar-tagged       (x)
          ar-tnil         (x)
@@ -16,6 +17,7 @@
          ar-true         (x)
          car             (x)
          cadr            (x)
+         caris           (x val)
          cdr             (x)
          cddr            (x)
          coerce          (x totype . args)
@@ -23,6 +25,8 @@
          err             args
          inside          (s)
          instring        (str)
+         is              args
+         is2             (a b)
          list            args
          map1            (f xs)
          outstring       ()
