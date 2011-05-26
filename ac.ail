@@ -419,3 +419,17 @@
   (ar-racket-eval
    (racket-if (ar-true runtime) runtime arc*)
    (ar-deep-fromarc (ac form (racket-quote nil)))))
+
+(racket-define arc-readtable* #f)
+
+(racket-hash-set! sig
+                  (racket-quote ar-read)
+                  (ar-toarc (racket-quote (input (o eof nil)))))
+
+(racket-define (ar-read input (eof (racket-quote nil)))
+  (racket-let ((v (racket-parameterize
+                   ((racket-current-readtable arc-readtable*))
+                   (racket-read input))))
+    (racket-if (racket-eof-object? v)
+                eof
+                (ar-toarc v))))

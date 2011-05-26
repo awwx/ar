@@ -229,7 +229,9 @@
         (arc-test ( car ) (g car))
         (arc-test ( nil ) 'nil)))
 
-    (after '(extend ac (s env) ((g ar-tnil) (mpair? s)))
+    (after '(extend ac (s env)
+              ((g ar-tnil) (and (mpair? s)
+                                (not (eq? (mcar s) 'ail-code)))))
       (arc-test ( (+)           ) 0)
       (arc-test ( (+ 1 2)       ) 3)
       (arc-test ( (+ 1 2 3)     ) 6)

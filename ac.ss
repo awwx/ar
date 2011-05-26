@@ -302,7 +302,8 @@
                   ((g map1) (lambda (arg) ((g ac) arg env)) args))))))
 
 (extend ac (s env)
-  ((g ar-tnil) (mpair? s))
+  ((g ar-tnil) (and (mpair? s)
+                    (not (eq? (mcar s) 'ail-code))))
   ((g ac-call) ((g car) s) ((g cdr) s) env))
 
 
@@ -608,18 +609,13 @@
     (set arc 'racket-readtable* #f)
     (set arc 'arc-readtable* (bracket-readtable #f))))
 
-(ar-def ar-read (input)
-  (racket-define (ar-read input)
-    (racket-parameterize ((racket-current-readtable arc-readtable*))
-      (racket-read input))))
-
 (ar-def ar-aload1 (p)
   (racket-define (ar-aload1 p)
     (racket-let ((x (ar-read p)))
-      (racket-if (racket-eof-object? x)
+      (racket-if (racket-eq? x (racket-quote nil))
                   (racket-quote nil)
                   (racket-begin
-                   (eval (ar-toarc x))
+                   (eval x)
                    (ar-aload1 p))))))
 
 (ar-def ar-load filenames
