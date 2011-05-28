@@ -161,7 +161,7 @@
 
 (add-ac-build-step
  (lambda (arc)
-   (ail-load arc (string-append (get arc 'arcdir*) "/ac.ail"))
+   (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
    ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
 
 
