@@ -28,3 +28,6 @@
    (racket-and (racket-mpair? lst)
                (racket-or (ar-true (is v (car lst)))
                           (ar-true (ar-mem v (cdr lst))))))))
+
+(ail-code (ar-def ac-lex? (v env)
+  (ar-mem v env)))

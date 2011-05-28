@@ -29,3 +29,7 @@
   (testis (a!eval #\a)   #\a)
   (testis (a!eval "abc") "abc")
   (testis (a!eval car)   car))
+
+(testfor (ar-def ac-lex? (v env))
+  (testis (a!ac-lex? 'y '(x y z)) t)
+  (testis (a!ac-lex? 'w '(x y z)) nil))

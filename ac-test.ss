@@ -203,17 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def ac-lex?)
-      (let ((arc (test-arc)))
-        (test-t arc
-                ((g ac-lex?)
-                 'y
-                 ((g list) 'x 'y 'z)))
-        (test-nil arc
-                  ((g ac-lex?)
-                   'w
-                   ((g list) 'x 'y 'z)))))
-
     (after '(extend ac (s env) ((g ar-tnil) (symbol? s)))
       (let ((arc (test-arc)))
         (test-expect-error
