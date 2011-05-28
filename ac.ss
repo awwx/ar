@@ -710,12 +710,6 @@
 (ac-def ac-lex? (v env)
   ((g ar-mem) v env))
 
-(define (global-ref-err arc v)
-  (let ((message (string-append "undefined global variable: "
-                                (symbol->string v))))
-    (lambda ()
-      ((g err) message))))
-
 (ac-def ac-global (v)
   v)
 
