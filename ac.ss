@@ -225,12 +225,6 @@
 
 ;; variables
 
-(ac-def ar-mem (v lst)
-  ((g ar-tnil)
-   (and (mpair? lst)
-        (or (eqv? v (mcar lst))
-            ((g ar-true) ((g ar-mem) v (mcdr lst)))))))
-
 (ac-def ac-lex? (v env)
   ((g ar-mem) v env))
 

@@ -22,3 +22,9 @@
 (ail-code (ar-extend ac (s env)
   (ac-literal? s)
   s))
+
+(ail-code (ar-def ar-mem (v lst)
+  (ar-tnil
+   (racket-and (racket-mpair? lst)
+               (racket-or (ar-true (is v (car lst)))
+                          (ar-true (ar-mem v (cdr lst))))))))
