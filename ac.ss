@@ -62,6 +62,13 @@
     (set arc 'arc* arc)
     (set arc 'arcdir* arcdir)
     (set arc 'ar-racket-eval racket-eval)
+    (set arc 'ar-ail-load ail-load)
+    (set arc 'ar-var
+         (lambda (name)
+           (get arc name)))
+    (set arc 'ar-assign
+         (lambda (name value)
+           (set arc name value)))
     (for-each (lambda (pair)
                 (let ((step (car pair)))
                   (step arc)))
@@ -69,13 +76,7 @@
     arc))
 
 (define (new-arc2 arcdir)
-  (let ((arc (make-hash)))
-    (hash-set! arc 'racket-namespace* (make-arc-racket-namespace))
-    (set arc 'arc* arc)
-    (set arc 'arcdir* arcdir)
-    (set arc 'ar-racket-eval racket-eval)
-    (set arc 'ar-ail-load ail-load)
-    arc))
+  (new-arc arcdir))
 
 
 ;; toarc
@@ -160,7 +161,8 @@
 
 (add-ac-build-step
  (lambda (arc)
-   (ail-load arc (string-append (get arc 'arcdir*) "/ac.ail"))))
+   (ail-load arc (string-append (get arc 'arcdir*) "/ac.ail"))
+   ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
 
 
 ;; r/list-toarc
@@ -210,15 +212,6 @@
 
 
 ; Extending the Arc compiler
-
-(ac-def ar-extend-impl (name test body)
-  (let ((previous (get arc name)))
-    (set arc name
-      (lambda args
-        (let ((result (apply test arc args)))
-          (if ((g ar-true) result)
-               (apply body arc result args)
-               (apply previous args)))))))
 
 (defmacro extend (name args test . body)
   `(add-ac-build-step

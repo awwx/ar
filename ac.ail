@@ -412,7 +412,7 @@
 
 (ar-def ac (s env)
   (racket-if (ar-true (caris s (racket-quote ail-code)))
-              (ar-tunnel (ar-rread-from-string (cadr s)))
+              (ar-tunnel (ar-deep-fromarc (cadr s)))
               (err "Bad object in expression" s)))
 
 (racket-define (eval form (runtime (racket-quote nil)))
