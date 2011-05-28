@@ -223,21 +223,6 @@
      '(extend ,name ,args ,test)))
 
 
-;; variables
-
-(ac-def ac-global (v)
-  v)
-
-(ac-def ac-var-ref (s env)
-  (if ((g ar-true) ((g ac-lex?) s env))
-       s
-       ((g ac-global) s)))
-
-(extend ac (s env)
-  ((g ar-tnil) (symbol? s))
-  ((g ac-var-ref) s env))
-
-
 ;; call
 
 ; todo ac-dbname!

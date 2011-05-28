@@ -31,3 +31,12 @@
 
 (ail-code (ar-def ac-lex? (v env)
   (ar-mem v env)))
+
+(ail-code (ar-def ac-global (v)
+  v))
+
+(ail-code (ar-extend ac (s env)
+  (ar-tnil (racket-symbol? s))
+  (racket-if (ar-true (ac-lex? s env))
+              s
+              (ac-global s))))
