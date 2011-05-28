@@ -76,7 +76,8 @@
     arc))
 
 (define (new-arc2 arcdir)
-  (new-arc arcdir))
+  (new-arc arcdir
+           (make-hash `((build-steps . ())))))
 
 
 ;; toarc
