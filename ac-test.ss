@@ -203,16 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(extend ac (s env) ((g ar-tnil) (symbol? s)))
-      (let ((arc (test-arc)))
-        (test-expect-error
-          (arc-test-eval '( foo ) arc)
-          "reference to undefined identifier: foo"))
-
-      (let ((arc (test-arc)))
-        (arc-test ( car ) (g car))
-        (arc-test ( nil ) 'nil)))
-
     (after '(extend ac (s env)
               ((g ar-tnil) (and (mpair? s)
                                 (not (eq? (mcar s) 'ail-code)))))

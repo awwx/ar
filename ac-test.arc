@@ -33,3 +33,9 @@
 (testfor (ar-def ac-lex? (v env))
   (testis (a!ac-lex? 'y '(x y z)) t)
   (testis (a!ac-lex? 'w '(x y z)) nil))
+
+(testfor (ar-extend ac (s env) (ar-tnil (racket-symbol? s)))
+  (testis (a!eval 'foo)
+          (makeerr "reference to undefined identifier: foo"))
+  (testis (a!eval 'car) a!car)
+  (testis (a!eval 't)   t))
