@@ -223,22 +223,6 @@
      '(extend ,name ,args ,test)))
 
 
-;; literal
-
-(ac-def ac-literal? (x)
-  ((g ar-tnil)
-   (or (char? x)
-       (string? x)
-       (number? x)
-       (procedure? x))))
-
-(extend ac (s env)
-  ((g ac-literal?) s)
-  s)
-
-; it's alive!
-
-
 ;; variables
 
 (ac-def ar-mem (v lst)

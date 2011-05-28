@@ -203,11 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(extend ac (s env) ((g ac-literal?) s))
-      (arc-test ( 123   ) 123)
-      (arc-test ( #\a   ) #\a)
-      (arc-test ( "abc" ) "abc"))
-
     (after '(ac-def ac-lex?)
       (let ((arc (test-arc)))
         (test-t arc
