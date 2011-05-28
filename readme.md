@@ -345,6 +345,67 @@ Changes
          (t nil t nil t nil)
 
 
+The Arc Implementation Language (Ail)
+-------------------------------------
+
+Ail is an language intermediate between Racket and Arc, though closer
+to Racket than to Arc.  The Arc runtime is written in Ail, and the Arc
+compiler compiles Arc to Ail.
+
+The purpose of Ail is to make Arc more hackable, because it puts Arc's
+runtime implementation in Arc's namespace where it can be directly
+modified from Arc.
+
+Ail is a terrible language for *writing* code in.  It is like assembly
+language or bytecode: it's something you'd rather have generated for
+you.
+
+Ail can also be used to access Racket from Arc, though it doesn't by
+itself provide a convenient way to do that.  However, a more friendly
+interface could be built that used Ail internally.
+
+Ail details:
+
+* Definitions and global variables are in Arc's namespace. Thus if you
+  define a function `foo` in Ail, it becomes a function `foo` in Arc.
+  Likewise, if code in Ail calls a function `bar`, and `bar` is
+  defined in Arc, Arc's `bar` will be called.
+
+* Function calls such as "`(foo 1 2 3)`" are made using Racket's plain
+  function call mechanism, and so can only call functions.
+
+* Racket identifiers are loaded into the namespace with a "racket-"
+  prefix.  Thus you can refer to Racket's `+` with `racket-+`,
+  Racket's `let` with `racket-let`, and so on.
+
+* Ail code is not loaded in a Racket module, but is instead eval'ed
+  one form at a time like Arc's `load` or Racket's
+  [racket/load](http://docs.racket-lang.org/reference/load-lang.html)
+  language.
+
+  This means that Ail code isn't separatated into compile-time and
+  run-time phases like code in Racket's modules are; but it also means
+  that we don't get some optimizations done for us that Racket's
+  modules provide.
+
+* Racket macros can be used from Ail code (but don't work from Arc).
+
+* Ail code can be generated from Arc by using `ail-code`.  For
+  example, from Arc:
+
+         (ail-code (racket-let ((foo 3))
+                     (+ foo 2)))
+
+  note that *Arc's* `+` is being called here, not Racket's.  If we
+  wanted Racket's `+`, we'd use `racket-+`.
+
+  `ail-code` is only necessary when we need to use a Racket macro or
+  special form, since Racket functions can be called directly from
+  Arc.  For example, from Arc:
+
+         (racket-+ 3 4 5)
+
+
 Contributors
 ------------
 
