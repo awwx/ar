@@ -4,5 +4,5 @@
       (racket-lambda args
         (racket-let ((result (racket-apply test arc* args)))
           (racket-if (ar-true result)
-               (racket-apply body arc* result args)
+               (racket-apply body arc* args)
                (racket-apply previous args))))))))

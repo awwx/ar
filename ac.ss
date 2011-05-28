@@ -218,7 +218,7 @@
      (lambda (arc)
        ((g ar-extend-impl) ',name
         (lambda (arc . ,args) ,test)
-        (lambda (arc it . ,args) ,@body)))
+        (lambda (arc . ,args) ,@body)))
      '(extend ,name ,args ,test)))
 
 
@@ -483,7 +483,7 @@
   (if ((g ar-true) ((g ac-lex?) fn env))
        'nil
        ((g ac-macro?) fn))
-  ((g ac-mac-call) it args env))
+  ((g ac-mac-call) ((g ac-macro?) fn) args env))
 
 
 ;; fn rest arg
