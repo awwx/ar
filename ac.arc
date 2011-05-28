@@ -31,10 +31,3 @@
 
 (ail-code (ar-def ac-lex? (v env)
   (ar-mem v env)))
-
-(ail-code (ar-def ac-var-ref (s env)
-  s))
-
-(ail-code (ar-extend ac (s env)
-  (ar-tnil (racket-symbol? s))
-  (ac-var-ref s env)))
