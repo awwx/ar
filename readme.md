@@ -68,6 +68,7 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
+* (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"
 * The code currently requires Racket, though a compatibility mode for
   PLT Scheme would be useful.
 * clean up messy code in io.arc
