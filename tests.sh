@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -v
 racket ac-test.ss
-./arc --no-repl ac-test.arc
+./arc --no-repl ar-test.arc
 racket arc-test.ss
 racket io-test.ss
 sudo `which racket` io-test-root.ss
