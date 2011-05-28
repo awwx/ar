@@ -371,7 +371,7 @@ Ail details:
   Likewise, if code in Ail calls a function `bar`, and `bar` is
   defined in Arc, Arc's `bar` will be called.
 
-* Function calls such as "`(foo 1 2 3)`" are made using Racket's plain
+* Function calls such as `(foo 1 2 3)` are made using Racket's plain
   function call mechanism, and so can only call functions.
 
 * Racket identifiers are loaded into the namespace with a "racket-"
@@ -379,7 +379,7 @@ Ail details:
   Racket's `let` with `racket-let`, and so on.
 
 * Ail code is not loaded in a Racket module, but is instead eval'ed
-  one form at a time like Arc's `load` or Racket's
+  one form at a time.  This is like Arc's `load` or Racket's
   [racket/load](http://docs.racket-lang.org/reference/load-lang.html)
   language.
 
