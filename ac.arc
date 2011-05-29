@@ -256,3 +256,13 @@
     (join (list (car x)) (ac-args-without-rest (cdr x))))
    (racket-else
     nil))))
+
+(ail-code (racket-hash-set! sig (racket-quote ac-fn-rest-impl)
+            (ar-toarc (racket-quote (args r/rest rest body env)))))
+
+(ail-code (racket-define ac-fn-rest-impl
+  (eval (ar-toarc (racket-quote
+    (fn (args r/rest rest body env)
+      `(racket-lambda ,(join args r/rest)
+         (racket-let ((,rest (,ar-r/list-toarc ,r/rest)))
+           ,@(ac-body*x (join args (list rest)) body env)))))))))

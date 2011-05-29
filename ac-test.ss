@@ -3,7 +3,10 @@
 (require mzlib/defmacro)
 
 (require (only-in "ac.ss"
-           arc-eval new-arc ac-build-steps get set g))
+           racket-eval new-arc ac-build-steps get set g))
+
+(define (arc-eval arc form)
+  (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
 
 ;; todo code duplication with arc
 

@@ -166,25 +166,6 @@
      '(extend ,name ,args ,test)))
 
 
-;; arc-eval
-
-(define (arc-eval arc form)
-  (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
-
-
-; The implementation of "ac-fn-rest" turned out to be a lot easier to
-; write in Arc.
-
-(add-ac-build-step
- (lambda (arc)
-   (set arc 'ac-fn-rest-impl
-     (arc-eval arc
-      ((g ar-toarc)
-       '(fn (args r/rest rest body env)
-          `(racket-lambda ,(join args r/rest)
-             (racket-let ((,rest (,ar-r/list-toarc ,r/rest)))
-               ,@(ac-body*x (join args (list rest)) body env)))) )))))
-
 (ac-def ac-fn-rest (args body env)
   ((g ac-fn-rest-impl)
      ((g ac-args-without-rest) args)
