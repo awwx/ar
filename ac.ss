@@ -152,12 +152,6 @@
         (else x)))
 
 
-;; list
-
-(define (arc-list . rest)
-  (r/list-toarc rest))
-
-
 ; Extending the Arc compiler
 
 (defmacro extend (name args test . body)
@@ -199,24 +193,24 @@
         ((mpair? x)
          ((g qq-expand-pair) x))
         (else
-         (arc-list 'quote x))))
+         ((g list) 'quote x))))
 
 (ac-def qq-expand-pair (x)
-  (arc-list 'join
+  ((g list) 'join
             ((g qq-expand-list) (mcar x))
             ((g qq-expand) (mcdr x))))
 
 (ac-def qq-expand-list (x)
   (cond (((g ar-true) ((g caris) x 'unquote))
-         (arc-list 'list ((g cadr) x)))
+         ((g list) 'list ((g cadr) x)))
         (((g ar-true) ((g caris) x 'unquote-splicing))
          ((g cadr) x))
         (((g ar-true) ((g caris) x 'quasiquote))
          ((g qq-expand-list) ((g qq-expand) ((g cadr) x))))
         ((mpair? x)
-         (arc-list 'list ((g qq-expand-pair) x)))
+         ((g list) 'list ((g qq-expand-pair) x)))
         (else
-         (arc-list 'quote (list x)))))
+         ((g list) 'quote (list x)))))
 
 (extend ac (s env)
   ((g caris) s 'quasiquote)
@@ -232,8 +226,8 @@
         (((g ar-no) ((g cdr) args))
          ((g ac) ((g car) args) env))
         (else
-         (arc-list 'racket-if
-                   (arc-list (g ar-true) ((g ac) ((g car) args) env))
+         ((g list) 'racket-if
+                   ((g list) (g ar-true) ((g ac) ((g car) args) env))
                    ((g ac) ((g cadr) args) env)
                    ((g ac-if) ((g cddr) args) env)))))
 
@@ -245,16 +239,16 @@
 ;; assign
 
 (ac-def ac-global-assign (a b)
-  (arc-list 'racket-set! a b))
+  ((g list) 'racket-set! a b))
 
 (ac-def ac-assign1 (a b1 env)
   (unless (symbol? a)
     ((g err) "First arg to assign must be a symbol" a))
   (let ((result (gensym)))
-    (arc-list 'racket-let
-              (arc-list (arc-list result ((g ac) b1 env)))
+    ((g list) 'racket-let
+              ((g list) ((g list) result ((g ac) b1 env)))
               (if ((g ar-true) ((g ac-lex?) a env))
-                   (arc-list 'racket-set! a result)
+                   ((g list) 'racket-set! a result)
                    ((g ac-global-assign) a result))
               result)))
 
@@ -311,7 +305,7 @@
 
 (ac-def ac-args-without-rest (x)
   (cond ((mpair? x)
-         ((g join) (arc-list ((g car) x)) ((g ac-args-without-rest) (mcdr x))))
+         ((g join) ((g list) ((g car) x)) ((g ac-args-without-rest) (mcdr x))))
         (else
          'nil)))
 
