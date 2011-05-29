@@ -121,30 +121,6 @@
                (ac-def-fn arc 'name 'args (lambda args body ...)))
              `(ac-def ,'name ,'args)))))))
 
-(define-syntax ac-def-sig
-  (lambda (stx)
-    (syntax-case stx ()
-      ((ac-def-sig name racket-args arc-signature body ...)
-       (with-syntax ((arc (datum->syntax #'name 'arc)))
-         #'(add-ac-build-step
-            (lambda (arc)
-              (ac-def-fn arc 'name 'arc-signature
-                (lambda racket-args body ...)))
-            `(ac-def-sig ,'name ,'racket-args)))))))
-
-
-;; ar-def
-
-(defmacro ar-def (name signature . body)
-  `(add-ac-build-step
-    (lambda (arc)
-      (hash-set! (get arc 'sig) ',name (toarc ',signature))
-      ,@(map (lambda (form)
-               `(racket-eval arc ',form))
-             body))
-    '(ar-def ,name)))
-
-
 ;; ail-load
 
 (define (ail-load arc filename)
@@ -180,21 +156,6 @@
 
 (define (arc-list . rest)
   (r/list-toarc rest))
-
-
-;; ar-deep-fromarc
-
-(define (ar-deep-fromarc x)
-  (cond ;; nil in the car position isn't a list terminator, and so can
-        ;; be left alone.
-        ((mpair? x)
-         (cons (let ((a (mcar x)))
-                 (if (eq? a 'nil) 'nil (ar-deep-fromarc a)))
-               (let ((b (mcdr x)))
-                 (if (eq? b 'nil) '() (ar-deep-fromarc b)))))
-
-        (else
-         x)))
 
 
 ; Extending the Arc compiler
