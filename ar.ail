@@ -61,26 +61,12 @@
     (racket-quote ()))
    (racket-else x)))
 
-(ar-def ar-strict-deep-fromarc (x)
-  (racket-cond ((racket-eq? x nil)
-                (racket-quote ()))
-               ((racket-mpair? x)
-                (racket-cons (ar-strict-deep-fromarc (racket-mcar x))
-                             (ar-strict-deep-fromarc (racket-mcdr x))))
-               (racket-else
-                x)))
-
 (racket-struct ar-tunnel (v))
 
 (ar-def ar-deep-fromarc (x)
   (racket-cond
    ((ar-tunnel? x)
     (ar-tunnel-v x))
-
-   ((racket-and (racket-mpair? x)
-                (racket-eq? (racket-mcar x)
-                            (racket-quote kGsx4AFTTn-racket-list)))
-    (ar-strict-deep-fromarc (racket-mcar (racket-mcdr x))))
 
    ;; nil in the car position isn't a list terminator, and so can
    ;; be left alone.

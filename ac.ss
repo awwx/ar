@@ -184,23 +184,8 @@
 
 ;; ar-deep-fromarc
 
-; todo I think we just need some better way of representing a Racket
-; null in the Arc compiler.
-
-(define (strict-deep-fromarc x)
-  (cond ((eq? x 'nil)
-         '())
-        ((mpair? x)
-         (cons (strict-deep-fromarc (mcar x))
-               (strict-deep-fromarc (mcdr x))))
-        (else
-         x)))
-
 (define (ar-deep-fromarc x)
-  (cond ((and (mpair? x) (eq? (mcar x) 'kGsx4AFTTn-racket-list))
-         (strict-deep-fromarc (mcar (mcdr x))))
-
-        ;; nil in the car position isn't a list terminator, and so can
+  (cond ;; nil in the car position isn't a list terminator, and so can
         ;; be left alone.
         ((mpair? x)
          (cons (let ((a (mcar x)))
@@ -228,14 +213,13 @@
 ; Rest args, optional args, and arg list destructuring are implemented
 ; later.
 
-(ac-def ac-fn (args body env)
-  (if ((g ar-true) ((g ac-dotted-list?) args))
-       ((g ac-fn-rest) args body env)
-       (mcons 'racket-lambda
-              ;; TODO I think it would be better to have an explicit
-              ;; representation for nil instead
-              (mcons (arc-list 'kGsx4AFTTn-racket-list args)
-                     ((g ac-body*x) args body env)))))
+(ar-def ac-fn (args body env)
+  (racket-define (ac-fn args body env)
+    (racket-if (ar-true (ac-dotted-list? args))
+      (ac-fn-rest args body env)
+      (racket-mcons (racket-quote racket-lambda)
+                    (racket-mcons (ar-tunnel (ar-list-fromarc args))
+                                  (ac-body*x args body env))))))
 
 (extend ac (s env)
   ((g caris) s 'fn)
