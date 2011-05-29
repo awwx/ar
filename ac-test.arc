@@ -50,3 +50,19 @@
   (testis (a!eval '(+ 1 2 3))     6)
   (testis (a!eval '(+ 1 2 3 4))   10)
   (testis (a!eval '(+ 1 2 3 4 5)) 15))
+
+(testfor (ar-extend ac (s env) (caris s (racket-quote quote)))
+  (testis (a!eval ''abc)     'abc)
+  (testis (a!eval ''())      'nil)
+  (testis (a!eval ''(a))     '(a))
+  (testis (a!eval ''(nil))   '(nil))
+  (testis (a!eval ''(a . b)) '(a . b))
+
+  (testis (a!eval '(apply list 1 2 '(3 4))) '(1 2 3 4))
+
+  (testis (a!eval '(apply +))            0)
+  (testis (a!eval '(apply + nil))        0)
+  (testis (a!eval '(apply + '(1)))       1)
+  (testis (a!eval '(apply + '(1 2 3 4))) 10)
+  (testis (a!eval '(apply + 1 2 nil))    3)
+  (testis (a!eval '(apply + 1 2 '(3 4))) 10))

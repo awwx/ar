@@ -203,22 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(extend ac (s env) ((g caris) s (quote quote)))
-      (arc-test ( 'abc     ) 'abc)
-      (arc-test ( '()      ) 'nil)
-      (arc-test ( '(a)     ) ((g list) 'a))
-      (arc-test ( '(nil)   ) ((g list) 'nil))
-      (arc-test ( '(a . b) ) (mcons 'a 'b))
-
-      (arc-test ( (apply list 1 2 '(3 4)) ) ((g ar-toarc) '(1 2 3 4)))
-
-      (arc-test ( (apply +)            ) 0)
-      (arc-test ( (apply + nil)        ) 0)
-      (arc-test ( (apply + '(1))       ) 1)
-      (arc-test ( (apply + '(1 2 3 4)) ) 10)
-      (arc-test ( (apply + 1 2 nil)    ) 3)
-      (arc-test ( (apply + 1 2 '(3 4)) ) 10))
-
     (after '(ac-def ac-body)
       (let ((arc (test-arc)))
         (test

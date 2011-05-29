@@ -223,17 +223,6 @@
      '(extend ,name ,args ,test)))
 
 
-;; quote
-
-; The goal here is to get the quoted value tunneled through Racket's
-; compiler unscathed.  This trick uses rocketnia's method: Racket
-; doesn't copy function values.
-
-(extend ac (s env) ((g caris) s 'quote)
-  (let ((v ((g cadr) s)))
-    ((g list) ((g list) 'racket-quote (lambda () v)))))
-
-
 ;; fn
 
 ; Rest args, optional args, and arg list destructuring are implemented

@@ -71,3 +71,13 @@
    (racket-and (racket-mpair? s)
                (racket-not (ar-true (is (car s) (racket-quote ail-code))))))
   (ac-call (car s) (cdr s) env)))
+
+;; quote
+
+; The goal here is to get the quoted value tunneled through Racket's
+; compiler unscathed.  This trick uses rocketnia's method: Racket
+; doesn't copy function values.
+
+(ail-code (ar-extend ac (s env) (caris s (racket-quote quote))
+  (racket-let ((v (cadr s)))
+    (list (list (racket-quote racket-quote) (racket-lambda () v))))))
