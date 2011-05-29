@@ -39,3 +39,14 @@
           (makeerr "reference to undefined identifier: foo"))
   (testis (a!eval 'car) a!car)
   (testis (a!eval 't)   t))
+
+(testfor (ar-extend ac (s env)
+           (ar-tnil
+            (racket-and
+             (racket-mpair? s)
+             (racket-not (ar-true (is (car s) (racket-quote ail-code)))))))
+  (testis (a!eval '(+))           0)
+  (testis (a!eval '(+ 1 2))       3)
+  (testis (a!eval '(+ 1 2 3))     6)
+  (testis (a!eval '(+ 1 2 3 4))   10)
+  (testis (a!eval '(+ 1 2 3 4 5)) 15))

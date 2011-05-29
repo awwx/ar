@@ -223,38 +223,6 @@
      '(extend ,name ,args ,test)))
 
 
-;; call
-
-; todo ac-dbname!
-(ac-def ac-args (names exprs env)
-  ((g map1) (lambda (expr) ((g ac) expr env)) exprs))
-
-(ac-def ac-call (f args env)
-  (cond
-   ;; if we're about to call a literal fn such as ((fn (a b) ...) 1 2)
-   ;; then we know we can just call it in Racket and we don't
-   ;; have to use ar-apply
-   ((and (mpair? f) (eq? (mcar f) 'fn))
-    (mcons ((g ac) f env)
-           ((g ac-args) ((g cadr) f) args env)))
-
-   (else
-    (mcons (case ((g len) args)
-             ((0) (g ar-funcall0))
-             ((1) (g ar-funcall1))
-             ((2) (g ar-funcall2))
-             ((3) (g ar-funcall3))
-             ((4) (g ar-funcall4))
-             (else (g ar-apply)))
-           (mcons ((g ac) f env)
-                  ((g map1) (lambda (arg) ((g ac) arg env)) args))))))
-
-(extend ac (s env)
-  ((g ar-tnil) (and (mpair? s)
-                    (not (eq? (mcar s) 'ail-code))))
-  ((g ac-call) ((g car) s) ((g cdr) s) env))
-
-
 ;; quote
 
 ; The goal here is to get the quoted value tunneled through Racket's
