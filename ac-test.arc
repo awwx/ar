@@ -114,3 +114,29 @@
   (testis (a!eval '(if 9 1 2))     1)
   (testis (a!eval '(if 9 1 2 3))   1)
   (testis (a!eval '(if nil 1 2 3)) 3))
+
+(testfor (ar-extend ac (s env) (caris s (racket-quote assign)))
+  (testis (a!eval '(assign x 123)) 123)
+
+  (testis (a!eval '((fn ()
+                      (assign x 123)
+                      x)))
+          123)
+
+  (testis (a!eval '((fn (x)
+                      (assign x 123))
+                    456))
+          123)
+
+  (testis (a!eval '((fn (x)
+                      (assign x 123)
+                      x)
+                    456))
+          123)
+
+  (testis (a!eval '((fn (a b)
+                      (assign a 11)
+                      (assign b 22)
+                      (list a b))
+                    1 2))
+          '(11 22)))

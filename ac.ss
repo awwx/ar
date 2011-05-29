@@ -169,38 +169,6 @@
   (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
 
 
-;; assign
-
-(ac-def ac-global-assign (a b)
-  ((g list) 'racket-set! a b))
-
-(ac-def ac-assign1 (a b1 env)
-  (unless (symbol? a)
-    ((g err) "First arg to assign must be a symbol" a))
-  (let ((result (gensym)))
-    ((g list) 'racket-let
-              ((g list) ((g list) result ((g ac) b1 env)))
-              (if ((g ar-true) ((g ac-lex?) a env))
-                   ((g list) 'racket-set! a result)
-                   ((g ac-global-assign) a result))
-              result)))
-
-(ac-def ac-assignn (x env)
-  (if ((g ar-no) x)
-      'nil
-      ;; todo: Arc 3.1 calls ac-macex here
-      (mcons ((g ac-assign1) ((g car) x) ((g cadr) x) env)
-             ((g ac-assignn) ((g cddr) x) env))))
-
-(ac-def ac-assign (x env)
-  (mcons 'racket-begin
-         ((g ac-assignn) x env)))
-
-(extend ac (s env)
-  ((g caris) s 'assign)
-  ((g ac-assign) ((g cdr) s) env))
-
-
 ;; macro
 
 (ac-def ac-macro? (fn)

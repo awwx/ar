@@ -190,3 +190,32 @@
 (ail-code (ar-extend ac (s env)
   (caris s (racket-quote if))
   (ac-if (cdr s) env)))
+
+(ail-code (ar-def ac-global-assign (a b)
+  (list (racket-quote racket-set!) a b)))
+
+(ail-code (ar-def ac-assign1 (a b1 env)
+  (racket-unless (racket-symbol? a)
+    (err "First arg to assign must be a symbol" a))
+  (racket-let ((result (uniq)))
+    (list (racket-quote racket-let)
+          (list (list result (ac b1 env)))
+          (racket-if (ar-true (ac-lex? a env))
+                      (list (racket-quote racket-set!) a result)
+                      (ac-global-assign a result))
+          result))))
+
+(ail-code (ar-def ac-assignn (x env)
+  (racket-if (ar-no x)
+              nil
+              ;; todo: why does Arc 3.1 call ac-macex here?
+              (cons (ac-assign1 (car x) (cadr x) env)
+                    (ac-assignn (cddr x) env)))))
+
+(ail-code (ar-def ac-assign (x env)
+  (cons (racket-quote racket-begin)
+        (ac-assignn x env))))
+
+(ail-code (ar-extend ac (s env)
+  (caris s (racket-quote assign))
+  (ac-assign (cdr s) env)))

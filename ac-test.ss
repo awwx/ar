@@ -203,32 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(extend ac (s env) ((g caris) s (quote assign)))
-      (arc-test ( (assign x 123) ) 123)
-
-      (arc-test ( ((fn ()
-                      (assign x 123)
-                      x)) )
-                 123)
-
-      (arc-test ( ((fn (x)
-                      (assign x 123))
-                    456) )
-                 123)
-
-      (arc-test ( ((fn (x)
-                      (assign x 123)
-                      x)
-                    456) )
-                 123)
-
-      (arc-test ( ((fn (a b)
-                      (assign a 11)
-                      (assign b 22)
-                      (list a b))
-                    1 2) )
-                 ((g list) 11 22)))
-
     (after '(ac-def ac-macro?)
       (arc-test ( (ac-macro? 5)    ) 'nil)
       (arc-test ( (ac-macro? 'foo) ) 'nil)
