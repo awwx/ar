@@ -219,3 +219,15 @@
 (ail-code (ar-extend ac (s env)
   (caris s (racket-quote assign))
   (ac-assign (cdr s) env)))
+
+(ail-code (ar-def ac-macro? (fn)
+  (racket-cond
+   ((ar-true (is (type fn) (racket-quote mac)))
+    (rep fn))
+   ((racket-symbol? fn)
+    (racket-let ((v (ar-var fn (racket-lambda () nil))))
+      (racket-if (ar-true (is (type v) (racket-quote mac)))
+                  (rep v)
+                  nil)))
+   (racket-else
+    nil))))

@@ -140,3 +140,18 @@
                       (list a b))
                     1 2))
           '(11 22)))
+
+(testfor (ar-def ac-macro?)
+  (testis (a!eval '(ac-macro? 5))                   nil)
+  (testis (a!eval '(ac-macro? 'foo))                nil)
+  (testis (a!eval '(ac-macro? (annotate 'mac 123))) 123)
+
+  (testis (a!eval '((fn ()
+                      (assign foo 5)
+                      (ac-macro? 'foo))))
+          nil)
+
+  (testis (a!eval '((fn ()
+                      (assign foo (annotate 'mac 123))
+                      (ac-macro? 'foo))))
+          123))

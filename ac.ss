@@ -64,8 +64,11 @@
     (set arc 'ar-racket-eval racket-eval)
     (set arc 'ar-ail-load ail-load)
     (set arc 'ar-var
-         (lambda (name)
-           (get arc name)))
+         (case-lambda
+          ((name)
+           (get arc name))
+          ((name default)
+           (get-default arc name default))))
     (set arc 'ar-assign
          (lambda (name value)
            (set arc name value)))
@@ -170,17 +173,6 @@
 
 
 ;; macro
-
-(ac-def ac-macro? (fn)
-  (cond ((eq? ((g type) fn) 'mac)
-         ((g rep) fn))
-        ((symbol? fn)
-         (let ((v (get-default arc fn (lambda () 'nil))))
-           (if (eq? ((g type) v) 'mac)
-                ((g rep) v)
-                'nil)))
-        (else
-         'nil)))
 
 (ac-def ac-mac-call (m args env)
   (let ((x1 ((g apply) m args)))

@@ -203,18 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def ac-macro?)
-      (arc-test ( (ac-macro? 5)    ) 'nil)
-      (arc-test ( (ac-macro? 'foo) ) 'nil)
-
-      (arc-test ( (assign foo 5)
-                   (ac-macro? 'foo) )
-                 'nil)
-
-      (arc-test ( (assign foo (annotate 'mac 123))
-                   (ac-macro? 'foo) )
-                 123))
-
     (after '(extend ac-call (fn args env)
               (if ((g ar-true) ((g ac-lex?) fn env))
                    'nil
