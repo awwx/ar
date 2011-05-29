@@ -172,14 +172,6 @@
   (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
 
 
-;; fn rest arg
-
-(ac-def ac-args-without-rest (x)
-  (cond ((mpair? x)
-         ((g join) ((g list) ((g car) x)) ((g ac-args-without-rest) (mcdr x))))
-        (else
-         'nil)))
-
 ; The implementation of "ac-fn-rest" turned out to be a lot easier to
 ; write in Arc.
 

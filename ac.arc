@@ -249,3 +249,10 @@
     (ac-rest-param (cdr x)))
    (racket-else
     (err "not a dotted list")))))
+
+(ail-code (ar-def ac-args-without-rest (x)
+  (racket-cond
+   ((racket-mpair? x)
+    (join (list (car x)) (ac-args-without-rest (cdr x))))
+   (racket-else
+    nil))))
