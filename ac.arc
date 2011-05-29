@@ -124,3 +124,53 @@
 (ail-code (ar-extend ac (s env)
   (caris s (racket-quote fn))
   (ac-fn (cadr s) (cddr s) env)))
+
+;; quasiquotation
+
+; qq-expand takes an Arc list containing a quasiquotation expression
+; (the x in `x), and returns an Arc list containing Arc code.  The Arc
+; code, when evaled by Arc, will construct an Arc list, the
+; expansion of the quasiquotation expression.
+
+; This implementation is Alan Bawden's quasiquotation expansion
+; algorithm from "Quasiquotation in Lisp"
+; http://repository.readscheme.org/ftp/papers/pepm99/bawden.pdf
+
+; You can redefine qq-expand in Arc if you want to implement a
+; different expansion algorithm.
+
+(ail-code (ar-def qq-expand (x)
+  (racket-cond
+   ((ar-true (caris x (racket-quote unquote)))
+    (cadr x))
+   ((ar-true (caris x (racket-quote unquote-splicing)))
+    (err "illegal use of ,@ in non-list quasiquote expansion"))
+   ((ar-true (caris x (racket-quote quasiquote)))
+    (qq-expand (qq-expand (cadr x))))
+   ((racket-mpair? x)
+    (qq-expand-pair x))
+   (racket-else
+    (list (racket-quote quote) x)))))
+
+(ail-code (ar-def qq-expand-pair (x)
+  (list (racket-quote join)
+        (qq-expand-list (car x))
+        (qq-expand      (cdr x)))))
+
+(ail-code (ar-def qq-expand-list (x)
+  (racket-cond
+   ((ar-true (caris x (racket-quote unquote)))
+    (list (racket-quote list) (cadr x)))
+   ((ar-true (caris x (racket-quote unquote-splicing)))
+    (cadr x))
+   ((ar-true (caris x (racket-quote quasiquote)))
+    (qq-expand-list (qq-expand (cadr x))))
+   ((racket-mpair? x)
+    (list (racket-quote list) (qq-expand-pair x)))
+   (racket-else
+    (list (racket-quote quote) (list x))))))
+
+(ail-code (ar-extend ac (s env)
+  (caris s (racket-quote quasiquote))
+  (racket-let ((expansion (qq-expand (cadr s))))
+    (ac expansion env))))

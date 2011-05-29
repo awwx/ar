@@ -79,3 +79,29 @@
   (testis (a!eval '((fn (a) a) 3))             3)
   (testis (a!eval '((fn (a b) b) 1 2))         2)
   (testis (a!eval '((fn (a b) (+ a b 3)) 1 2)) 6))
+
+(testfor (ar-extend ac (s env) (caris s (racket-quote quasiquote)))
+  (testis (a!eval '`nil) nil)
+  (testis (a!eval '`3) 3)
+  (testis (a!eval '`a) 'a)
+  (testis (a!eval '`()) nil)
+  (testis (a!eval '`(1)) '(1))
+  (testis (a!eval '`(1 . 2)) '(1 . 2))
+  (testis (a!eval '`(1 2)) '(1 2))
+  (testis (a!eval '`((1 2))) '((1 2)))
+
+  (testis (a!eval '`,(+ 1 2)) 3)
+  (testis (a!eval '`(,(+ 1 2))) (list 3))
+  (testis (a!eval '`(1 2 ,(+ 1 2) 4)) '(1 2 3 4))
+       
+  (testis (a!eval '(eval ``3)) 3)
+  (testis (a!eval '(eval ``,,3)) 3)
+  (testis (a!eval '(eval ``,,(+ 1 2))) 3)
+
+  (testis (a!eval '`(1 ,@(list 2 3) 4)) '(1 2 3 4))
+  (testis (a!eval '(eval ``,(+ 1 ,@(list 2 3) 4))) 10)
+
+  ;; Note the following gives the wrong answer in Arc3.1 because of
+  ;; Racket's nested list splicing bug.
+
+  (testis (a!eval '(eval (eval ``(+ 1 ,,@(list 2 3) 4)))) 10))

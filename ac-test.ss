@@ -203,32 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(extend ac (s env) ((g caris) s 'quasiquote))
-       (arc-test ( `nil     ) 'nil)
-       (arc-test ( `3       ) 3)
-       (arc-test ( `a       ) 'a)
-       (arc-test ( `()      ) 'nil)
-       (arc-test ( `(1)     ) ((g list) 1))
-       (arc-test ( `(1 . 2) ) (mcons 1 2))
-       (arc-test ( `(1 2)   ) ((g list) 1 2))
-       (arc-test ( `((1 2)) ) ((g list) ((g list) 1 2)))
-
-       (arc-test ( `,(+ 1 2)         ) 3)
-       (arc-test ( `(,(+ 1 2))       ) ((g list) 3))
-       (arc-test ( `(1 2 ,(+ 1 2) 4) ) ((g list) 1 2 3 4))
-       
-       (arc-test ( (eval ``3)         ) 3)
-       (arc-test ( (eval ``,,3)       ) 3)
-       (arc-test ( (eval ``,,(+ 1 2)) ) 3)
-
-       (arc-test ( `(1 ,@(list 2 3) 4)                   ) ((g list) 1 2 3 4))
-       (arc-test ( (eval ``,(+ 1 ,@(list 2 3) 4))        ) 10)
-
-       ;; Note the following gives the wrong answer in Arc3.1 because of
-       ;; Racket's nested list splicing bug.
-
-       (arc-test ( (eval (eval ``(+ 1 ,,@(list 2 3) 4))) ) 10))
-
     (after '(extend ac (s env) ((g caris) s 'if))
       (arc-test ( (if)           ) 'nil)
       (arc-test ( (if nil)       ) 'nil)

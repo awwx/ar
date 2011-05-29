@@ -169,55 +169,6 @@
   (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
 
 
-;; quasiquotation
-
-; qq-expand takes an Arc list containing a quasiquotation expression
-; (the x in `x), and returns an Arc list containing Arc code.  The Arc
-; code, when evaled by Arc, will construct an Arc list, the
-; expansion of the quasiquotation expression.
-
-; This implementation is Alan Bawden's quasiquotation expansion
-; algorithm from "Quasiquotation in Lisp"
-; http://repository.readscheme.org/ftp/papers/pepm99/bawden.pdf
-
-; You can redefine qq-expand in Arc if you want to implement a
-; different expansion algorithm.
-
-(ac-def qq-expand (x)
-  (cond (((g ar-true) ((g caris) x 'unquote))
-         ((g cadr) x))
-        (((g ar-true) ((g caris) x 'unquote-splicing))
-         (error "illegal use of ,@ in non-list quasiquote expansion"))
-        (((g ar-true) ((g caris) x 'quasiquote))
-         ((g qq-expand) ((g qq-expand) ((g cadr) x))))
-        ((mpair? x)
-         ((g qq-expand-pair) x))
-        (else
-         ((g list) 'quote x))))
-
-(ac-def qq-expand-pair (x)
-  ((g list) 'join
-            ((g qq-expand-list) (mcar x))
-            ((g qq-expand) (mcdr x))))
-
-(ac-def qq-expand-list (x)
-  (cond (((g ar-true) ((g caris) x 'unquote))
-         ((g list) 'list ((g cadr) x)))
-        (((g ar-true) ((g caris) x 'unquote-splicing))
-         ((g cadr) x))
-        (((g ar-true) ((g caris) x 'quasiquote))
-         ((g qq-expand-list) ((g qq-expand) ((g cadr) x))))
-        ((mpair? x)
-         ((g list) 'list ((g qq-expand-pair) x)))
-        (else
-         ((g list) 'quote (list x)))))
-
-(extend ac (s env)
-  ((g caris) s 'quasiquote)
-  (let ((expansion ((g qq-expand) ((g cadr) s))))
-    ((g ac) expansion env)))
-
-
 ;; if
 
 (ac-def ac-if (args env)
