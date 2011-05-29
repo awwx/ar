@@ -155,3 +155,9 @@
                       (assign foo (annotate 'mac 123))
                       (ac-macro? 'foo))))
           123))
+
+(testfor (ar-extend ac-call (fn args env)
+           (racket-if (ar-true (ac-lex? fn env)) nil (ac-macro? fn)))
+  (a!eval '(assign foo (annotate 'mac (fn (x) x))))
+  (testis (a!eval '(foo 123)) 123)
+)

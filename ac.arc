@@ -231,3 +231,12 @@
                   nil)))
    (racket-else
     nil))))
+
+(ail-code (ar-def ac-mac-call (m args env)
+  (ac (apply m args) env)))
+
+(ail-code (ar-extend ac-call (fn args env)
+  (racket-if (ar-true (ac-lex? fn env))
+              nil
+              (ac-macro? fn))
+  (ac-mac-call (ac-macro? fn) args env)))

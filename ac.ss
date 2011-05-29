@@ -172,20 +172,6 @@
   (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
 
 
-;; macro
-
-(ac-def ac-mac-call (m args env)
-  (let ((x1 ((g apply) m args)))
-    (let ((x2 ((g ac) x1 env)))
-      x2)))
-
-(extend ac-call (fn args env)
-  (if ((g ar-true) ((g ac-lex?) fn env))
-       'nil
-       ((g ac-macro?) fn))
-  ((g ac-mac-call) ((g ac-macro?) fn) args env))
-
-
 ;; fn rest arg
 
 (ac-def ac-rest-param (x)
