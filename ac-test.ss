@@ -203,14 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def ac-body)
-      (let ((arc (test-arc)))
-        (test
-         ((g ac-body)
-          ((g list) 1 2 3)
-          'nil)
-         ((g list) 1 2 3))))
-
     (after '(extend ac (s env) ((g caris) s 'fn))
       (arc-test ( ((fn ()))                  ) 'nil)
       (arc-test ( ((fn () 3))                ) 3)

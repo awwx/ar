@@ -66,3 +66,9 @@
   (testis (a!eval '(apply + '(1 2 3 4))) 10)
   (testis (a!eval '(apply + 1 2 nil))    3)
   (testis (a!eval '(apply + 1 2 '(3 4))) 10))
+
+(testfor (ar-def ac-body (body env))
+  (testis (a!ac-body '(1 2 3) nil) '(1 2 3)))
+
+(testfor (ar-def ac-dotted-list? (x))
+  (testis (a!ac-dotted-list? '()) nil))

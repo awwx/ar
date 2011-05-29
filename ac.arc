@@ -81,3 +81,32 @@
 (ail-code (ar-extend ac (s env) (caris s (racket-quote quote))
   (racket-let ((v (cadr s)))
     (list (list (racket-quote racket-quote) (racket-lambda () v))))))
+
+(ail-code (ar-def ac-body (body env)
+  (map1 (racket-lambda (x) (ac x env)) body)))
+
+(ail-code (ar-def ac-body* (body env)
+  (racket-if (ar-no body)
+              (list (racket-quote (racket-quote nil)))
+              (ac-body body env))))
+
+(ail-code (ar-def ac-arglist (a)
+  (racket-cond
+   ((ar-no a) (racket-quote nil))
+   ((racket-symbol? a) (list a))
+   ((racket-and (racket-symbol? (cdr a))
+                (racket-not (ar-no (cdr a))))
+    (list (car a) (cdr a)))
+   (racket-else (cons (car a) (ac-arglist (cdr a)))))))
+
+(ail-code (ar-def ac-body*x (args body env)
+  (ac-body* body (join (ac-arglist args) env))))
+
+(ail-code (ar-def ac-dotted-list? (x)
+  (racket-cond
+   ((racket-and (racket-symbol? x) (ar-true x))
+    t)
+   ((racket-mpair? x)
+    (ac-dotted-list? (cdr x)))
+   (racket-else
+    nil))))

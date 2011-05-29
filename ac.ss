@@ -228,34 +228,8 @@
 ; Rest args, optional args, and arg list destructuring are implemented
 ; later.
 
-(ac-def ac-body (body env)
-  ((g map1) (lambda (x) ((g ac) x env)) body))
-
-(ac-def ac-body* (body env)
-  (if ((g ar-no) body)
-       ((g list) '(racket-quote nil))
-       ((g ac-body) body env)))
-
-(ac-def ac-body*x (args body env)
-  ((g ac-body*) body ((g join) ((g ac-arglist) args) env)))
-
-(ac-def ac-arglist (a)
-  (cond (((g ar-no) a) 'nil)
-        ((symbol? a) (arc-list a))
-        ((and (symbol? (mcdr a)) (not ((g ar-no) (mcdr a))))
-         (arc-list (mcar a) (mcdr a)))
-        (else (mcons (mcar a) ((g ac-arglist) (mcdr a))))))
-
-(ac-def dotted-list? (x)
-  (cond ((and (symbol? x) (not (eq? x 'nil)))
-         't)
-        ((mpair? x)
-         ((g dotted-list?) (mcdr x)))
-        (else
-         'nil)))
-
 (ac-def ac-fn (args body env)
-  (if ((g ar-true) ((g dotted-list?) args))
+  (if ((g ar-true) ((g ac-dotted-list?) args))
        ((g ac-fn-rest) args body env)
        (mcons 'racket-lambda
               ;; TODO I think it would be better to have an explicit
