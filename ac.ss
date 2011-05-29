@@ -208,13 +208,6 @@
      '(extend ,name ,args ,test)))
 
 
-;; fn
-
-(extend ac (s env)
-  ((g caris) s 'fn)
-  ((g ac-fn) ((g cadr) s) ((g cddr) s) env))
-
-
 ;; arc-eval
 
 (define (arc-eval arc form)

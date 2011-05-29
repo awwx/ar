@@ -72,3 +72,10 @@
 
 (testfor (ar-def ac-dotted-list? (x))
   (testis (a!ac-dotted-list? '()) nil))
+
+(testfor (ar-extend ac (s env) (caris s (racket-quote fn)))
+  (testis (a!eval '((fn ())))                  nil)
+  (testis (a!eval '((fn () 3)))                3)
+  (testis (a!eval '((fn (a) a) 3))             3)
+  (testis (a!eval '((fn (a b) b) 1 2))         2)
+  (testis (a!eval '((fn (a b) (+ a b 3)) 1 2)) 6))

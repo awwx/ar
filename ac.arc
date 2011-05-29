@@ -120,3 +120,7 @@
     (racket-mcons (racket-quote racket-lambda)
                   (racket-mcons (ar-tunnel (ar-list-fromarc args))
                                 (ac-body*x args body env))))))
+
+(ail-code (ar-extend ac (s env)
+  (caris s (racket-quote fn))
+  (ac-fn (cadr s) (cddr s) env)))
