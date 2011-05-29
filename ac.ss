@@ -210,17 +210,6 @@
 
 ;; fn
 
-; Rest args, optional args, and arg list destructuring are implemented
-; later.
-
-(ar-def ac-fn (args body env)
-  (racket-define (ac-fn args body env)
-    (racket-if (ar-true (ac-dotted-list? args))
-      (ac-fn-rest args body env)
-      (racket-mcons (racket-quote racket-lambda)
-                    (racket-mcons (ar-tunnel (ar-list-fromarc args))
-                                  (ac-body*x args body env))))))
-
 (extend ac (s env)
   ((g caris) s 'fn)
   ((g ac-fn) ((g cadr) s) ((g cddr) s) env))

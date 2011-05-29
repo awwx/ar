@@ -110,3 +110,13 @@
     (ac-dotted-list? (cdr x)))
    (racket-else
     nil))))
+
+; Rest args, optional args, and arg list destructuring are implemented
+; later.
+
+(ail-code (ar-def ac-fn (args body env)
+  (racket-if (ar-true (ac-dotted-list? args))
+    (ac-fn-rest args body env)
+    (racket-mcons (racket-quote racket-lambda)
+                  (racket-mcons (ar-tunnel (ar-list-fromarc args))
+                                (ac-body*x args body env))))))
