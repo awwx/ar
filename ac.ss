@@ -169,24 +169,6 @@
   (racket-eval arc ((g ar-deep-fromarc) ((get arc 'ac) form 'nil))))
 
 
-;; if
-
-(ac-def ac-if (args env)
-  (cond (((g ar-no) args)
-         '(racket-quote nil))
-        (((g ar-no) ((g cdr) args))
-         ((g ac) ((g car) args) env))
-        (else
-         ((g list) 'racket-if
-                   ((g list) (g ar-true) ((g ac) ((g car) args) env))
-                   ((g ac) ((g cadr) args) env)
-                   ((g ac-if) ((g cddr) args) env)))))
-
-(extend ac (s env)
-  ((g caris) s 'if)
-  ((g ac-if) ((g cdr) s) env))
-
-
 ;; assign
 
 (ac-def ac-global-assign (a b)

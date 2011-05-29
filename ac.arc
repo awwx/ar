@@ -174,3 +174,19 @@
   (caris s (racket-quote quasiquote))
   (racket-let ((expansion (qq-expand (cadr s))))
     (ac expansion env))))
+
+(ail-code (ar-def ac-if (args env)
+  (racket-cond
+   ((ar-no args)
+    (racket-quote (racket-quote nil)))
+   ((ar-no (cdr args))
+    (ac (car args) env))
+   (racket-else
+    (list (racket-quote racket-if)
+          (list ar-true (ac (car args) env))
+          (ac (cadr args) env)
+          (ac-if (cddr args) env))))))
+
+(ail-code (ar-extend ac (s env)
+  (caris s (racket-quote if))
+  (ac-if (cdr s) env)))

@@ -203,15 +203,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(extend ac (s env) ((g caris) s 'if))
-      (arc-test ( (if)           ) 'nil)
-      (arc-test ( (if nil)       ) 'nil)
-      (arc-test ( (if 9)         ) 9)
-      (arc-test ( (if nil 1 2)   ) 2)
-      (arc-test ( (if 9 1 2)     ) 1)
-      (arc-test ( (if 9 1 2 3)   ) 1)
-      (arc-test ( (if nil 1 2 3) ) 3))
-
     (after '(extend ac (s env) ((g caris) s (quote assign)))
       (arc-test ( (assign x 123) ) 123)
 

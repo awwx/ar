@@ -105,3 +105,12 @@
   ;; Racket's nested list splicing bug.
 
   (testis (a!eval '(eval (eval ``(+ 1 ,,@(list 2 3) 4)))) 10))
+
+(testfor (ar-extend ac (s env) (caris s (racket-quote if)))
+  (testis (a!eval '(if))           nil)
+  (testis (a!eval '(if nil))       nil)
+  (testis (a!eval '(if 9))         9)
+  (testis (a!eval '(if nil 1 2))   2)
+  (testis (a!eval '(if 9 1 2))     1)
+  (testis (a!eval '(if 9 1 2 3))   1)
+  (testis (a!eval '(if nil 1 2 3)) 3))
