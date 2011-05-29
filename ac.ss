@@ -174,14 +174,6 @@
 
 ;; fn rest arg
 
-(ac-def ac-rest-param (x)
-  (cond ((and (symbol? x) (not (eq? x 'nil)))
-         x)
-        ((mpair? x)
-         ((g ac-rest-param) (mcdr x)))
-        (else
-         ((g err) "not a dotted list"))))
-
 (ac-def ac-args-without-rest (x)
   (cond ((mpair? x)
          ((g join) ((g list) ((g car) x)) ((g ac-args-without-rest) (mcdr x))))

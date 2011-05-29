@@ -240,3 +240,12 @@
               nil
               (ac-macro? fn))
   (ac-mac-call (ac-macro? fn) args env)))
+
+(ail-code (ar-def ac-rest-param (x)
+  (racket-cond
+   ((racket-and (racket-symbol? x) (ar-true x))
+    x)
+   ((racket-mpair? x)
+    (ac-rest-param (cdr x)))
+   (racket-else
+    (err "not a dotted list")))))
