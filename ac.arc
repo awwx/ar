@@ -266,3 +266,11 @@
       `(racket-lambda ,(join args r/rest)
          (racket-let ((,rest (,ar-r/list-toarc ,r/rest)))
            ,@(ac-body*x (join args (list rest)) body env)))))))))
+
+(ail-code (ar-def ac-fn-rest (args body env)
+  (ac-fn-rest-impl
+   (ac-args-without-rest args)
+   (uniq)
+   (ac-rest-param args)
+   body
+   env)))

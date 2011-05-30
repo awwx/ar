@@ -160,3 +160,8 @@
            (racket-if (ar-true (ac-lex? fn env)) nil (ac-macro? fn)))
   (a!eval '(assign foo (annotate 'mac (fn (x) x))))
   (testis (a!eval '(foo 123)) 123))
+
+(testfor (ar-def ac-fn-rest (args body env))
+  (testis (a!eval '((fn args (car args)) 1 2))             1)
+  (testis (a!eval '(cdr ((fn args args) 1)))               nil)
+  (testis (a!eval '((fn (a b . rest) (car rest)) 1 2 3 4)) 3))

@@ -206,11 +206,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def ac-fn-rest)
-      (arc-test ( ((fn args (car args)) 1 2)             ) 1)
-      (arc-test ( (cdr ((fn args args) 1))               ) 'nil)
-      (arc-test ( ((fn (a b . rest) (car rest)) 1 2 3 4) ) 3))
-
     (after '(ac-def bound)
       (arc-test ( (bound 'QmrQOCYWOy) )
                  'nil)

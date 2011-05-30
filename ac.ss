@@ -166,15 +166,6 @@
      '(extend ,name ,args ,test)))
 
 
-(ac-def ac-fn-rest (args body env)
-  ((g ac-fn-rest-impl)
-     ((g ac-args-without-rest) args)
-     (gensym)
-     ((g ac-rest-param) args)
-     body
-     env))
-
-
 ;; bound
 
 (ac-def bound (name)
