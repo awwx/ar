@@ -145,27 +145,6 @@
    ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
 
 
-;; r/list-toarc
-
-(define (r/list-toarc x)
-  (cond ((pair? x)
-         (mcons (car x) (r/list-toarc (cdr x))))
-        ((null? x)
-         'nil)
-        (else x)))
-
-
-; Extending the Arc compiler
-
-(defmacro extend (name args test . body)
-  `(add-ac-build-step
-     (lambda (arc)
-       ((g ar-extend-impl) ',name
-        (lambda (arc . ,args) ,test)
-        (lambda (arc . ,args) ,@body)))
-     '(extend ,name ,args ,test)))
-
-
 ;; disp, write
 
 (define (tostringf f)
