@@ -206,28 +206,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def sref)
-      (arc-test
-       ( (assign a '(x y z))
-         (sref a 'M 1)
-         a )
-       ((g list) 'x 'M 'z))
-
-      (arc-test ( (assign a (table))
-                   (sref a 55 'x)
-                   a)
-                 (hash 'x 55))
-
-      (arc-test ( (table (fn (h)
-                            (sref h 55 'x)
-                            (sref h 66 'y))) )
-                 (hash 'x 55 'y 66))
-
-      (arc-test ( (assign a "abcd")
-                   (sref a #\M 2)
-                   a )
-                 "abMd"))
-
     (after '(ac-def details)
       (arc-test
        ( (on-err details (fn () (/ 1 0))) )

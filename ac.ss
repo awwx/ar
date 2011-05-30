@@ -145,22 +145,6 @@
    ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
 
 
-;; sref
-
-(ac-def sref (com val ind)
-  (cond ((hash? com)
-         (if (eq? val 'nil)
-             (hash-remove! com ind)
-             (hash-set! com ind val)))
-        ((string? com)
-         (string-set! com ind val))
-        ((mpair? com)
-         (set-mcar! (mlist-tail com ind) val))
-        (else
-         ((g err) "Can't set reference" com ind val)))
-  val)
-
-
 ;; on-err, details
 
 (ac-def on-err (errf f)

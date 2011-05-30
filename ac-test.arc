@@ -187,3 +187,21 @@
 (testfor (racket-define (table (init nil)))
   (testis (a!eval '(table)) (table))
   (testis (a!eval `(table ,(fn (k) (= k!a 3)))) (obj a 3)))
+
+(testfor (ar-def sref (com val ind))
+  (a!eval '(assign a '(x y z)))
+  (testis (a!eval '(sref a 'M 1)) 'M)
+  (testis a!a '(x M z))
+
+  (a!eval '(assign a (table)))
+  (a!eval '(sref a 55 'x))
+  (testis a!a (obj x 55))
+
+  (testis (a!eval '(table (fn (h)
+                            (sref h 55 'x)
+                            (sref h 66 'y))))
+          (obj x 55 y 66))
+
+  (a!eval '(assign a "abcd"))
+  (a!eval '(sref a #\M 2))
+  (testis a!a "abMd"))

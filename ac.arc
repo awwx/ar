@@ -313,3 +313,18 @@
   (racket-let ((h (racket-make-hash)))
     (racket-when (ar-true init) (init h))
     h)))
+
+(ail-code (ar-def sref (com val ind)
+  (racket-cond
+   ((racket-hash? com)
+    (racket-if (ar-no val)
+                (racket-hash-remove! com ind)
+                (racket-hash-set! com ind val)))
+   ((racket-string? com)
+    (racket-string-set! com ind val))
+   ((racket-mpair? com)
+    (racket-set-mcar! (racket-mlist-tail com ind) val))
+   (racket-else
+    (err "Can't set reference" com ind val)))
+  val))
+
