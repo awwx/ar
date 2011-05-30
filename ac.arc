@@ -2,15 +2,15 @@
   (racket-let ((previous (ar-var name)))
     (ar-assign name
       (racket-lambda args
-        (racket-let ((result (racket-apply test runtime* args)))
+        (racket-let ((result (racket-apply test args)))
           (racket-if (ar-true result)
-               (racket-apply body runtime* args)
+               (racket-apply body args)
                (racket-apply previous args))))))))
 
 (ail-code (racket-define-syntax-rule (ar-extend name args test body racket-...)
   (ar-extend-impl (racket-quote name)
-    (racket-lambda (arc . args) test)
-    (racket-lambda (arc . args) body racket-...))))
+    (racket-lambda args test)
+    (racket-lambda args body racket-...))))
 
 (ail-code (ar-def ac-literal? (x)
   (ar-tnil
