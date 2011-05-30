@@ -145,16 +145,6 @@
    ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
 
 
-;; on-err, details
-
-(ac-def on-err (errf f)
-  (with-handlers ((exn:fail? errf))
-    (f)))
-
-(ac-def details (c)
-  (exn-message c))
-
-
 ;; parameters
 
 (ac-def parameter (init)

@@ -205,3 +205,7 @@
   (a!eval '(assign a "abcd"))
   (a!eval '(sref a #\M 2))
   (testis a!a "abMd"))
+
+(testfor (ar-def details (c))
+  (testis (a!eval '(on-err details (fn () (/ 1 0))))
+          "/: division by zero"))

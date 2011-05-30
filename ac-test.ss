@@ -206,11 +206,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def details)
-      (arc-test
-       ( (on-err details (fn () (/ 1 0))) )
-       "/: division by zero"))
-
     (after '(ac-def parameter)
       (arc-test
        ( (type (parameter 3)) ) 'parameter))

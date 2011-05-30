@@ -328,3 +328,9 @@
     (err "Can't set reference" com ind val)))
   val))
 
+(ail-code (ar-def on-err (errf f)
+  (racket-with-handlers ((racket-exn:fail? errf))
+    (f))))
+
+(ail-code (ar-def details (c)
+  (racket-exn-message c)))
