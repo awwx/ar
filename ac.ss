@@ -90,13 +90,6 @@
     (eval form (hash-ref arc 'racket-namespace*))))
 
 
-(define-syntax g
-  (lambda (stx)
-    (syntax-case stx ()
-      ((g v)
-       (with-syntax ((arc (datum->syntax #'v 'arc)))
-         #'(get arc 'v))))))
-
 ;; ail-load
 
 (define (ail-load arc filename)
@@ -115,4 +108,4 @@
 (add-ac-build-step
  (lambda (arc)
    (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
-   ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
+   ((get arc 'ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
