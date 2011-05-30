@@ -68,6 +68,9 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
+* (ssexpand 'a.b:c.d) => ((a b:c) d) not (compose a.b c.d)
+* (ssexpand '~a.b) => (~a b) not (complement a.b)
+* (map (table) list.nil) => Error: procedure application: expected procedure, given: '#hash(); arguments were: 'nil
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"
 * The code currently requires Racket, though a compatibility mode for
   PLT Scheme would be useful.
