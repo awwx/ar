@@ -10,7 +10,7 @@
 (def ac-upto (pattern)
   (prn)
   (write pattern) (prn)
-  (let arc (new-arc (racket-path->string (racket-current-directory)))
+  (let arc (empty-runtime (racket-path->string (racket-current-directory)))
     (arc!ar-ail-load arc!arc* "ar.ail")
     (arc!ar-load "ac.arc")
     (catch

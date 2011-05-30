@@ -7,79 +7,61 @@
 
 ;; note these are slow
 
-(define (get arc varname)
+(define (get runtime varname)
   (namespace-variable-value
    varname
    #t
    #f
-   arc))
+   runtime))
 
-(define (get-default arc varname default)
+(define (get-default runtime varname default)
   (namespace-variable-value
     varname
     #t
     default
-    arc))
+    runtime))
 
-(define (set arc varname value)
+(define (set runtime varname value)
   (namespace-set-variable-value! varname value
     #t
-    arc))
+    runtime))
 
-
-;; Arc compiler steps
-
-; The compiler is built up in steps, so that simple cases can be
-; tested before more complex cases are implemented.
-;
-; This isn't particularly important when the compiler is working (then
-; we only really care that all the unit tests pass), but is useful
-; when changing something fundamental early on in the compiler.
 
 (define ac-build-steps '())
 
 (define (add-ac-build-step step (source #f))
   (set! ac-build-steps (append ac-build-steps (list (list step source)))))
 
-; Return a global variable namespace that includes the Arc runtime
-; globals (car, +, etc.) and whatever Arc compiler globals that have
-; been defined so far (ac, ac-literal?, etc.)  Note that a fresh copy
-; of the compiler is created each time (new-arc) is called, including
-; the compiler building steps defined so far.
-
-(define (make-arc-racket-namespace)
-  (let ((ns (make-base-empty-namespace)))
-    (parameterize ((current-namespace ns))
+(define (new-runtime)
+  (let ((runtime (make-base-empty-namespace)))
+    (parameterize ((current-namespace runtime))
       (namespace-require '(only racket/base #%app #%datum #%top))
       (namespace-require '(prefix racket- racket/base))
       (namespace-require '(prefix racket- racket/mpair))
       (namespace-require '(prefix racket- racket/tcp)))
-    ns))
-
-(define (new-arc arcdir (options (make-hash)))
-  (let ((arc (make-arc-racket-namespace)))
-    (set arc 'arc* arc)
-    (set arc 'arcdir* arcdir)
-    (set arc 'ar-racket-eval racket-eval)
-    (set arc 'ar-ail-load ail-load)
-    (set arc 'ar-var
+    (set runtime 'arc* runtime)
+    (set runtime 'ar-racket-eval racket-eval)
+    (set runtime 'ar-ail-load ail-load)
+    (set runtime 'ar-var
          (case-lambda
           ((name)
-           (get arc name))
+           (get runtime name))
           ((name default)
-           (get-default arc name (lambda () default)))))
-    (set arc 'ar-assign
+           (get-default runtime name (lambda () default)))))
+    (set runtime 'ar-assign
          (lambda (name value)
-           (set arc name value)))
+           (set runtime name value)))
+    runtime))
+
+(define (new-arc arcdir (options (make-hash)))
+  (let ((arc (new-runtime)))
+    (set arc 'arcdir* arcdir)
+
     (for-each (lambda (pair)
                 (let ((step (car pair)))
                   (step arc)))
               (hash-ref options 'build-steps ac-build-steps))
     arc))
-
-(define (new-arc2 arcdir)
-  (new-arc arcdir
-           (make-hash `((build-steps . ())))))
 
 
 ;; racket-eval

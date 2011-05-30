@@ -24,6 +24,6 @@
     (let ((v ((get arc 'ar-read) (current-input-port) eof)))
       (unless (eq? v eof)
         (let ((val ((get arc 'eval) v)))
-          (write (ar-deep-fromarc val))
+          (write ((get arc 'ar-deep-fromarc) val))
           (newline))
         (loop)))))
