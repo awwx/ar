@@ -28,13 +28,11 @@
     (fn args
       (if (is len.args 1)
            (with (varname (car args))
-             (let namespace runtime!racket-namespace*
                (racket (racket-namespace-variable-value
-                        varname #t #f namespace))))
+                        varname #t #f runtime)))
           (is len.args 2)
            (with (varname (car args)
                   value   (cadr args))
-             (let namespace runtime!racket-namespace*             
-               (racket (racket-namespace-set-variable-value!
-                        varname value #t namespace))))
+             (racket (racket-namespace-set-variable-value!
+                      varname value #t runtime)))
            (err "invalid number of arguments" arg)))))

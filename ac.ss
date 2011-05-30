@@ -12,19 +12,19 @@
    varname
    #t
    #f
-   (hash-ref arc 'racket-namespace*)))
+   arc))
 
 (define (get-default arc varname default)
   (namespace-variable-value
     varname
     #t
     default
-    (hash-ref arc 'racket-namespace*)))
+    arc))
 
 (define (set arc varname value)
   (namespace-set-variable-value! varname value
     #t
-    (hash-ref arc 'racket-namespace*)))
+    arc))
 
 
 ;; Arc compiler steps
@@ -57,8 +57,7 @@
     ns))
 
 (define (new-arc arcdir (options (make-hash)))
-  (let ((arc (make-hash)))
-    (hash-set! arc 'racket-namespace* (make-arc-racket-namespace))
+  (let ((arc (make-arc-racket-namespace)))
     (set arc 'arc* arc)
     (set arc 'arcdir* arcdir)
     (set arc 'ar-racket-eval racket-eval)
@@ -87,7 +86,7 @@
 
 (define (racket-eval arc form)
   (parameterize ((compile-allow-set!-undefined #t))
-    (eval form (hash-ref arc 'racket-namespace*))))
+    (eval form arc)))
 
 
 ;; ail-load
