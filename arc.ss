@@ -17,6 +17,16 @@
   (parameterize ((compile-allow-set!-undefined #t))
     (eval form arc)))
 
+(define (ail-load arc filename)
+  (call-with-input-file filename
+    (lambda (in)
+      (let loop ()
+        (let ((form (read in)))
+          (unless (eof-object? form)
+            (racket-eval arc form)
+            (loop))))))
+  'nil)
+
 (define (new-runtime)
   (let ((runtime (make-base-empty-namespace)))
     (parameterize ((current-namespace runtime))
@@ -37,16 +47,6 @@
          (lambda (name value)
            (runtime-set runtime name value)))
     runtime))
-
-(define (ail-load arc filename)
-  (call-with-input-file filename
-    (lambda (in)
-      (let loop ()
-        (let ((form (read in)))
-          (unless (eof-object? form)
-            (racket-eval arc form)
-            (loop))))))
-  'nil)
 
 (define (new-arc arcdir)
   (let ((arc (new-runtime)))
