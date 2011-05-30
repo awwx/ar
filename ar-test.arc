@@ -23,7 +23,7 @@
   (let arc (empty-runtime (racket-path->string (racket-current-directory)))
     (catch
      (each form (rreadfile "ar.ail")
-       (arc!ar-racket-eval arc!arc* form)
+       (arc!ar-racket-eval arc!runtime* form)
        (when (matches pattern (ar-toarc form)) (throw nil)))
      (err "pattern not found in source" pattern))
     arc))

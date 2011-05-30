@@ -403,7 +403,7 @@
 
 (racket-define (eval form (runtime (racket-quote nil)))
   (ar-racket-eval
-   (racket-if (ar-true runtime) runtime arc*)
+   (racket-if (ar-true runtime) runtime runtime*)
    (ar-deep-fromarc (ac form (racket-quote nil)))))
 
 (racket-define arc-readtable* #f)

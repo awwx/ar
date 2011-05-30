@@ -24,7 +24,7 @@
       (namespace-require '(prefix racket- racket/base))
       (namespace-require '(prefix racket- racket/mpair))
       (namespace-require '(prefix racket- racket/tcp)))
-    (runtime-set runtime 'arc* runtime)
+    (runtime-set runtime 'runtime* runtime)
     (runtime-set runtime 'ar-racket-eval racket-eval)
     (runtime-set runtime 'ar-ail-load ail-load)
     (runtime-set runtime 'ar-var
