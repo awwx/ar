@@ -206,18 +206,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def bound)
-      (arc-test ( (bound 'QmrQOCYWOy) )
-                 'nil)
-
-      (arc-test ( (assign foo nil)
-                   (bound 'foo) )
-                 't)
-
-      (arc-test ( (assign foo 123)
-                   (bound 'foo) )
-                 't))
-
     (after '(ac-def racket-disp)
       (test-equal
        (let ((port (open-output-string))

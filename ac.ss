@@ -68,7 +68,7 @@
           ((name)
            (get arc name))
           ((name default)
-           (get-default arc name default))))
+           (get-default arc name (lambda () default)))))
     (set arc 'ar-assign
          (lambda (name value)
            (set arc name value)))
@@ -164,14 +164,6 @@
         (lambda (arc . ,args) ,test)
         (lambda (arc . ,args) ,@body)))
      '(extend ,name ,args ,test)))
-
-
-;; bound
-
-(ac-def bound (name)
-  (let ((undef (list 'undef)))
-    ((g ar-tnil)
-     (not (eq? (get-default arc name (lambda () undef)) undef)))))
 
 
 ;; disp, write

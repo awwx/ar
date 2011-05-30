@@ -165,3 +165,12 @@
   (testis (a!eval '((fn args (car args)) 1 2))             1)
   (testis (a!eval '(cdr ((fn args args) 1)))               nil)
   (testis (a!eval '((fn (a b . rest) (car rest)) 1 2 3 4)) 3))
+
+(testfor (racket-define bound)
+  (testis (a!eval '(bound 'QmrQOCYWOy)) nil)
+
+  (a!eval '(assign foo nil))
+  (testis (a!eval '(bound 'foo)) t)
+
+  (a!eval '(assign foo 123))
+  (testis (a!eval '(bound 'foo)) t))

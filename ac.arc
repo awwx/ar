@@ -225,7 +225,7 @@
    ((ar-true (is (type fn) (racket-quote mac)))
     (rep fn))
    ((racket-symbol? fn)
-    (racket-let ((v (ar-var fn (racket-lambda () nil))))
+    (racket-let ((v (ar-var fn nil)))
       (racket-if (ar-true (is (type v) (racket-quote mac)))
                   (rep v)
                   nil)))
@@ -274,3 +274,12 @@
    (ac-rest-param args)
    body
    env)))
+
+(ail-code (racket-hash-set! sig (racket-quote bound)
+            (ar-toarc (racket-quote (name)))))
+
+(ail-code (racket-define bound
+  (racket-let ((undef (list (racket-quote undef))))
+    (racket-lambda (name)
+      (ar-tnil
+       (racket-not (racket-eq? (ar-var name undef) undef)))))))
