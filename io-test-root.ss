@@ -12,7 +12,7 @@
      base)))
 
 (let ((arc (new-arc arcdir*)))
-  ((get arc 'ar-load)
+  ((runtime-get arc 'ar-load)
    "arc.arc"
    "io.arc"
    "equal-wrt-testing.arc" "test.arc"

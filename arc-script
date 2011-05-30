@@ -36,7 +36,7 @@
 (namespace-require `(file ,(string-append arcdir* "ac.ss")))
 
 (let ((arc (new-arc arcdir*)))
-  (set arc 'scriptdir* scriptdir*)
-  ((get arc 'ar-load) (string-append arcdir* "arc.arc"))
-  ((get arc 'load) (string-append arcdir* "arc3.1/strings.arc"))
-  ((get arc 'load) script-file))
+  (runtime-set arc 'scriptdir* scriptdir*)
+  ((runtime-get arc 'ar-load) (string-append arcdir* "arc.arc"))
+  ((runtime-get arc 'load) (string-append arcdir* "arc3.1/strings.arc"))
+  ((runtime-get arc 'load) script-file))

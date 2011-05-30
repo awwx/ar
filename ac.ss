@@ -2,24 +2,16 @@
 
 (provide (all-defined-out))
 
-(define (get runtime varname)
-  (namespace-variable-value
-   varname
-   #t
-   #f
-   runtime))
+(define runtime-get
+  (case-lambda
+   ((runtime varname)
+    (namespace-variable-value varname #t #f runtime))
 
-(define (get-default runtime varname default)
-  (namespace-variable-value
-    varname
-    #t
-    default
-    runtime))
+   ((runtime varname default)
+    (namespace-variable-value varname #t (lambda () default) runtime))))
 
-(define (set runtime varname value)
-  (namespace-set-variable-value! varname value
-    #t
-    runtime))
+(define (runtime-set runtime varname value)
+  (namespace-set-variable-value! varname value #t runtime))
 
 (define (racket-eval arc form)
   (parameterize ((compile-allow-set!-undefined #t))
@@ -32,18 +24,18 @@
       (namespace-require '(prefix racket- racket/base))
       (namespace-require '(prefix racket- racket/mpair))
       (namespace-require '(prefix racket- racket/tcp)))
-    (set runtime 'arc* runtime)
-    (set runtime 'ar-racket-eval racket-eval)
-    (set runtime 'ar-ail-load ail-load)
-    (set runtime 'ar-var
+    (runtime-set runtime 'arc* runtime)
+    (runtime-set runtime 'ar-racket-eval racket-eval)
+    (runtime-set runtime 'ar-ail-load ail-load)
+    (runtime-set runtime 'ar-var
          (case-lambda
           ((name)
-           (get runtime name))
+           (runtime-get runtime name))
           ((name default)
-           (get-default runtime name (lambda () default)))))
-    (set runtime 'ar-assign
+           (runtime-get runtime name default))))
+    (runtime-set runtime 'ar-assign
          (lambda (name value)
-           (set runtime name value)))
+           (runtime-set runtime name value)))
     runtime))
 
 (define (ail-load arc filename)
@@ -58,7 +50,7 @@
 
 (define (new-arc arcdir)
   (let ((arc (new-runtime)))
-    (set arc 'arcdir* arcdir)
-    (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
-    ((get arc 'ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))
+    (runtime-set arc 'arcdir* arcdir)
+    (ail-load arc (string-append (runtime-get arc 'arcdir*) "/ar.ail"))
+    ((runtime-get arc 'ar-load)  (string-append (runtime-get arc 'arcdir*) "/ac.arc"))
     arc))

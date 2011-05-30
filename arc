@@ -25,10 +25,10 @@
 (namespace-require `(file ,(string-append arcdir* "ac.ss")))
 
 (let ((arc (new-arc arcdir*)))
-  ((get arc 'ar-load) (string-append arcdir* "arc.arc"))
-  ((get arc 'load) (string-append arcdir* "arc3.1/strings.arc"))
-  (for-each (get arc 'load) files-to-load)
+  ((runtime-get arc 'ar-load) (string-append arcdir* "arc.arc"))
+  ((runtime-get arc 'load) (string-append arcdir* "arc3.1/strings.arc"))
+  (for-each (runtime-get arc 'load) files-to-load)
   (when run-repl
-    ((get arc 'load) (string-append arcdir* "repl.arc"))
-    ((get arc 'repl)))
+    ((runtime-get arc 'load) (string-append arcdir* "repl.arc"))
+    ((runtime-get arc 'repl)))
   (void))
