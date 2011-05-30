@@ -16,12 +16,12 @@
 ;; (t nil t nil t nil)
 
 (def make-empty-runtime ((o arcdir))
-  (let acpath (string (or arcdir arcdir*) "/ac.ss")
+  (let acpath (string (or arcdir arcdir*) "/arc.ss")
     ((racket (racket-dynamic-require (racket-string->path acpath)
                                      (racket-quote new-runtime))))))
 
 (def arc-runtime ((o arcdir))
-  (let acpath (string (or arcdir arcdir*) "/ac.ss")
+  (let acpath (string (or arcdir arcdir*) "/arc.ss")
     ((racket
       (racket-dynamic-require
        (racket-string->path acpath)
