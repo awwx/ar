@@ -1,8 +1,5 @@
 #lang scheme
 
-(require scheme/mpair)
-(require mzlib/defmacro)
-
 (provide (all-defined-out))
 
 ;; note these are slow
@@ -26,12 +23,6 @@
     #t
     runtime))
 
-
-(define ac-build-steps '())
-
-(define (add-ac-build-step step (source #f))
-  (set! ac-build-steps (append ac-build-steps (list (list step source)))))
-
 (define (new-runtime)
   (let ((runtime (make-base-empty-namespace)))
     (parameterize ((current-namespace runtime))
@@ -53,14 +44,11 @@
            (set runtime name value)))
     runtime))
 
-(define (new-arc arcdir (options (make-hash)))
+(define (new-arc arcdir)
   (let ((arc (new-runtime)))
     (set arc 'arcdir* arcdir)
-
-    (for-each (lambda (pair)
-                (let ((step (car pair)))
-                  (step arc)))
-              (hash-ref options 'build-steps ac-build-steps))
+    (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
+    ((get arc 'ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))
     arc))
 
 
@@ -82,11 +70,3 @@
             (racket-eval arc form)
             (loop))))))
   'nil)
-
-
-;; ac.ail
-
-(add-ac-build-step
- (lambda (arc)
-   (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
-   ((get arc 'ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))

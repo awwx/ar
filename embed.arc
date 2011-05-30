@@ -20,7 +20,7 @@
     ((racket (racket-dynamic-require (racket-string->path acpath)
                                      (racket-quote new-runtime))))))
 
-(def arc-runtime ((o arcdir) (o options))
+(def arc-runtime ((o arcdir))
   (let acpath (string (or arcdir arcdir*) "/ac.ss")
     ((racket
       (racket-dynamic-require
