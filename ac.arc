@@ -305,3 +305,11 @@
   (racket-write x port)
   (racket-flush-output port)
   x))
+
+(ail-code (racket-hash-set! sig (racket-quote table)
+            (ar-toarc (racket-quote ((o init))))))
+
+(ail-code (racket-define (table (init nil))
+  (racket-let ((h (racket-make-hash)))
+    (racket-when (ar-true init) (init h))
+    h)))

@@ -145,14 +145,6 @@
    ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
 
 
-;; table
-
-(ac-def table ((init #f))
-  (let ((h (make-hash)))
-    (when init (init h))
-    h))
-
-
 ;; sref
 
 (ac-def sref (com val ind)

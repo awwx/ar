@@ -183,3 +183,7 @@
 
 (testfor (racket-define (ar-write x (port (racket-current-output-port))))
   (testis (tostring (a!eval '(ar-write "a"))) "\"a\""))
+
+(testfor (racket-define (table (init nil)))
+  (testis (a!eval '(table)) (table))
+  (testis (a!eval `(table ,(fn (k) (= k!a 3)))) (obj a 3)))

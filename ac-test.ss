@@ -206,9 +206,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def table)
-      (arc-test ( (table) ) (hash)))
-
     (after '(ac-def sref)
       (arc-test
        ( (assign a '(x y z))
