@@ -209,3 +209,6 @@
 (testfor (ar-def details (c))
   (testis (a!eval '(on-err details (fn () (/ 1 0))))
           "/: division by zero"))
+
+(testfor (ar-def parameter (init))
+  (testis (type (a!eval '(parameter 3))) 'parameter))

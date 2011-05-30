@@ -110,20 +110,6 @@
        (with-syntax ((arc (datum->syntax #'v 'arc)))
          #'(get arc 'v))))))
 
-(define (ac-def-fn arc name signature fn)
-  (hash-set! (get arc 'sig) name (toarc signature))
-  (set arc name fn))
-
-(define-syntax ac-def
-  (lambda (stx)
-    (syntax-case stx ()
-      ((ac-def name args body ...)
-       (with-syntax ((arc (datum->syntax #'name 'arc)))
-         #'(add-ac-build-step
-             (lambda (arc)
-               (ac-def-fn arc 'name 'args (lambda args body ...)))
-             `(ac-def ,'name ,'args)))))))
-
 ;; ail-load
 
 (define (ail-load arc filename)
@@ -144,13 +130,6 @@
    (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
    ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
 
-
-;; parameters
-
-(ac-def parameter (init)
-  (make-parameter init))
-
-
 (define (read-square-brackets ch port src line col pos)
   `(square-bracket ,@(read/recursive port #\[ #f)))
 
@@ -160,7 +139,3 @@
 (add-ac-build-step
   (lambda (arc)
     (set arc 'arc-readtable* (bracket-readtable #f))))
-
-(add-ac-build-step
- (lambda (arc)
-   (ac-def-fn arc 'this-namespace '() (lambda () arc))))

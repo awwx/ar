@@ -334,3 +334,6 @@
 
 (ail-code (ar-def details (c)
   (racket-exn-message c)))
+
+(ail-code (ar-def parameter (init)
+  (racket-make-parameter init)))

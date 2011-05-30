@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e -v
-racket ac-test.ss
 ./arc --no-repl ar-test.arc
 ./arc --no-repl ac-test.arc
 racket arc-test.ss
