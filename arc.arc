@@ -5,9 +5,9 @@
   (annotate 'mac
     (fn (var val)
       `(do (if (bound ',var)
-               (do (racket-disp "*** redefining " (racket-current-error-port))
-                   (racket-disp ',var (racket-current-error-port))
-                   (racket-disp #\newline (racket-current-error-port))))
+               (do (ar-disp "*** redefining " (racket-current-error-port))
+                   (ar-disp ',var (racket-current-error-port))
+                   (ar-disp #\newline (racket-current-error-port))))
            (assign ,var ,val)))))
 
 (assign assign-fn
@@ -296,13 +296,13 @@
 (def disp args
   (with (x (car args)
          port (or (cadr args) stdout))
-    (print racket-disp x port)))
+    (print ar-disp x port)))
 (sref sig '(x (o port)) 'disp)
 
 (def write args
   (with (x (car args)
          port (or (cadr args) stdout))
-    (print racket-write x port)))
+    (print ar-write x port)))
 (sref sig '(x (o port)) 'write)
 
 (def pr args

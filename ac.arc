@@ -290,18 +290,18 @@
       (f))
     (racket-get-output-string port))))
 
-(ail-code (racket-hash-set! sig (racket-quote racket-disp)
+(ail-code (racket-hash-set! sig (racket-quote ar-disp)
             (ar-toarc (racket-quote (x (o port stdout))))))
 
-(ail-code (racket-define (racket-disp x (port (racket-current-output-port)))
+(ail-code (racket-define (ar-disp x (port (racket-current-output-port)))
   (racket-display x port)
   (racket-flush-output port)
   x))
 
-(ail-code (racket-hash-set! sig (racket-quote racket-write)
+(ail-code (racket-hash-set! sig (racket-quote ar-write)
             (ar-toarc (racket-quote (x (o port stdout))))))
 
-(ail-code (racket-define (racket-write x (port (racket-current-output-port)))
+(ail-code (racket-define (ar-write x (port (racket-current-output-port)))
   (racket-write x port)
   (racket-flush-output port)
   x))
