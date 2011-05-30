@@ -337,3 +337,14 @@
 
 (ail-code (ar-def parameter (init)
   (racket-make-parameter init)))
+
+(ail-code (ar-def ar-read-square-brackets (ch port src line col pos)
+  (racket-quasiquote
+   (square-bracket
+    (racket-unquote-splicing (racket-read/recursive port #\[ #f))))))
+
+(ail-code (ar-def ar-bracket-readtable (readtable)
+  (racket-make-readtable readtable #\[ (racket-quote terminating-macro)
+    ar-read-square-brackets)))
+
+(ail-code (racket-define arc-readtable* (ar-bracket-readtable #f)))

@@ -83,19 +83,6 @@
            (make-hash `((build-steps . ())))))
 
 
-;; toarc
-
-(define (toarc x)
-  (cond ((pair? x)
-         (mcons (toarc (car x))
-                (toarc (cdr x))))
-        ((null? x)
-         'nil)
-        ((string? x)
-         (string-copy x))
-        (else x)))
-
-
 ;; racket-eval
 
 (define (racket-eval arc form)
@@ -129,13 +116,3 @@
  (lambda (arc)
    (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
    ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
-
-(define (read-square-brackets ch port src line col pos)
-  `(square-bracket ,@(read/recursive port #\[ #f)))
-
-(define (bracket-readtable readtable)
-  (make-readtable readtable #\[ 'terminating-macro read-square-brackets))
-
-(add-ac-build-step
-  (lambda (arc)
-    (set arc 'arc-readtable* (bracket-readtable #f))))
