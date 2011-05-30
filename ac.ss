@@ -2,8 +2,6 @@
 
 (provide (all-defined-out))
 
-;; note these are slow
-
 (define (get runtime varname)
   (namespace-variable-value
    varname
@@ -22,6 +20,10 @@
   (namespace-set-variable-value! varname value
     #t
     runtime))
+
+(define (racket-eval arc form)
+  (parameterize ((compile-allow-set!-undefined #t))
+    (eval form arc)))
 
 (define (new-runtime)
   (let ((runtime (make-base-empty-namespace)))
@@ -44,23 +46,6 @@
            (set runtime name value)))
     runtime))
 
-(define (new-arc arcdir)
-  (let ((arc (new-runtime)))
-    (set arc 'arcdir* arcdir)
-    (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
-    ((get arc 'ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))
-    arc))
-
-
-;; racket-eval
-
-(define (racket-eval arc form)
-  (parameterize ((compile-allow-set!-undefined #t))
-    (eval form arc)))
-
-
-;; ail-load
-
 (define (ail-load arc filename)
   (call-with-input-file filename
     (lambda (in)
@@ -70,3 +55,10 @@
             (racket-eval arc form)
             (loop))))))
   'nil)
+
+(define (new-arc arcdir)
+  (let ((arc (new-runtime)))
+    (set arc 'arcdir* arcdir)
+    (ail-load arc (string-append (get arc 'arcdir*) "/ar.ail"))
+    ((get arc 'ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))
+    arc))
