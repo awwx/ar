@@ -11,7 +11,7 @@
   (w/infile in filename
     (accum a
       ((afn ()
-        (racket
+        (ail-code
           (racket-let ((form (racket-read in)))
             (racket-unless (racket-eof-object? form)
               (a form)
@@ -29,7 +29,7 @@
     arc))
 
 (mac rq (lit)
-  `(racket ,(+ "(racket-quote " lit ")")))
+  `(ail-code ,(+ "(racket-quote " lit ")")))
 
 (mac testfor (pattern . body)
   `(let a (ac-upto ',pattern)

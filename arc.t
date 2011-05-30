@@ -534,8 +534,8 @@
 
 (testis (n-of 5 7) '(7 7 7 7 7))
 
-(testis (aracket-false (racket (racket-> 1 2))) t)
-(testis (aracket-false (racket (racket-< 1 2))) nil)
+(testis (aracket-false (racket-> 1 2)) t)
+(testis (aracket-false (racket-< 1 2)) nil)
 
 (fromstring "λ"
   (testis (readb) 206)

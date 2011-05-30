@@ -206,12 +206,6 @@
                    (apply (fn ,arglist ,@body) ,args)
                    (apply ,orig ,args))))))))
 
-(defrule ac (caris s 'racket)
-  (let x (cadr s)
-    (if (isa x 'string)
-         (ar-rread-from-string x)
-         x)))
-
 (assign ac-defined-vars* (table))
 
 (def ac-defvar (v x)
@@ -247,7 +241,7 @@
       (coerce x 'int b))))
 
 (def primitive-parameterize (param val f)
-  (racket (racket-parameterize ((param val)) (f))))
+  (ail-code (racket-parameterize ((param val)) (f))))
 
 (mac parameterize (param val . body)
   `(primitive-parameterize ,param ,val (fn () ,@body)))
@@ -475,7 +469,7 @@
                   keepsep?)))
 
 (def racket-true (x)
-  (racket (racket-if x (racket-quote t) (racket-quote nil))))
+  (ail-code (racket-if x (racket-quote t) (racket-quote nil))))
 
 (def sread (p eof)
   (let v (primitive-parameterize racket-current-readtable arc-readtable*
@@ -496,7 +490,7 @@
   `(point throw ,@body))
 
 (def protect (during after)
-  (racket (racket-dynamic-wind (racket-lambda () #t) during after)))
+  (ail-code (racket-dynamic-wind (racket-lambda () #t) during after)))
 
 (mac after (x . ys)
   `(protect (fn () ,x) (fn () ,@ys)))
@@ -524,8 +518,6 @@
 
 (def try-custodian (port))
 
-(racket (racket-require (racket-prefix-in racket- scheme/tcp)))
-
 (def close ports
   (each port ports
     (case (type port)
@@ -540,10 +532,10 @@
 
 (def outfile (filename (o append))
   (let flag (if append 'append 'truncate)
-    (racket (racket-open-output-file filename #:mode (racket-quote text) #:exists flag))))
+    (ail-code (racket-open-output-file filename #:mode (racket-quote text) #:exists flag))))
 
 (def open-socket (port)
-  ((inline ((racket-module-ref 'scheme/tcp) 'tcp-listen)) port 50 (racket "#t")))
+  ((inline ((racket-module-ref 'scheme/tcp) 'tcp-listen)) port 50 (ail-code #t)))
 
 (let expander
      (fn (f var name body)
@@ -676,7 +668,7 @@
   (sref x val 0))
 
 (def scdr (x val)
-  ((racket racket-set-mcdr!) x val))
+  ((ail-code racket-set-mcdr!) x val))
 
 (def warn (msg . args)
   (disp (+ "Warning: " msg ". "))
@@ -687,10 +679,10 @@
   (racket-make-semaphore init))
 
 (def call-with-semaphore (sema func)
-  ((racket call-with-semaphore) sema (fn () (func))))
+  (racket-call-with-semaphore sema (fn () (func))))
 
 (def nil->racket-false (x)
-  (if (no x) (racket "#f") x))
+  (if (no x) (ail-code #f) x))
 
 (def make-thread-cell (v (o preserved))
   (racket-make-thread-cell v (nil->racket-false preserved)))
@@ -699,7 +691,7 @@
   (racket-thread-cell-ref cell))
 
 (def thread-cell-set (cell v)
-  ((racket racket-thread-cell-set!) cell v))
+  ((ail-code racket-thread-cell-set!) cell v))
 
 (assign ar-the-sema (make-semaphore 1))
 
@@ -1129,7 +1121,7 @@
   (w/infile s name (allchars s)))
 
 (def mvfile (old new)
-  (racket-rename-file-or-directory old new (racket "#t"))
+  (racket-rename-file-or-directory old new (ail-code #t))
   nil)
 
 (def writefile (val file)
@@ -1154,7 +1146,7 @@
        (rev ,ga))))
 
 (def aracket-false (x)
-  (is x (racket "#f")))
+  (is x (ail-code #f)))
 
 (def aracket-true (x)
   (no (aracket-false x)))

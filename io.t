@@ -1,8 +1,8 @@
 (= tcp-test-port* 50013)
 
 (def tcp-connect (host port)
-  (racket "(racket-let-values (((i o) (racket-tcp-connect host port)))
-             (list i o))"))
+  (ail-code "(racket-let-values (((i o) (racket-tcp-connect host port)))
+               (list i o))"))
 
 (let ready (make-semaphore)
 

@@ -17,12 +17,12 @@
 
 (def make-empty-runtime ((o arcdir))
   (let acpath (string (or arcdir arcdir*) "/arc.ss")
-    ((racket (racket-dynamic-require (racket-string->path acpath)
-                                     (racket-quote new-runtime))))))
+    ((ail-code (racket-dynamic-require (racket-string->path acpath)
+                                       (racket-quote new-runtime))))))
 
 (def arc-runtime ((o arcdir))
   (let acpath (string (or arcdir arcdir*) "/arc.ss")
-    ((racket
+    ((ail-code
       (racket-dynamic-require
        (racket-string->path acpath)
        (racket-quote new-arc)))
@@ -32,13 +32,13 @@
   (fn args
     (if (is len.args 1)
          (with (varname (car args))
-             (racket (racket-namespace-variable-value
-                      varname #t #f runtime)))
+             (ail-code (racket-namespace-variable-value
+                        varname #t #f runtime)))
         (is len.args 2)
          (with (varname (car args)
                 value   (cadr args))
-           (racket (racket-namespace-set-variable-value!
-                    varname value #t runtime)))
+           (ail-code (racket-namespace-set-variable-value!
+                      varname value #t runtime)))
          (err "invalid number of arguments" arg))))
 
 (def empty-runtime ((o arcdir))
