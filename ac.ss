@@ -145,25 +145,6 @@
    ((g ar-load)  (string-append (get arc 'arcdir*) "/ac.arc"))))
 
 
-;; disp, write
-
-(define (tostringf f)
-  (let ((port (open-output-string)))
-    (parameterize ((current-output-port port))
-      (f))
-    (get-output-string port)))
-
-(ac-def racket-disp (x (port (current-output-port)))
-  (display x port)
-  (flush-output port)
-  x)
-
-(ac-def racket-write (x (port (current-output-port)))
-  (write x port)
-  (flush-output port)
-  x)
-
-
 ;; table
 
 (ac-def table ((init #f))

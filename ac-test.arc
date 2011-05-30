@@ -174,3 +174,10 @@
 
   (a!eval '(assign foo 123))
   (testis (a!eval '(bound 'foo)) t))
+
+(testfor (racket-define (racket-disp x (port (racket-current-output-port))))
+  (let port (outstring)
+    (a!eval `(racket-disp "a" ',port))
+    (testis (inside port) "a"))
+  (testis (tostring (a!racket-disp "abc")) "abc")
+  (testis (tostring (a!eval '(racket-write "a"))) "\"a\""))

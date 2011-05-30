@@ -283,3 +283,25 @@
     (racket-lambda (name)
       (ar-tnil
        (racket-not (racket-eq? (ar-var name undef) undef)))))))
+
+(ail-code (ar-def ar-tostringf (f)
+  (racket-let ((port (racket-open-output-string)))
+    (racket-parameterize ((racket-current-output-port port))
+      (f))
+    (racket-get-output-string port))))
+
+(ail-code (racket-hash-set! sig (racket-quote racket-disp)
+            (ar-toarc (racket-quote (x (o port stdout))))))
+
+(ail-code (racket-define (racket-disp x (port (racket-current-output-port)))
+  (racket-display x port)
+  (racket-flush-output port)
+  x))
+
+(ail-code (racket-hash-set! sig (racket-quote racket-write)
+            (ar-toarc (racket-quote (x (o port stdout))))))
+
+(ail-code (racket-define (racket-write x (port (racket-current-output-port)))
+  (racket-write x port)
+  (racket-flush-output port)
+  x))

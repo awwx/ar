@@ -206,28 +206,6 @@
 (define (run-ac-tests test-inline?)
   (parameterize ((test-inline test-inline?))
 
-    (after '(ac-def racket-disp)
-      (test-equal
-       (let ((port (open-output-string))
-             (arc (test-arc)))
-         (hash-set! arc 'port port)
-         (arc-test-eval `( (racket-disp "a" ',port) ) arc)
-         (get-output-string port))
-       "a")
-
-      (test-equal
-       (let ((arc (test-arc)))
-         (tostringf (lambda ()
-                      (arc-test-eval '( (racket-disp "abc") ) arc))))
-       "abc"))
-
-    (after '(ac-def racket-write)
-      (test-equal
-       (let ((arc (test-arc)))
-         (tostringf (lambda ()
-                      (arc-test-eval '( (racket-write "a") ) arc))))
-       "\"a\""))
-
     (after '(ac-def table)
       (arc-test ( (table) ) (hash)))
 
