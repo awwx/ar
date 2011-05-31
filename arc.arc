@@ -588,9 +588,6 @@
 (def ac-insym? (char sym)
   (mem char (ac-symbol->chars sym)))
 
-(defrule ac-expand-ssyntax (or (ac-insym? #\: sym) (ac-insym? #\~ sym))
-  (ac-expand-compose sym))
-
 (def ac-build-sexpr (toks orig)
   (if (no toks)
        'get
@@ -607,8 +604,11 @@
   (ac-build-sexpr (rev (ac-tokens [in _ #\. #\!] (ac-symbol->chars sym) nil nil t))
                   sym))
 
+; NOTE: These need to be in this order so that the precedence is consistent with Arc 3.1.
 (defrule ac-expand-ssyntax (or (ac-insym? #\. sym) (ac-insym? #\! sym))
   (ac-expand-sexpr sym))
+(defrule ac-expand-ssyntax (or (ac-insym? #\: sym) (ac-insym? #\~ sym))
+  (ac-expand-compose sym))
 
 (assign cdar cdr:car)
 

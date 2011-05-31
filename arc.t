@@ -321,6 +321,12 @@
 (testis acons!a nil)
 (testis type.cons 'fn)
 
+(testis (do.inc:do 2) 3)
+
+(testis (inc:do.inc 2) 4)
+
+(testis (~do.no t) t)
+
 (testis ((andf acons cdr) '(1 . 2)) 2)
 
 (testis (ac-expand-and 'acons&cdr) '(andf acons cdr))
