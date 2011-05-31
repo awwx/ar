@@ -7,6 +7,52 @@ Status
 ar is now loading and running code from strings.arc.  Much of Arc
 remains unimplemented (see the todo below for the complete list).
 
+Bug reports are *greatly* appreciated!
+
+
+Run
+---
+
+Get to the REPL with:
+
+    ./arc
+
+or, if you have rlwrap:
+
+    rlwrap -q \" ./arc
+
+You can load Arc files from the command line and then go into the
+REPL:
+
+    /path/to/ar/arc foo.arc bar.arc
+
+or, if you want to execute your Arc program without entering the REPL:
+
+    /path/to/ar/arc --no-repl foo.arc bar.arc
+
+With `arc-script`, you can write a shell script in Arc.  (Though still
+todo is conveniently accessing the command line arguments).
+
+For example, if the file "hello" contained:
+
+    #!/path/to/ar/arc-script
+    (prn "hello there")
+
+you could run this script with:
+
+    $ chmod +x hello
+    $ ./hello    
+
+if you have ar on your path, you can also use env to avoid hard coding
+the path to ar:
+
+    #!/usr/bin/env arc-script
+    (prn "hello there")
+
+Run tests with:
+
+    ./tests.sh
+
 
 Goals
 -----
@@ -55,50 +101,41 @@ Non-Goals
   easily?"
 
 
-Run
----
+Design Philosophy
+-----------------
 
-Get to the REPL with:
+If an existing language or library does `(A, B and C)`, and someone
+wants it to do `(A, B, and D)`, there are various approaches that we
+could take:
 
-    ./arc
+1. We can say that the former is the most common case and should be
+the default, and thus say that when you want `(A, B, D)` you need to
+add code to prevent C from happening and to add code to get D to
+happen.
 
-or, if you have rlwrap:
+2. We can add a way to configure the language or library so that you
+can specify whether it should do `(A, B, C)` or `(A, B, D)`.
 
-    rlwrap -q \" ./arc
+3. We can provide `(A, B)`, `(C)`, and `(D)` as separate composable
+pieces, and leave it to the programmer to combine them as
+`((A, B), (C))` or `((A, B), (D))`.
 
-You can load Arc files from the command line and then go into the
-REPL:
+The guiding design philosophy of ar is to consistently choose the
+third approach.
 
-    /path/to/ar/arc foo.arc bar.arc
+Of course, sometimes you may *want* to provide a more monolithic
+facility that provides various guarantees... guarantees which perhaps
+can't be made if a programmer can break things just by combining the
+wrong pieces or by combining things in the wrong order.  Since ar is
+supposed to support doing what you want, ideally you'd be able to
+build such a facility on top or ar; even if ar isn't monolithic
+itself.
 
-or, if you want to execute your Arc program without entering the REPL:
-
-    /path/to/ar/arc --no-repl foo.arc bar.arc
-
-With `arc-script`, you can write a shell script in Arc.  (Though still
-todo is conveniently accessing the command line arguments).
-
-For example, if the file "hello" contained:
-
-    #!/path/to/ar/arc-script
-    (prn "hello there")
-
-you could run this script with:
-
-    $ chmod +x hello
-    $ ./hello    
-
-if you have ar on your path, you can also use env to avoid hard coding
-the path to ar:
-
-    #!/usr/bin/env arc-script
-    (prn "hello there")
-
-Run tests with:
-
-    ./tests.sh
-
-Bug reports are *greatly* appreciated!
+And, just because ar has a design philosophy doesn't mean that it will
+work in all cases.  Still, a proposed enhancement to ar implemented in
+a way that goes against ar's design philosophy will typically need a
+higher standard of proof that the approach is truly necessary than
+making a similar change in a more conventional project would.
 
 
 Todo
@@ -106,7 +143,7 @@ Todo
 
 * split arc.arc into smaller pieces.
 
-* allow special forms such as "fn" to be used as lexical variable, and
+* allow special forms such as "fn" to be used as a lexical variable, and
   to be overridden by a macro.
 
 * a mechanism to override or specify the action of Arc's apply on
@@ -204,8 +241,10 @@ Changes
          (cdr ((fn args args) 1)) => nil
 
 
-* the Arc compiler is reflected into Arc (where it can be hacked by
-  redefining or extending the functions which implement the compiler)
+* the Arc compiler is reflected into Arc
+
+  where it can be hacked in Arc by redefining or extending the
+  functions which implement the compiler:
 
          arc> (ac-literal? 123)
          t
@@ -223,6 +262,9 @@ Changes
          t
          arc> (eval +)
          #<procedure:ar-+>
+
+  (todo: this is no longer a good example, because function values are
+  now already treated as literals).
 
 
 * lexical identifiers take precedence over macros
@@ -402,7 +444,7 @@ Changes
 The Arc Implementation Language (Ail)
 -------------------------------------
 
-Ail is an language intermediate between Racket and Arc, though closer
+Ail is a language intermediate between Racket and Arc, though closer
 to Racket than to Arc.  The Arc runtime is written in Ail, and the Arc
 compiler compiles Arc to Ail.
 
@@ -411,12 +453,13 @@ runtime implementation in Arc's namespace where it can be directly
 modified from Arc.
 
 Ail is a terrible language for *writing* code in.  It is like assembly
-language or bytecode: it's something you'd rather have generated for
-you.
+language or bytecode: it's something you'd really rather have
+generated *for* you.
 
-Ail can also be used to access Racket from Arc, though it doesn't by
-itself provide a convenient way to do that.  However, a more friendly
-interface could be built that used Ail internally.
+Ail can also be used to access Racket from Arc, though it's not a very
+convenient way to do that.  However, a more friendly interface from
+Arc to Racket could probably be built that used Ail internally, or at
+least used a few calls to `ail-code` to get going.
 
 Ail details:
 
@@ -500,10 +543,10 @@ when we'd like `nil` to be translated into either a symbol or the end
 of list; but whatever choice we make there will be some other case
 that the default doesn't cover.
 
-The current choice for ac (which seems to be useful the most often)
-is to translate an Arc `nil` into the symbol "nil" when it appears in
-the car of a pair, and to translate it into a Racket null "()" when
-it's in the cdr of a pair.
+The choice made in ar (which seems to be the most useful the most
+often) is to translate an Arc `nil` into the symbol "nil" when it
+appears in the car of a pair, and to translate it into a Racket null
+"()" when it's in the cdr of a pair.
 
 Thus in:
 
