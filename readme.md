@@ -68,8 +68,6 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
-* (ssexpand 'a.b:c.d) => ((a b:c) d) not (compose a.b c.d)
-* (ssexpand '~a.b) => (~a b) not (complement a.b)
 * (map (table) list.nil) => Error: procedure application: expected procedure, given: '#hash(); arguments were: 'nil
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"
 * The code currently requires Racket, though a compatibility mode for
@@ -78,9 +76,8 @@ Todo
 * I haven't been able to replicate the socket force close problem yet
   that Arc 3.1 solves by using custodians; is this still a problem in
   Racket?
-* the strategy for representing Racket lists in Arc (which we need to
-  have ac return an Arc list representing Racket code) is a bit
-  confused... a clearer way to distinguish nil and () would be better.
+* defrule is a fun hack but awkward to use for ssyntax: we have to put
+  defrule's in a particular order to specify ssyntax precedence
 * would be nice if typing ^C returned to the REPL
 * pipe-from
 * ac-nameit, ac-dbname
@@ -442,3 +439,6 @@ over macros with the same name; waterhouse contributed the test.
 
 Pauan moved Arc's coerce and + functions out of ar; and made `(coerce
 '() 'cons)` return nil.
+
+rocketnia provided a fix for the ssyntax precedence being different
+than Arc 3.1.

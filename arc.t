@@ -327,6 +327,10 @@
 
 (testis (~do.no t) t)
 
+(testis (ssexpand 'a.b:c.d) '(compose a.b c.d))
+
+(testis (ssexpand '~a.b) '(complement a.b))
+
 (testis ((andf acons cdr) '(1 . 2)) 2)
 
 (testis (ac-expand-and 'acons&cdr) '(andf acons cdr))
