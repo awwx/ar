@@ -384,15 +384,20 @@ Ail details:
   [racket/load](http://docs.racket-lang.org/reference/load-lang.html)
   language.
 
-  This means that Ail code isn't separatated into compile-time and
+  This means that Ail code isn't separated into compile-time and
   run-time phases like code in Racket's modules are; but it also means
   that we don't get some optimizations done for us that Racket's
   modules provide.
 
-* Racket macros can be used from Ail code (but don't work from Arc).
+* Racket macros can be used from Ail code.  (But note this doesn't
+  mean we can use Racket macros from *Arc*, because Arc's macro
+  expansion and Racket's macro expansion are separate: all the Arc
+  macros get expanded before Racket sees anything, and so there's no
+  way to intermix Arc macros and Racket macros).
 
-* Ail code can be generated from Arc by using `ail-code`.  For
-  example, from Arc:
+* Ail code can be generated from Arc by using `ail-code` (and an Arc
+  macro can expand into `ail-code`, and so you can write Arc macros
+  which generate Ail code).  For example, from Arc:
 
          (ail-code (racket-let ((foo 3))
                      (+ foo 2)))
@@ -405,6 +410,99 @@ Ail details:
   Arc.  For example, from Arc:
 
          (racket-+ 3 4 5)
+
+
+The Arc Compiler (ac)
+---------------------
+
+In Arc 3.1, the Arc compiler operates on Racket lists: it takes Arc
+source code converted to a Racket list as input, and returns Racket
+code as a Racket list as output.
+
+In ar, the Arc compiler operates on Arc lists: it takes Arc code in
+its original format as an Arc list, and returns a representation of
+Ail code as an Arc list.
+
+This choice of representation means that extensions to the compiler
+can be written in Arc, and often using just plain Arc lists.
+
+    arc> (defrule ac (is s 'foo) '(prn "Fee-fi-fo-fum!"))
+    #<procedure:g1524>
+    arc> foo
+    Fee-fi-fo-fum!
+
+(note that the `prn` expression is in fact Ail code; it just happens
+to be written the same as it would be in Arc because it's a simple
+example).
+
+In Arc `nil` represents both the symbol "nil" and the end of a list,
+but in Racket (and thus in Ail) the end of list (and thus the empty
+list as well) is represented by Racket's null: `()`.  (In addition,
+an Arc list is constructed with mutable pairs and a Racket list is
+constructed with immutable pairs).
+
+When converting an Arc list representing Ail code into a Racket list
+that can be fed to Racket's `eval`, we can choose some default for
+when we'd like `nil` to be translated into either a symbol or the end
+of list; but whatever choice we make there will be some other case
+that the default doesn't cover.
+
+The current choice for ac (which seems to be useful the most often)
+is to translate an Arc `nil` into the symbol "nil" when it appears in
+the car of a pair, and to translate it into a Racket null "()" when
+it's in the cdr of a pair.
+
+Thus in:
+
+    arc> (ail-code (racket-quote nil))
+    nil
+
+the *input* expression as an Arc list, showing the end of list
+terminator, looks like:
+
+    (racket-quote nil . nil)
+
+the *output* expression as a Racket list looks like:
+
+    (racket-quote nil . ())
+
+which is why the the result is "nil" instead of "()".
+
+What this choice of default *doesn't* cover is representing an empty
+list in a car position.  For example, suppose we wanted to specify the
+argument list for a Racket lambda:
+
+    `(racket-lambda ,args 123)
+
+If `args` happens to be an empty list, we'd like the output to be the
+Ail equivalent of the Racket code:
+
+    (lambda () 123)
+
+But that's not what happens.  The input expression as an Arc list
+looks like:
+
+    (racket-lambda nil 123 . nil)
+
+which gets converted to the Racket list:
+
+    (racket-lambda nil 123 . ())
+
+for which the equivalent code in standard Racket would be:
+
+    (lambda nil 123)
+
+i.e., what we end up with is a lambda that takes any number of
+arguments, that has a rest parameter called "nil".
+
+We can tunnel arbitrary values through the Arc to Ail conversion using
+`ar-tunnel`:
+
+    `(racket-lambda ,(ar-tunnel (ar-list-fromarc args)) 123)
+
+Now if `args` is the empty list `nil`, `ar-list-fromarc` will convert
+that to a Racket null `()`, and we'll end up with a Racket lambda
+which takes no arguments.
 
 
 Contributors
