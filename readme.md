@@ -1,11 +1,19 @@
 Join the conversation about the Arc Runtime Project ("ar") on Convore:
 https://convore.com/arc-runtime-project/
 
-Goals of ar include:
+Status
+------
+
+ar is now loading and running code from strings.arc.  Much of Arc
+remains unimplemented (see the todo below for the complete list).
+
+
+Goals
+-----
 
 * Make Arc (even more!) hackable, enabling people to create their
   own personal programming language -- beyond what can be done just
-  with with macros.
+  with using macros.
 
 * Provide a complete implementation of Arc 3.1, as one of the
   available languages based on ar.
@@ -20,7 +28,35 @@ Goals of ar include:
 * Fix bugs and make enhancements in the runtime which are easier to do
   with a compiler which isn't quite as tightly bound to Scheme.
 
-This code is under development, much of Arc is unimplemented.
+* And, ideally, to provide a clean and well-factored implementation of
+  all of the above.
+
+
+Non-Goals
+---------
+
+* It's not intended to be within the scope of the ar project itself to
+  come up with some better language than Arc 3.1; though it *is* the
+  job of ar to *support* the creation of languages better than Arc
+  3.1.
+
+  Thus questions such as "would it be better get the standard output
+  port with `stdout` or `(stdout)`?" or "should the table constructor
+  function be called `table` or `hash`?" aren't for ar to decide;
+  though ar would ideally let you use `stdout` or `(stdout)`, or
+  `table` or `hash`, as you wanted to.
+
+  Of course, the line between the two is rather blurry (at what point
+  does "supporting a better language" become simply "a better
+  language"), and the current ar arguably already crosses the line
+  with changes such as `stdout`... but to frame the discussion, a
+  question to ask is not "should Arc do X instead of Y?", but instead
+  to ask, "I want to do X.  How can we get ar to let me to do that
+  easily?"
+
+
+Run
+---
 
 Get to the REPL with:
 
@@ -152,7 +188,9 @@ Changes
 
 * Arc lists are implemented using Racket's mutable pairs (mpair's)
 
-  as a fix for the [queue bug](http://awwx.ws/queue-test-summary).
+  as one way to fix the
+  [queue bug](http://awwx.ws/queue-test-summary), and to avoid needing
+  to use pointer operations to modify Racket's "immutable" pairs.
 
 
 * quasiquotation is implemented with Alan Bawden's algorithm
