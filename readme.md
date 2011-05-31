@@ -68,6 +68,22 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
+* split arc.arc into smaller pieces.
+
+* allow special forms such as "fn" to be used as lexical variable, and
+  to be overridden by a macro.
+
+* a mechanism to override or specify the action of Arc's apply on
+  non-function values.
+
+* tidier implementations of dynamic and implicit.
+
+* extract make-w/close.
+
+(see https://github.com/awwx/ar/pull/1 for the above)
+
+* Optimizations (such as direct-calls)
+* See if we can move coerce and + into Arc.
 * (map (table) list.nil) => Error: procedure application: expected procedure, given: '#hash(); arguments were: 'nil
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"
 * The code currently requires Racket, though a compatibility mode for
@@ -83,7 +99,6 @@ Todo
 * ac-nameit, ac-dbname
 * atstrings
 * ac-binaries
-* direct-calls
 * macex1
 * explicit-flush
 * declare
