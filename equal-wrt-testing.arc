@@ -2,7 +2,7 @@
   (if (and (isa a 'exception) (isa b 'exception))
        (is (details a) (details b))
       (and (isa a 'table) (isa b 'table))
-       (with (ka (erp (keys a)) kb (erp (keys b)))
+       (with (ka (keys a) kb (keys b))
          (and (is (len ka) (len kb))
               (iso (sort < ka) (sort < kb))
               (all [iso a._ b._] ka)))

@@ -1,49 +1,66 @@
-The goal of this runtime project is to make Arc (even more!) hackable
-by reflecting the Arc compiler into Arc, which in turn also lets more
-of the Arc compiler to be written in Arc itself.
+Join the conversation about the Arc Runtime Project ("ar") on Convore:
+https://convore.com/arc-runtime-project/
 
-    arc> (ac-literal? 123)
-    t
-    arc> (eval 123)
-    123
-    arc> +
-    #<procedure:ar-+>
-    arc> (ac-literal? +)
-    nil
-    arc> (eval +)
-    err: Bad object in expression #<procedure:ar-+>
-    arc> (defrule ac-literal? (isa x 'fn) t)
-    #<procedure:g1444>
-    arc> (ac-literal? +)
-    t
-    arc> (eval +)
-    #<procedure:ar-+>
+Goals of ar include:
 
-Along the way we take advantage of the more hackable Arc to fix some
-bugs and make some enhancements in the runtime that turn out to be
-easier to do with a compiler which isn't quite as tightly bound to
-Scheme.
+* Make Arc (even more!) hackable, enabling people to create their
+  own personal programming language -- beyond what can be done just
+  with with macros.
+
+* Provide a complete implementation of Arc 3.1, as one of the
+  available languages based on ar.
+
+* Be at least as good as Arc 3.1 at running a production website; thus
+  for example you should be able to run a news.arc site on top of ar
+  if you wanted to.
+
+* Use the latest Racket version directly, instead of relying on the
+  "mzscheme" backwards compatibility mode.
+
+* Fix bugs and make enhancements in the runtime which are easier to do
+  with a compiler which isn't quite as tightly bound to Scheme.
 
 This code is under development, much of Arc is unimplemented.
 
 Get to the REPL with:
 
-    racket as.ss
+    ./arc
 
 or, if you have rlwrap:
 
-    rlwrap -q \" racket as.ss
+    rlwrap -q \" ./arc
 
-You can also use "mzscheme" instead of "racket".
+You can load Arc files from the command line and then go into the
+REPL:
 
-Note that you don't use the "-f" option like you would with Arc 3.1.
+    /path/to/ar/arc foo.arc bar.arc
+
+or, if you want to execute your Arc program without entering the REPL:
+
+    /path/to/ar/arc --no-repl foo.arc bar.arc
+
+With `arc-script`, you can write a shell script in Arc.  (Though still
+todo is conveniently accessing the command line arguments).
+
+For example, if the file "hello" contained:
+
+    #!/path/to/ar/arc-script
+    (prn "hello there")
+
+you could run this script with:
+
+    $ chmod +x hello
+    $ ./hello    
+
+if you have ar on your path, you can also use env to avoid hard coding
+the path to ar:
+
+    #!/usr/bin/env arc-script
+    (prn "hello there")
 
 Run tests with:
 
-    racket ar-test.ss
-    racket ac-test.ss
-    racket arc-test.ss
-    racket strings-test.ss
+    ./tests.sh
 
 Bug reports are *greatly* appreciated!
 
@@ -51,11 +68,21 @@ Bug reports are *greatly* appreciated!
 Todo
 ----
 
+* (ssexpand 'a.b:c.d) => ((a b:c) d) not (compose a.b c.d)
+* (ssexpand '~a.b) => (~a b) not (complement a.b)
+* (map (table) list.nil) => Error: procedure application: expected procedure, given: '#hash(); arguments were: 'nil
+* (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"
+* The code currently requires Racket, though a compatibility mode for
+  PLT Scheme would be useful.
 * clean up messy code in io.arc
+* I haven't been able to replicate the socket force close problem yet
+  that Arc 3.1 solves by using custodians; is this still a problem in
+  Racket?
 * the strategy for representing Racket lists in Arc (which we need to
   have ac return an Arc list representing Racket code) is a bit
   confused... a clearer way to distinguish nil and () would be better.
 * would be nice if typing ^C returned to the REPL
+* pipe-from
 * ac-nameit, ac-dbname
 * atstrings
 * ac-binaries
@@ -107,14 +134,9 @@ Todo
   * rmfile
   * client-ip
 
- 
+
 Changes
 -------
-
-These bug fixes and enhancements are demonstrations of things that
-become easier to do when more of the Arc compiler is written in Arc.
-Because of the flexibility of the compiler they're easily reversed or
-changed.
 
 * Arc lists are implemented using Racket's mutable pairs (mpair's)
 
@@ -130,6 +152,27 @@ changed.
 * Function rest arguments are 'nil terminated Arc lists
 
          (cdr ((fn args args) 1)) => nil
+
+
+* the Arc compiler is reflected into Arc (where it can be hacked by
+  redefining or extending the functions which implement the compiler)
+
+         arc> (ac-literal? 123)
+         t
+         arc> (eval 123)
+         123
+         arc> +
+         #<procedure:ar-+>
+         arc> (ac-literal? +)
+         nil
+         arc> (eval +)
+         err: Bad object in expression #<procedure:ar-+>
+         arc> (defrule ac-literal? (isa x 'fn) t)
+         #<procedure:g1444>
+         arc> (ac-literal? +)
+         t
+         arc> (eval +)
+         #<procedure:ar-+>
 
 
 * lexical identifiers take precedence over macros
@@ -209,13 +252,6 @@ changed.
   and applying join to the pieces will result in the original list.
 
 
-* global variables can be stored in an Arc table instead of in a Racket namespace
-
-  This has been turned off by default though, as it did turn out to be
-  slower than using a Racket namespace for global variables as Arc 3.1
-  does.
-
-
 * global variables are represented in Racket's namespace with their plain name
 
   In Arc 3.1, global variable are stored in Racket's namespace with a
@@ -264,15 +300,15 @@ changed.
          (mac square-bracket body
            `(fn (_) (,@body)))
 
-  this makes it easier to hack the square bracket syntax. 
+  this makes it easier to hack the square bracket syntax.
 
 * the REPL removes excess characters at the end of the input line
 
   In Arc 3.1:
 
-         arc> (readline) ;Fee fi fo fum   
+         arc> (readline) ;Fee fi fo fum
          " ;Fee fi fo fum"
-         arc> 
+         arc>
 
   this is because Racket's reader reads up to the closing ")", leaving
   the rest of the input line in the input buffer, which is then read
@@ -286,7 +322,92 @@ changed.
          arc> (readline) ;Fee fi fo fum
          hello
          "hello"
-         arc> 
+         arc>
+
+* (coerce '() 'cons) now returns nil
+
+  thus any list can be coerce'd to a "cons", even though the empty
+  list isn't actually represented by a cons cell.
+
+
+* embedding other runtimes based on ar
+
+  Multiple runtimes can loaded and run within the same memory space.
+  Each runtime has its own set of global variables, and can have a
+  different set of definitions loaded.  Thus the other runtimes can be
+  a hacked version of ar, or have some other language than Arc loaded.
+
+         arc> (load "embed.arc")
+         nil
+         arc> (= a (new-arc))
+         #<procedure>
+         arc> a!+
+         #<procedure:+>
+         arc> (a!ar-load "arc.arc")
+         nil
+         arc> (a!eval '(map odd '(1 2 3 4 5 6)))
+         (t nil t nil t nil)
+
+
+The Arc Implementation Language (Ail)
+-------------------------------------
+
+Ail is an language intermediate between Racket and Arc, though closer
+to Racket than to Arc.  The Arc runtime is written in Ail, and the Arc
+compiler compiles Arc to Ail.
+
+The purpose of Ail is to make Arc more hackable, because it puts Arc's
+runtime implementation in Arc's namespace where it can be directly
+modified from Arc.
+
+Ail is a terrible language for *writing* code in.  It is like assembly
+language or bytecode: it's something you'd rather have generated for
+you.
+
+Ail can also be used to access Racket from Arc, though it doesn't by
+itself provide a convenient way to do that.  However, a more friendly
+interface could be built that used Ail internally.
+
+Ail details:
+
+* Definitions and global variables are in Arc's namespace. Thus if you
+  define a function `foo` in Ail, it becomes a function `foo` in Arc.
+  Likewise, if code in Ail calls a function `bar`, and `bar` is
+  defined in Arc, Arc's `bar` will be called.
+
+* Function calls such as `(foo 1 2 3)` are made using Racket's plain
+  function call mechanism, and so can only call functions.
+
+* Racket identifiers are loaded into the namespace with a "racket-"
+  prefix.  Thus you can refer to Racket's `+` with `racket-+`,
+  Racket's `let` with `racket-let`, and so on.
+
+* Ail code is not loaded in a Racket module, but is instead eval'ed
+  one form at a time.  This is like Arc's `load` or Racket's
+  [racket/load](http://docs.racket-lang.org/reference/load-lang.html)
+  language.
+
+  This means that Ail code isn't separatated into compile-time and
+  run-time phases like code in Racket's modules are; but it also means
+  that we don't get some optimizations done for us that Racket's
+  modules provide.
+
+* Racket macros can be used from Ail code (but don't work from Arc).
+
+* Ail code can be generated from Arc by using `ail-code`.  For
+  example, from Arc:
+
+         (ail-code (racket-let ((foo 3))
+                     (+ foo 2)))
+
+  note that *Arc's* `+` is being called here, not Racket's.  If we
+  wanted Racket's `+`, we'd use `racket-+`.
+
+  `ail-code` is only necessary when we need to use a Racket macro or
+  special form, since Racket functions can be called directly from
+  Arc.  For example, from Arc:
+
+         (racket-+ 3 4 5)
 
 
 Contributors
@@ -318,3 +439,6 @@ that.
 
 rocketnia provided the patch to make lexical variables take precedence
 over macros with the same name; waterhouse contributed the test.
+
+Pauan moved Arc's coerce and + functions out of ar; and made `(coerce
+'() 'cons)` return nil.

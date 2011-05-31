@@ -1,5 +1,14 @@
 (testis (w/instring s "" (readc s 'end)) 'end)
 
+(testis (w/instring s ""    (peekc s)) 'nil)
+(testis (w/instring s "abc" (peekc s)) #\a)
+(testis (w/instring s "abc"
+          (peekc s)
+          (readc s))
+        #\a)
+
+(testis (tostring (writec #\a)) "a")
+
 (testis (do (assign a 1)
             (assign b 2)
             (assign c 3)
@@ -43,7 +52,7 @@
 
 (testis (atom 3) t)
 (testis (atom '(3)) nil)
- 
+
 (testis (idfn 123) 123)
 
 (testis (map1 acons '(1 (2) 3 (4))) '(nil t nil t))
@@ -244,6 +253,10 @@
 (testis (ac-tokens [is _ #\:] '(#\a #\: #\b #\c) nil nil nil)
         '((#\a) (#\b #\c)))
 
+(testis (read "[3]")              '(square-bracket 3))
+(testis (read (instring "[3]"))   '(square-bracket 3))
+(testis (fromstring "[3]" (read)) '(square-bracket 3))
+
 (testis (point foo (foo 5) 6) 5)
 
 (testis (catch 1 2 (throw 3) 4 5) 3)
@@ -426,7 +439,7 @@
     (-- x)
     (testis x 6))
 
-(do (= x 7) 
+(do (= x 7)
     (zap + x 1)
     (testis x 8))
 
@@ -521,8 +534,8 @@
 
 (testis (n-of 5 7) '(7 7 7 7 7))
 
-(testis (aracket-false (racket (racket-> 1 2))) t)
-(testis (aracket-false (racket (racket-< 1 2))) nil)
+(testis (aracket-false (racket-> 1 2)) t)
+(testis (aracket-false (racket-< 1 2)) nil)
 
 (fromstring "λ"
   (testis (readb) 206)

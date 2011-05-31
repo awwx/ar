@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e -v
-racket ar-test.ss
-racket ac-test.ss
-racket arc-test.ss
-racket strings-test.ss
+./arc --no-repl ar-test.arc
+./arc --no-repl ac-test.arc
+./arc-test.sh
+./io-test.sh
+./io-test-root.sh
+./strings-test.sh
+./arc-script-test.pl
