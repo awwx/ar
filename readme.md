@@ -558,11 +558,14 @@ terminator, looks like:
 
     (racket-quote nil . nil)
 
-the *output* expression as a Racket list looks like:
+the first nil is in the car of a pair, and the second nil is in the
+cdr.  Thus the expression when converted to a Racket list looks like:
 
     (racket-quote nil . ())
 
-which is why the the result is "nil" instead of "()".
+which is why Racket accepts the expression as a valid Racket list
+terminated with `()`, but the the final result output is "nil" instead
+of "()".
 
 What this choice of default *doesn't* cover is representing an empty
 list in a car position.  For example, suppose we wanted to specify the
