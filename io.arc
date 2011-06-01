@@ -3,9 +3,7 @@
 ;; Not worrying about how ugly this is right now on the assumption
 ;; that I'll be rewriting it in Arc anyway.
 
-(ail-code (racket-require (racket-prefix-in racket- scheme/tcp)))
 (ail-code (racket-require (racket-prefix-in racket- scheme/port)))
-(ail-code (racket-require (racket-prefix-in racket- scheme/mpair)))
 
 (def socket-accept (s)
   (ail-code
