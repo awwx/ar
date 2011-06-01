@@ -208,7 +208,6 @@ Todo
   * evtil
   * rand-key
   * ratio
-  * dead
 
 
 Changes

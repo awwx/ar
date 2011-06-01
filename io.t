@@ -35,3 +35,17 @@
   (system (+ "touch " f))
   (rmfile f)
   (testis (dir td) '()))
+
+(with (alive (make-semaphore)
+       done  (make-semaphore))
+  (let th (thread (racket-semaphore-post alive)
+                  (racket-semaphore-wait done))
+    (racket-semaphore-wait alive)
+    (testis (dead th) nil)
+    (racket-semaphore-post done)
+    (catch (repeat 5
+             (if (dead th) (throw nil))
+             (sleep 0.1))
+           (err "thread not dead"))
+    (prn "ok thread dead")))
+
