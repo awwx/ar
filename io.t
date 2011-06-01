@@ -26,3 +26,9 @@
     (system (+ "touch " td "/one"))
     (system (+ "touch " td "/two"))
     (testis (sort < (dir td)) '("one" "two")))
+
+(let f (+ td "/foo")
+  (clean)
+  (system (+ "touch " f))
+  (rmfile f)
+  (testis (dir td) '()))

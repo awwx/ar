@@ -209,7 +209,6 @@ Todo
   * rand-key
   * ratio
   * dead
-  * rmfile
   * client-ip
 
 
