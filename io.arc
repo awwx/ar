@@ -10,11 +10,14 @@
        (ail-code
         (racket-call-with-values ,i ,o)))))
 
+(def client-ip (port)
+  (values (us them) (racket-tcp-addresses port) them))
+
 (def socket-accept (s)
   (values (in out) (racket-tcp-accept s)
     (list (limited-input-port in 100000)
           out
-          (values (us them) (racket-tcp-addresses out) them))))
+          (client-ip out))))
 
 (mac rmodule (language . body)
   (w/uniq module
@@ -37,9 +40,6 @@
 (def rmfile (name)
   (racket-delete-file name)
   nil)
-
-(def client-ip (port)
-  (values (us them) (racket-tcp-addresses port) them))
 
 (def dead (thd)
   (aracket-true (racket-thread-dead? thd)))
