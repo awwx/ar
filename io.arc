@@ -16,18 +16,20 @@
               (racket-let-values (((us them) (racket-tcp-addresses out)))
                 them)))))))
 
-;; breaks the compiler to require foreign.ss into our namespace
+(mac rmodule (language . body)
+  (w/uniq module
+    (eval `(ail-code (racket-module ,module ,language ,@body))) 
+    (racket-module-ref `',module)))
 
-(ail-code (racket-module setuid scheme
-            (require (lib "foreign.ss"))
-            (unsafe!)
-            (provide setuid)
-            (define setuid (get-ffi-obj 'setuid #f (_fun _int -> _int)))))
-
-;; And this *is* ugly... but it has the advantage that it works.
+(= setuid-module
+   (rmodule scheme
+     (require (lib "foreign.ss"))
+     (unsafe!)
+     (provide setuid)
+     (define setuid (get-ffi-obj 'setuid #f (_fun _int -> _int)))))
 
 (def setuid (uid)
-  ((inline ((racket-module-ref ''setuid) 'setuid)) uid))
+  ((inline setuid-module!setuid) uid))
 
 (def dir (name)
   (ar-toarc (racket (map path->string (directory-list name)))))
