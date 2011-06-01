@@ -186,7 +186,6 @@ Todo
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
 * need tests for
   * atomic
-  * force-close on sockets (see comment on force-close in arc3.1/ac.scm)
   * threads
   * whilet
   * awhen
@@ -210,9 +209,6 @@ Todo
   * rand-key
   * ratio
   * dead
-  * socket-accept
-  * setuid
-  * dir
   * rmfile
   * client-ip
 
