@@ -157,7 +157,6 @@ Todo
 
 * Optimizations (such as direct-calls)
 * See if we can move coerce and + into Arc.
-* (map (table) list.nil) => Error: procedure application: expected procedure, given: '#hash(); arguments were: 'nil
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"
 * The code currently requires Racket, though a compatibility mode for
   PLT Scheme would be useful.

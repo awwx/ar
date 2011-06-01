@@ -164,8 +164,8 @@
     (testis (a!rep x) 'foo)))
 
 (testfor (ar-def map1 (f xs))
-  (testis (a!map1 odd '(1 2 3 4))
-          '(t nil t nil)))
+  (testis (a!map1 odd '(1 2 3 4)) '(t nil t nil))
+  (testis (a!map1 (table) '(nil)) '(nil)))
 
 (testfor (ar-def coerce (x totype . args))
   (testis (a!coerce #\A           'int)       65)

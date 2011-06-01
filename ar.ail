@@ -218,7 +218,7 @@
 (ar-def map1 (f xs)
   (racket-if (ar-no xs)
               nil
-              (cons (f (car xs)) (map1 f (cdr xs)))))
+              (cons (ar-funcall1 f (car xs)) (map1 f (cdr xs)))))
 
 (ar-def ar-iround (x)
   (racket-inexact->exact (racket-round x)))
