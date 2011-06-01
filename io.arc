@@ -1,16 +1,14 @@
-;; todo merge into arc.arc
-
-;; Not worrying about how ugly this is right now on the assumption
-;; that I'll be rewriting it in Arc anyway.
-
 (ail-code (racket-require (racket-prefix-in racket- scheme/port)))
+
+(def limited-input-port (in maxbytes)
+  (racket-make-limited-input-port in maxbytes (ail-code #t)))
 
 (def socket-accept (s)
   (ail-code
     (racket-call-with-values
       (racket-lambda () (racket-tcp-accept s))
       (racket-lambda (in out)
-        (racket-let ((in1 (racket-make-limited-input-port in 100000 #t)))
+        (racket-let ((in1 (limited-input-port in 100000)))
         (list in1
               out
               (racket-let-values (((us them) (racket-tcp-addresses out)))
