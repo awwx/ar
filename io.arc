@@ -21,15 +21,15 @@
     (eval `(ail-code (racket-module ,module ,language ,@body))) 
     (racket-module-ref `',module)))
 
-(= setuid-module
-   (rmodule scheme
-     (require (lib "foreign.ss"))
-     (unsafe!)
-     (provide setuid)
-     (define setuid (get-ffi-obj 'setuid #f (_fun _int -> _int)))))
-
 (def setuid (uid)
-  ((inline setuid-module!setuid) uid))
+  ((inline
+    ((rmodule scheme
+       (require (lib "foreign.ss"))
+       (unsafe!)
+       (provide setuid)
+       (define setuid (get-ffi-obj 'setuid #f (_fun _int -> _int))))
+     'setuid))
+   uid))
 
 (def dir (name)
   (ar-toarc (racket (map path->string (directory-list name)))))
