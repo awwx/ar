@@ -5,13 +5,15 @@
                (list i o))"))
 
 (with (ready (make-semaphore)
-       their-ip nil)
+       their-ip nil
+       the-client-ip nil)
 
   (thread
    (w/socket s tcp-test-port*
      (racket-semaphore-post ready)
      (let (i o ip) (socket-accept s)
        (= their-ip ip)
+       (= the-client-ip (client-ip o))
        (disp "foo" o)
        (racket-flush-output o)
        (close i o))))
@@ -20,7 +22,8 @@
   (testis (let (i o) (tcp-connect "127.0.0.1" tcp-test-port*)
             (string (n-of 3 (readc i))))
           "foo")
-  (testis their-ip "127.0.0.1"))
+  (testis their-ip "127.0.0.1")
+  (testis the-client-ip "127.0.0.1"))
 
 (do (clean)
     (system (+ "touch " td "/one"))
