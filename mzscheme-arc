@@ -1,0 +1,6 @@
+#!/usr/bin/perl
+
+use strict;
+use FindBin;
+
+exec('mzscheme', "$FindBin::Bin/arc", @ARGV);

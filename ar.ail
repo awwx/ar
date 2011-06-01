@@ -20,18 +20,16 @@
     (racket-string-copy x))
    (racket-else x)))
 
-(racket-define sig
-  (racket-make-hash
-   (racket-quasiquote
-    ((-         . (racket-unquote (ar-toarc (racket-quote args))))
-     (/         . (racket-unquote (ar-toarc (racket-quote args))))
-     (*         . (racket-unquote (ar-toarc (racket-quote args))))
-     (cons      . (racket-unquote (ar-toarc (racket-quote (a b)))))
-     (inside    . (racket-unquote (ar-toarc (racket-quote (s)))))
-     (instring  . (racket-unquote (ar-toarc (racket-quote (str)))))
-     (outstring . (racket-unquote (ar-toarc (racket-quote ()))))
-     (uniq      . (racket-unquote (ar-toarc (racket-quote ()))))
-     (ar-toarc  . (racket-unquote (ar-toarc (racket-quote (x)))))))))
+(racket-define sig (racket-make-hash))
+(racket-hash-set! sig (racket-quote -)         (ar-toarc (racket-quote args)))
+(racket-hash-set! sig (racket-quote /)         (ar-toarc (racket-quote args)))
+(racket-hash-set! sig (racket-quote *)         (ar-toarc (racket-quote args)))
+(racket-hash-set! sig (racket-quote cons)      (ar-toarc (racket-quote (a b))))
+(racket-hash-set! sig (racket-quote inside)    (ar-toarc (racket-quote (s))))
+(racket-hash-set! sig (racket-quote instring)  (ar-toarc (racket-quote (str))))
+(racket-hash-set! sig (racket-quote outstring) (ar-toarc (racket-quote ())))
+(racket-hash-set! sig (racket-quote uniq)      (ar-toarc (racket-quote ())))
+(racket-hash-set! sig (racket-quote ar-toarc)  (ar-toarc (racket-quote (x))))
 
 (racket-define-syntax-rule (ar-def name signature . body)
   (racket-begin
@@ -61,12 +59,14 @@
     (racket-quote ()))
    (racket-else x)))
 
-(racket-struct ar-tunnel (v))
+(racket-define-struct ar-tunnel-struct (v))
+
+(racket-define ar-tunnel make-ar-tunnel-struct)
 
 (ar-def ar-deep-fromarc (x)
   (racket-cond
-   ((ar-tunnel? x)
-    (ar-tunnel-v x))
+   ((ar-tunnel-struct? x)
+    (ar-tunnel-struct-v x))
 
    ;; nil in the car position isn't a list terminator, and so can
    ;; be left alone.

@@ -1,7 +1,7 @@
 #!/usr/bin/env racket
-#lang racket/load
+#lang scheme/load
 
-(require racket/cmdline)
+(require scheme/cmdline)
 
 (define run-repl #t)
 (define files-to-load '())

@@ -1,1 +1,1 @@
-./arc --no-repl equal-wrt-testing.arc test.arc strings.t
+$ARC --no-repl equal-wrt-testing.arc test.arc strings.t
