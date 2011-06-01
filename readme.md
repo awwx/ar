@@ -81,10 +81,10 @@ Goals
 Non-Goals
 ---------
 
-*   It's not intended to be within the scope of the ar project itself to
-    come up with some better language than Arc 3.1; though it *is* the
-    job of ar to *support* the creation of languages better than Arc
-    3.1.
+* It's not intended to be within the scope of the ar project itself to
+  come up with some better language than Arc 3.1; though it *is* the
+  job of ar to *support* the creation of languages better than Arc
+  3.1.
 
     Thus questions such as "would it be better get the standard output
     port with `stdout` or `(stdout)`?" or "should the table constructor
@@ -222,15 +222,15 @@ Changes
 
 * Arc lists are implemented using Racket's mutable pairs (mpair's)
 
-  as one way to fix the
-  [queue bug](http://awwx.ws/queue-test-summary), and to avoid needing
-  to use pointer operations to modify Racket's "immutable" pairs.
+    as one way to fix the
+    [queue bug](http://awwx.ws/queue-test-summary), and to avoid needing
+    to use pointer operations to modify Racket's "immutable" pairs.
 
 
 * quasiquotation is implemented with Alan Bawden's algorithm
 
-  as a fix for list splicing in nested quasiquotes, which was giving
-  people trouble writing macro-defining macros.
+    as a fix for list splicing in nested quasiquotes, which was giving
+    people trouble writing macro-defining macros.
 
 
 * Function rest arguments are 'nil terminated Arc lists
@@ -240,8 +240,8 @@ Changes
 
 * the Arc compiler is reflected into Arc
 
-  where it can be hacked in Arc by redefining or extending the
-  functions which implement the compiler:
+    where it can be hacked in Arc by redefining or extending the
+    functions which implement the compiler:
 
          arc> (ac-literal? 123)
          t
@@ -260,8 +260,8 @@ Changes
          arc> (eval +)
          #<procedure:ar-+>
 
-  (todo: this is no longer a good example, because function values are
-  now already treated as literals).
+    (todo: this is no longer a good example, because function values are
+    now already treated as literals).
 
 
 * lexical identifiers take precedence over macros
@@ -274,39 +274,39 @@ Changes
 * quote passes its value unchanged through the compiler, instead of
   copying it
 
-  This isn't noticeable when just using quote to quote literal values
-  in the usual way like '(a b c); because the original value isn't
-  accessible to the program we can't tell if it was copied or not.
+    This isn't noticeable when just using quote to quote literal values
+    in the usual way like '(a b c); because the original value isn't
+    accessible to the program we can't tell if it was copied or not.
 
-  However the behavior of quote is visible when using macros, since
-  they can insert arbitrary values inside the quote expression.
+    However the behavior of quote is visible when using macros, since
+    they can insert arbitrary values inside the quote expression.
 
-  Choosing not to copy the quoted value means we can define inline
-  like this:
+    Choosing not to copy the quoted value means we can define inline
+    like this:
 
          (mac inline (x)
            `',(eval x))
 
-  and we'll get the same value out of inline that we put in:
+    and we'll get the same value out of inline that we put in:
 
          arc> (= x '(a b c))
          (a b c)
          arc> (is x (inline x))
          t
 
-  I'm not sure if I understand all the ramifications of this change;
-  but that we can define inline so simply is at least suggestive that
-  this may be the right axiomatic approach.
+    I'm not sure if I understand all the ramifications of this change;
+    but that we can define inline so simply is at least suggestive that
+    this may be the right axiomatic approach.
 
 
 * function values are considered literals by the compiler
 
-  This is another change which isn't visible unless you're using
-  macros (there otherwise isn't a way to insert a function *value*
-  into the source code the compiler compiles).
+    This is another change which isn't visible unless you're using
+    macros (there otherwise isn't a way to insert a function *value*
+    into the source code the compiler compiles).
 
-  In Arc 3.1, a function value can be included in a macro expansion,
-  but it needs to be quoted:
+    In Arc 3.1, a function value can be included in a macro expansion,
+    but it needs to be quoted:
 
          (mac evens (xs) `(',keep even ,xs))
 
@@ -317,7 +317,7 @@ Changes
          arc> (foo)
          (2 4 6 8)
 
-  With this change, the function value no longer needs to be quoted:
+    With this change, the function value no longer needs to be quoted:
 
          (mac evens (xs) `(,keep even ,xs))
 
@@ -336,37 +336,37 @@ Changes
 
          (join '(1 2) 3) => (1 2 . 3)
 
-  which turns out to be useful in macros and other code which works
-  with dotted lists.  It means that any list can be split on any cdr,
-  and applying join to the pieces will result in the original list.
+    which turns out to be useful in macros and other code which works
+    with dotted lists.  It means that any list can be split on any cdr,
+    and applying join to the pieces will result in the original list.
 
 
 * global variables are represented in Racket's namespace with their plain name
 
-  In Arc 3.1, global variable are stored in Racket's namespace with a
-  "_" prefix, which can be seen e.g. in some error messages:
+    In Arc 3.1, global variable are stored in Racket's namespace with a
+    "_" prefix, which can be seen e.g. in some error messages:
 
          arc> x
          Error: "reference to undefined identifier: _x"
 
-  This implementation uses the plain variable name with no prefix:
+    This implementation uses the plain variable name with no prefix:
 
          arc> x
          Error: reference to undefined identifier: x
 
-  To avoid clashes with Racket identifiers which need to be in the
-  namespace, Racket identifiers are prefixed with "racket-".
+    To avoid clashes with Racket identifiers which need to be in the
+    namespace, Racket identifiers are prefixed with "racket-".
 
 
 * implicit variables
 
-  which can help make programs more concise when the same variable
-  doesn't need to be threaded through many layers of function calls.
+    which can help make programs more concise when the same variable
+    doesn't need to be threaded through many layers of function calls.
 
 
 * implements stdin, stdout, stderr as implicit variables
 
-  removing an unnecessary layer of parentheses.
+    removing an unnecessary layer of parentheses.
 
 
 * uniq implemented using Racket's gensym
@@ -378,50 +378,52 @@ Changes
 
 * readline accepts CR-LF line endings
 
-  which is useful for Internet protocols such as HTTP.
+    which is useful for Internet protocols such as HTTP.
 
 
 * [...] is implemented with a macro
 
-  [a b c] is expanded by the reader into (square-bracket a b c).
-  Meanwhile there's a square-bracket macro:
+    [a b c] is expanded by the reader into (square-bracket a b c).
+    Meanwhile there's a square-bracket macro:
 
          (mac square-bracket body
            `(fn (_) (,@body)))
 
-  this makes it easier to hack the square bracket syntax.
+    this makes it easier to hack the square bracket syntax.
+
 
 * the REPL removes excess characters at the end of the input line
 
-  In Arc 3.1:
+    In Arc 3.1:
 
          arc> (readline) ;Fee fi fo fum
          " ;Fee fi fo fum"
          arc>
 
-  this is because Racket's reader reads up to the closing ")", leaving
-  the rest of the input line in the input buffer, which is then read
-  by readline.
+    this is because Racket's reader reads up to the closing ")", leaving
+    the rest of the input line in the input buffer, which is then read
+    by readline.
 
-  On the assumption that the REPL is being run from a terminal and
-  thus there will always be a trailing newline (which sends the input
-  line to the process), the ar REPL cleans out the input buffer up to
-  and including the newline:
+    On the assumption that the REPL is being run from a terminal and
+    thus there will always be a trailing newline (which sends the input
+    line to the process), the ar REPL cleans out the input buffer up to
+    and including the newline:
 
          arc> (readline) ;Fee fi fo fum
          hello
          "hello"
          arc>
 
+
 * (coerce '() 'cons) now returns nil
 
-  thus any list can be coerce'd to a "cons", even though the empty
-  list isn't actually represented by a cons cell.
+    thus any list can be coerce'd to a "cons", even though the empty
+    list isn't actually represented by a cons cell.
 
 
 * TCP ports no longer have associated custodians for force-close
 
-  Arc 3.1's ac.scm says:
+    Arc 3.1's ac.scm says:
 
          ; there are two ways to close a TCP output port.
          ; (close o) waits for output to drain, then closes UNIX descriptor.
@@ -430,21 +432,21 @@ Changes
          ; if there is buffered output for a non-responsive socket.
          ; must use custodian-shutdown-all instead.
 
-  I haven't been able to reproduce this behavior in any version of
-  Racket or PLT Scheme that runs on my computer: in my testing sending
-  data to a non-responsive client, `close-output-port` returns
-  immediately and doesn't throw an error.
+    I haven't been able to reproduce this behavior in any version of
+    Racket or PLT Scheme that runs on my computer: in my testing sending
+    data to a non-responsive client, `close-output-port` returns
+    immediately and doesn't throw an error.
 
-  Of course, if I'm wrong I'd be delighted to see an example
-  demonstrating the problem.
+    Of course, if I'm wrong I'd be delighted to see an example
+    demonstrating the problem.
 
 
 * embedding other runtimes based on ar
 
-  Multiple runtimes can loaded and run within the same memory space.
-  Each runtime has its own set of global variables, and can have a
-  different set of definitions loaded.  Thus the other runtimes can be
-  a hacked version of ar, or have some other language than Arc loaded.
+    Multiple runtimes can loaded and run within the same memory space.
+    Each runtime has its own set of global variables, and can have a
+    different set of definitions loaded.  Thus the other runtimes can be
+    a hacked version of ar, or have some other language than Arc loaded.
 
          arc> (load "embed.arc")
          nil
@@ -497,10 +499,10 @@ Ail details:
   [racket/load](http://docs.racket-lang.org/reference/load-lang.html)
   language.
 
-  This means that Ail code isn't separated into compile-time and
-  run-time phases like code in Racket's modules are; but it also means
-  that we don't get some optimizations done for us that Racket's
-  modules provide.
+    This means that Ail code isn't separated into compile-time and
+    run-time phases like code in Racket's modules are; but it also means
+    that we don't get some optimizations done for us that Racket's
+    modules provide.
 
 * Racket macros can be used from Ail code.  (But note this doesn't
   mean we can use Racket macros from *Arc*, because Arc's macro
@@ -515,12 +517,12 @@ Ail details:
          (ail-code (racket-let ((foo 3))
                      (+ foo 2)))
 
-  note that *Arc's* `+` is being called here, not Racket's.  If we
-  wanted Racket's `+`, we'd use `racket-+`.
+    note that *Arc's* `+` is being called here, not Racket's.  If we
+    wanted Racket's `+`, we'd use `racket-+`.
 
-  `ail-code` is only necessary when we need to use a Racket macro or
-  special form, since Racket functions can be called directly from
-  Arc.  For example, from Arc:
+    `ail-code` is only necessary when we need to use a Racket macro or
+    special form, since Racket functions can be called directly from
+    Arc.  For example, from Arc:
 
          (racket-+ 3 4 5)
 
