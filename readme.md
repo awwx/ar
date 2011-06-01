@@ -81,24 +81,24 @@ Goals
 Non-Goals
 ---------
 
-* It's not intended to be within the scope of the ar project itself to
-  come up with some better language than Arc 3.1; though it *is* the
-  job of ar to *support* the creation of languages better than Arc
-  3.1.
+*   It's not intended to be within the scope of the ar project itself to
+    come up with some better language than Arc 3.1; though it *is* the
+    job of ar to *support* the creation of languages better than Arc
+    3.1.
 
-  Thus questions such as "would it be better get the standard output
-  port with `stdout` or `(stdout)`?" or "should the table constructor
-  function be called `table` or `hash`?" aren't for ar to decide;
-  though ar would ideally let you use `stdout` or `(stdout)`, or
-  `table` or `hash`, as you wanted to.
+    Thus questions such as "would it be better get the standard output
+    port with `stdout` or `(stdout)`?" or "should the table constructor
+    function be called `table` or `hash`?" aren't for ar to decide;
+    though ar would ideally let you use `stdout` or `(stdout)`, or
+    `table` or `hash`, as you wanted to.
 
-  Of course, the line between the two is rather blurry (at what point
-  does "supporting a better language" become simply "a better
-  language"), and the current ar arguably already crosses the line
-  with changes such as `stdout`... but to frame the discussion, a
-  question to ask is not "should Arc do X instead of Y?", but instead
-  to ask, "I want to do X.  How can we get ar to let me to do that
-  easily?"
+    Of course, the line between the two is rather blurry (at what point
+    does "supporting a better language" become simply "a better
+    language"), and the current ar arguably already crosses the line
+    with changes such as `stdout`... but to frame the discussion, a
+    question to ask is not "should Arc do X instead of Y?", but instead
+    to ask, "I want to do X.  How can we get ar to let me to do that
+    easily?"
 
 
 Design Philosophy
