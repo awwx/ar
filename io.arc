@@ -39,8 +39,7 @@
   nil)
 
 (def client-ip (port)
-  (ail-code (racket-let-values (((x y) (racket-tcp-addresses port)))
-              y)))
+  (values (us them) (racket-tcp-addresses port) them))
 
 (def dead (thd)
   (aracket-true (racket-thread-dead? thd)))
