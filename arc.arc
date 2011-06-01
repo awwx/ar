@@ -498,6 +498,11 @@
 (mac inline (x)
   `',(eval x))
 
+(def racket-module-ref (module)
+  (let rmodule (ar-deep-fromarc module)
+    (fn (sym)
+      (racket-dynamic-require rmodule sym))))
+
 (def system (cmd)
   ((inline ((racket-module-ref 'scheme/system) 'system)) cmd)
   nil)

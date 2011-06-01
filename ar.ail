@@ -320,11 +320,6 @@
 (racket-define (writec c (port (racket-current-output-port)))
   (racket-write-char c port))
 
-(ar-def racket-module-ref (a/module)
-  (racket-let ((r/module (ar-deep-fromarc a/module)))
-    (racket-lambda (sym)
-      (racket-dynamic-require r/module sym))))
-
 (ar-def ar-apply-cons (fn . racket-arg-list)
   (racket-mlist-ref fn (racket-car racket-arg-list)))
 
