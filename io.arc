@@ -1,11 +1,5 @@
 ;; todo merge into arc.arc
 
-(= custodians* (table))
-
-(def associate-custodian (c i o)
-  (= (custodians* i) c)
-  (= (custodians* o) c))
-
 ;; Not worrying about how ugly this is right now on the assumption
 ;; that I'll be rewriting it in Arc anyway.
 
@@ -15,19 +9,14 @@
 
 (def socket-accept (s)
   (ail-code
-    (racket-let ((oc (racket-current-custodian))
-                 (nc (racket-make-custodian)))
-       (racket-current-custodian nc)
-       (racket-call-with-values
-         (racket-lambda () (racket-tcp-accept s))
-         (racket-lambda (in out)
-           (racket-let ((in1 (racket-make-limited-input-port in 100000 #t)))
-             (racket-current-custodian oc)
-             (associate-custodian nc in1 out)
-             (list in1
-                   out
-                   (racket-let-values (((us them) (racket-tcp-addresses out)))
-                         them))))))))
+    (racket-call-with-values
+      (racket-lambda () (racket-tcp-accept s))
+      (racket-lambda (in out)
+        (racket-let ((in1 (racket-make-limited-input-port in 100000 #t)))
+        (list in1
+              out
+              (racket-let-values (((us them) (racket-tcp-addresses out)))
+                them)))))))
 
 ;; breaks the compiler to require foreign.ss into our namespace
 
@@ -55,13 +44,3 @@
 
 (def dead (thd)
   (aracket-true (racket-thread-dead? thd)))
-
-(def try-custodian (port)
-  (whenlet custodian (custodians* port)
-    (racket-custodian-shutdown-all custodian)
-    (wipe (custodians* port))
-    t))
-
-(def force-close args
-  (each port args
-    (or (try-custodian port) (close port))))

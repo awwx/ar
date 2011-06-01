@@ -162,9 +162,6 @@ Todo
 * The code currently requires Racket, though a compatibility mode for
   PLT Scheme would be useful.
 * clean up messy code in io.arc
-* I haven't been able to replicate the socket force close problem yet
-  that Arc 3.1 solves by using custodians; is this still a problem in
-  Racket?
 * defrule is a fun hack but awkward to use for ssyntax: we have to put
   defrule's in a particular order to specify ssyntax precedence
 * would be nice if typing ^C returned to the REPL
@@ -420,6 +417,26 @@ Changes
 
   thus any list can be coerce'd to a "cons", even though the empty
   list isn't actually represented by a cons cell.
+
+
+* TCP ports no longer have associated custodians for force-close
+
+  Arc 3.1's ac.scm says:
+
+         ; there are two ways to close a TCP output port.
+         ; (close o) waits for output to drain, then closes UNIX descriptor.
+         ...
+         ; mzscheme close-output-port doesn't work (just raises an error)
+         ; if there is buffered output for a non-responsive socket.
+         ; must use custodian-shutdown-all instead.
+
+  I haven't been able to reproduce this behavior in any version of
+  Racket or PLT Scheme that runs on my computer: in my testing sending
+  data to a non-responsive client, `close-output-port` returns
+  immediately and doesn't throw an error.
+
+  Of course, if I'm wrong I'd be delighted to see an example
+  demonstrating the problem.
 
 
 * embedding other runtimes based on ar

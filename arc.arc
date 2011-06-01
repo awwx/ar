@@ -514,18 +514,13 @@
 (mac case (expr . args)
   `(caselet ,(uniq) ,expr ,@args))
 
-;; todo try-custodian redefined in io.arc
-
-(def try-custodian (port))
-
 (def close ports
   (each port ports
     (case (type port)
       input  (racket-close-input-port port)
       output (racket-close-output-port port)
       socket (racket-tcp-close port)
-             (err "Can't close " port))
-    (try-custodian port)))
+             (err "Can't close " port))))
 
 (dynamic infile racket-open-input-file)
 (sref sig '(name) 'infile)
