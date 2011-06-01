@@ -63,3 +63,9 @@
             (write ',expr)
             (pr " is not nil\n")
             (err "test failed"))))
+
+(assign td "/tmp/SR0hwhic5P")
+
+(def clean ()
+  (system (string "rm -rf " td))
+  (system (string "mkdir " td)))

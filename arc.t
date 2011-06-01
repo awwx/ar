@@ -271,12 +271,6 @@
 
 (testis (tostring (system "echo hello")) "hello\n")
 
-(assign td "/tmp/SR0hwhic5P")
-
-(def clean ()
-  (system (string "rm -rf " td))
-  (system (string "mkdir " td)))
-
 (let f (string td "/foo")
   (clean)
   (w/outfile s f (disp "hi" s))

@@ -32,7 +32,9 @@
    uid))
 
 (def dir (name)
-  (ar-toarc (racket (map path->string (directory-list name)))))
+  (ar-toarc
+   (ail-code
+    (racket-map racket-path->string (racket-directory-list name)))))
 
 (def rmfile (name)
   (racket-delete-file name)

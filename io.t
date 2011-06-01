@@ -21,3 +21,8 @@
             (string (n-of 3 (readc i))))
           "foo")
   (testis their-ip "127.0.0.1"))
+
+(do (clean)
+    (system (+ "touch " td "/one"))
+    (system (+ "touch " td "/two"))
+    (testis (sort < (dir td)) '("one" "two")))
