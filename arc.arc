@@ -523,7 +523,6 @@
   (case (type port)
     input  (racket-close-input-port port)
     output (racket-close-output-port port)
-    socket (racket-tcp-close port)
            (err "Can't close " port)))
 
 (def close ports

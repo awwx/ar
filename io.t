@@ -9,6 +9,7 @@
        the-client-ip nil)
 
   (thread
+   ;; todo would like to catch errors here
    (w/socket s tcp-test-port*
      (racket-semaphore-post ready)
      (let (i o ip) (socket-accept s)

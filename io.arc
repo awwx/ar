@@ -1,5 +1,8 @@
 (ail-code (racket-require (racket-prefix-in racket- scheme/port)))
 
+(defrule close-port (isa port 'socket)
+  (racket-tcp-close port))
+
 (def limited-input-port (in maxbytes)
   (racket-make-limited-input-port in maxbytes (ail-code #t)))
 
