@@ -151,8 +151,6 @@ Todo
 
 * tidier implementations of dynamic and implicit.
 
-* extract make-w/close.
-
 (see https://github.com/awwx/ar/pull/1 for the above)
 
 * Optimizations (such as direct-calls)
