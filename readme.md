@@ -158,8 +158,6 @@ Todo
 * Optimizations (such as direct-calls)
 * See if we can move coerce and + into Arc.
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"
-* The code currently requires Racket, though a compatibility mode for
-  PLT Scheme would be useful.
 * defrule is a fun hack but awkward to use for ssyntax: we have to put
   defrule's in a particular order to specify ssyntax precedence
 * would be nice if typing ^C returned to the REPL
