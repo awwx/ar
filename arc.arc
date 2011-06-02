@@ -519,13 +519,15 @@
 (mac case (expr . args)
   `(caselet ,(uniq) ,expr ,@args))
 
+(def close-port (port)
+  (case (type port)
+    input  (racket-close-input-port port)
+    output (racket-close-output-port port)
+    socket (racket-tcp-close port)
+           (err "Can't close " port)))
+
 (def close ports
-  (each port ports
-    (case (type port)
-      input  (racket-close-input-port port)
-      output (racket-close-output-port port)
-      socket (racket-tcp-close port)
-             (err "Can't close " port))))
+  (map close-port ports))
 
 (dynamic infile racket-open-input-file)
 (sref sig '(name) 'infile)
