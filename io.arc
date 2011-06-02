@@ -3,6 +3,9 @@
 (def open-socket (port)
   (racket-tcp-listen port 50 (ail-code #t)))
 
+(mac w/socket (var port . body)
+  `(open-close ,var open-socket ,port ,@body))
+
 (defrule close-port (isa port 'socket)
   (racket-tcp-close port))
 

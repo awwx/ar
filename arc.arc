@@ -548,9 +548,6 @@
 (mac w/instring (var str . body)
   `(open-close ,var instring ,str ,@body))
 
-(mac w/socket (var port . body)
-  `(open-close ,var open-socket ,port ,@body))
-
 (mac w/appendfile (var name . body)
   `(let ,var (outfile ,name 'append)
      (after (do ,@body) (close ,var))))
