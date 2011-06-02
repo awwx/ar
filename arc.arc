@@ -469,7 +469,7 @@
                   keepsep?)))
 
 (def racket-true (x)
-  (ail-code (racket-if x (racket-quote t) (racket-quote nil))))
+  (ail-code (racket-if x t nil)))
 
 (def sread (p eof)
   (let v (primitive-parameterize racket-current-readtable arc-readtable*
