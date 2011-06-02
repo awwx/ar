@@ -535,9 +535,6 @@
   (let flag (if append 'append 'truncate)
     (ail-code (racket-open-output-file filename #:mode (racket-quote text) #:exists flag))))
 
-(def open-socket (port)
-  ((inline ((racket-module-ref 'scheme/tcp) 'tcp-listen)) port 50 (ail-code #t)))
-
 (let expander
      (fn (f var name body)
        `(let ,var (,f ,name)

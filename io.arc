@@ -1,5 +1,8 @@
 (ail-code (racket-require (racket-prefix-in racket- scheme/port)))
 
+(def open-socket (port)
+  (racket-tcp-listen port 50 (ail-code #t)))
+
 (defrule close-port (isa port 'socket)
   (racket-tcp-close port))
 
