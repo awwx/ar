@@ -101,33 +101,37 @@
 (ar-def cddr (x)
   (cdr (cdr x)))
 
-(ar-def ar-apply-cons (fn . racket-arg-list)
-  (racket-mlist-ref fn (racket-car racket-arg-list)))
+(racket-define call-types* (racket-make-hash))
 
-(ar-def ar-apply-string (fn . racket-arg-list)
-  (racket-string-ref fn (racket-car racket-arg-list)))
+;; should be an ordinary Arc macro, not a Racket macro
+#|(ar-mac defcall (type args . body)
+  `(sref call-types* (racket-lambda ,args ,@body) type))|#
 
-(ar-def ar-apply-table (fn . racket-arg-list)  
-  (racket-hash-ref fn
-    (racket-car racket-arg-list)
-    (racket-let ((default
-                  (racket-if (racket-pair? (racket-cdr racket-arg-list))
-                              (racket-car (racket-cdr racket-arg-list))
-                              (racket-quote nil))))
-      (racket-lambda () default))))
+(racket-define-syntax-rule (defcall type args . body)
+  (racket-hash-set! call-types* (racket-quote type)
+                                (racket-lambda args . body)))
+
+(defcall cons (x index)
+  (racket-mlist-ref x index))
+
+(defcall string (x index)
+  (racket-string-ref x index))
+
+(defcall table (x key (default nil))
+  (racket-hash-ref x key default))
+
+(ar-def ar-call-non-fn (x . args)
+  (racket-let ((it (racket-hash-ref call-types* (type x) nil)))
+    (racket-if (ar-no it)
+                 (err "No defcall found for" x args)
+                 (apply it x args))))
 
 (ar-def ar-apply (fn . racket-arg-list)
   (racket-cond
    ((racket-procedure? fn)
     (racket-apply fn racket-arg-list))
-   ((racket-mpair? fn)
-    (racket-apply ar-apply-cons fn racket-arg-list))
-   ((racket-string? fn)
-    (racket-apply ar-apply-string fn racket-arg-list))
-   ((racket-hash? fn)
-    (racket-apply ar-apply-table fn racket-arg-list))
    (racket-else
-    (err "Function call on inappropriate object" fn racket-arg-list))))
+    (racket-apply ar-call-non-fn fn racket-arg-list))))
 
 (ar-def ar-funcall0 (fn)
   (racket-if (racket-procedure? fn)
@@ -285,7 +289,7 @@
                               (racket-quote nil)))
      (ar-pairwise pred (racket-cdr lst)))
     (racket-else (racket-quote nil))))
-  
+
 (ar-def is2 (a b)
   (ar-tnil
    (racket-or (racket-eqv? a b)
