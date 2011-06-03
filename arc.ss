@@ -13,17 +13,17 @@
 (define (runtime-set runtime varname value)
   (namespace-set-variable-value! varname value #t runtime))
 
-(define (racket-eval arc form)
+(define (racket-eval runtime form)
   (parameterize ((compile-allow-set!-undefined #t))
-    (eval form arc)))
+    (eval form runtime)))
 
-(define (ail-load arc filename)
+(define (ail-load runtime filename)
   (call-with-input-file filename
     (lambda (in)
       (let loop ()
         (let ((form (read in)))
           (unless (eof-object? form)
-            (racket-eval arc form)
+            (racket-eval runtime form)
             (loop))))))
   'nil)
 
