@@ -384,13 +384,19 @@
   (racket-parameterize ((racket-current-readtable #f))
     (racket-read (racket-open-input-string str))))
 
+(ar-def ac-ail-code (forms)
+  (ar-tunnel
+   (racket-cons
+    (racket-quote racket-begin)
+    (racket-map (racket-lambda (form)
+                  (racket-if (racket-string? form)
+                              (ar-rread-from-string form)
+                              (ar-deep-fromarc form)))
+                (ar-list-fromarc forms)))))
+
 (ar-def ac (s env)
   (racket-if (ar-true (caris s (racket-quote ail-code)))
-              (racket-let ((expr (cadr s)))
-                (ar-tunnel
-                 (racket-if (racket-string? expr)
-                             (ar-rread-from-string expr)
-                             (ar-deep-fromarc expr))))
+              (ac-ail-code (cdr s))
               (err "Bad object in expression" s)))
 
 (racket-define (eval form (runtime (racket-quote nil)))
