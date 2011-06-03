@@ -18,3 +18,6 @@ ARC=./mzscheme-arc ./strings-test.sh
 ARC=./arc ./strings-test.sh
 
 ./arc-script-test.pl
+
+ARC=./mzscheme-arc ./defcall-test.sh
+ARC=./arc          ./defcall-test.sh

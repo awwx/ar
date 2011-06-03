@@ -146,9 +146,6 @@ Todo
 * allow special forms such as "fn" to be used as a lexical variable, and
   to be overridden by a macro.
 
-* a mechanism to override or specify the action of Arc's apply on
-  non-function values.
-
 * tidier implementations of dynamic and implicit.
 
 (see https://github.com/awwx/ar/pull/1 for the above)
@@ -645,3 +642,5 @@ Pauan moved Arc's coerce and + functions out of ar; and made `(coerce
 
 rocketnia provided a fix for the ssyntax precedence being different
 than Arc 3.1.
+
+Pauan provided an implementation for defcall.
