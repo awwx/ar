@@ -198,7 +198,6 @@
    ((racket-hash? x)          (racket-quote table))
    ((racket-output-port? x)   (racket-quote output))
    ((racket-input-port? x)    (racket-quote input))
-   ((racket-tcp-listener? x)  (racket-quote socket))
    ((racket-exn? x)           (racket-quote exception))
    ((racket-thread? x)        (racket-quote thread))
    ((racket-thread-cell? x)   (racket-quote thread-cell))

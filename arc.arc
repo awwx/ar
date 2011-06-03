@@ -469,7 +469,7 @@
                   keepsep?)))
 
 (def racket-true (x)
-  (ail-code (racket-if x (racket-quote t) (racket-quote nil))))
+  (ail-code (racket-if x t nil)))
 
 (def sread (p eof)
   (let v (primitive-parameterize racket-current-readtable arc-readtable*
@@ -519,13 +519,14 @@
 (mac case (expr . args)
   `(caselet ,(uniq) ,expr ,@args))
 
+(def close-port (port)
+  (case (type port)
+    input  (racket-close-input-port port)
+    output (racket-close-output-port port)
+           (err "Can't close " port)))
+
 (def close ports
-  (each port ports
-    (case (type port)
-      input  (racket-close-input-port port)
-      output (racket-close-output-port port)
-      socket (racket-tcp-close port)
-             (err "Can't close " port))))
+  (map close-port ports))
 
 (dynamic infile racket-open-input-file)
 (sref sig '(name) 'infile)
@@ -534,26 +535,18 @@
   (let flag (if append 'append 'truncate)
     (ail-code (racket-open-output-file filename #:mode (racket-quote text) #:exists flag))))
 
-(def open-socket (port)
-  ((inline ((racket-module-ref 'scheme/tcp) 'tcp-listen)) port 50 (ail-code #t)))
+(mac open-close (var f name . body)
+  `(let ,var (,f ,name)
+    (after (do ,@body) (close ,var))))
 
-(let expander
-     (fn (f var name body)
-       `(let ,var (,f ,name)
-          (after (do ,@body) (close ,var))))
+(mac w/infile (var name . body)
+  `(open-close ,var infile ,name ,@body))
 
-  (mac w/infile (var name . body)
-    (expander 'infile var name body))
+(mac w/outfile (var name . body)
+  `(open-close ,var outfile ,name ,@body))
 
-  (mac w/outfile (var name . body)
-    (expander 'outfile var name body))
-
-  (mac w/instring (var str . body)
-    (expander 'instring var str body))
-
-  (mac w/socket (var port . body)
-    (expander 'open-socket var port body))
-  )
+(mac w/instring (var str . body)
+  `(open-close ,var instring ,str ,@body))
 
 (mac w/appendfile (var name . body)
   `(let ,var (outfile ,name 'append)
