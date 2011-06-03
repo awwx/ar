@@ -22,7 +22,7 @@
                               (find-system-path 'run-file)))))
      base)))
 
-(namespace-require `(file ,(string-append arcdir* "arc.ss")))
+(namespace-require `(file ,(string-append arcdir* "ar.ss")))
 
 (let ((arc (new-arc arcdir*)))
   (load arc arcdir* "arc.arc")
