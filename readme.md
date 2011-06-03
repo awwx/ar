@@ -41,7 +41,7 @@ For example, if the file "hello" contained:
 you could run this script with:
 
     $ chmod +x hello
-    $ ./hello    
+    $ ./hello
 
 if you have ar on your path, you can also use env to avoid hard coding
 the path to ar:
@@ -145,9 +145,6 @@ Todo
 
 * allow special forms such as "fn" to be used as a lexical variable, and
   to be overridden by a macro.
-
-* a mechanism to override or specify the action of Arc's apply on
-  non-function values.
 
 * tidier implementations of dynamic and implicit.
 
