@@ -839,6 +839,9 @@
 (mac = args
   (expand=list args))
 
+(mac defcall (type args . body)
+  `(= (call-types* ',type) (fn ,args ,@body)))
+
 (mac loop (start test update . body)
   (w/uniq (gfn gparm)
     `(do ,start

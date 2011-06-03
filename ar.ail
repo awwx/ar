@@ -103,27 +103,23 @@
 
 (racket-define call-types* (racket-make-hash))
 
-;; should be an ordinary Arc macro, not a Racket macro
-#|(ar-mac defcall (type args . body)
-  `(sref call-types* (racket-lambda ,args ,@body) type))|#
-
-(racket-define-syntax-rule (defcall type args . body)
+(racket-define-syntax-rule (ar-defcall type args . body)
   (racket-hash-set! call-types* (racket-quote type)
                                 (racket-lambda args . body)))
 
-(defcall cons (x index)
+(ar-defcall cons (x index)
   (racket-mlist-ref x index))
 
-(defcall string (x index)
+(ar-defcall string (x index)
   (racket-string-ref x index))
 
-(defcall table (x key (default nil))
+(ar-defcall table (x key (default nil))
   (racket-hash-ref x key default))
 
 (ar-def ar-call-non-fn (x . args)
   (racket-let ((it (racket-hash-ref call-types* (type x) nil)))
     (racket-if (ar-no it)
-                 (err "No defcall found for" x args)
+                 (err "No defcall found for" x (ar-toarc args))
                  (apply it x args))))
 
 (ar-def ar-apply (fn . racket-arg-list)
