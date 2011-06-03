@@ -27,6 +27,18 @@
             (loop))))))
   'nil)
 
+(define (load runtime basedir filename)
+  (let ((path (path->string
+               (path->complete-path filename
+                                    (or basedir (current-directory))))))
+    (cond ((regexp-match #px"\\.ail$" path)
+           ((runtime-get runtime 'ar-ail-load) runtime path))
+          (else
+           ((or (runtime-get runtime 'load #f)
+                (runtime-get runtime 'ar-load #f)
+                (error "unable to load an arc file without ar-load or load in the runtime" filename))
+            path)))))
+
 (define (new-runtime)
   (let ((runtime (make-base-empty-namespace)))
     (parameterize ((current-namespace runtime))
@@ -50,6 +62,6 @@
 (define (new-arc arcdir)
   (let ((arc (new-runtime)))
     (runtime-set arc 'arcdir* arcdir)
-    (ail-load arc (string-append (runtime-get arc 'arcdir*) "/ar.ail"))
-    ((runtime-get arc 'ar-load)  (string-append (runtime-get arc 'arcdir*) "/ac.arc"))
+    (load arc arcdir "ar.ail")
+    (load arc arcdir "ac.arc")
     arc))
