@@ -5,24 +5,19 @@
 (def matches (pattern form)
   (iso (firstn len.pattern form) pattern))
 
-;; returns an Arc list of Racket forms
+;; Returns an Arc list of Racket forms.  Assumes ar.arc contains
+;; a single (ail-code ...) expression.
 
-(def rreadfile (filename)
-  (w/infile in filename
-    (accum a
-      ((afn ()
-        (ail-code
-          (racket-let ((form (racket-read in)))
-            (racket-unless (racket-eof-object? form)
-              (a form)
-              (self)))))))))
+(def read-ar ()
+  (w/infile in "ar.arc"
+    (ar-r/list-toarc (racket-cdr (racket-read in)))))
 
 (def ac-upto (pattern)
   (prn)
   (write pattern) (prn)
   (let arc (empty-runtime (racket-path->string (racket-current-directory)))
     (catch
-     (each form (rreadfile "ar.ail")
+     (each form (read-ar)
        (arc!ar-racket-eval arc!runtime* form)
        (when (matches pattern (ar-toarc form)) (throw nil)))
      (err "pattern not found in source" pattern))

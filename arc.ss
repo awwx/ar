@@ -17,13 +17,20 @@
   (parameterize ((compile-allow-set!-undefined #t))
     (eval form runtime)))
 
+(define (ail-code-eval runtime form)
+  (if (and (pair? form) (eq? (car form) 'ail-code))
+       (for-each (lambda (expr)
+                   (racket-eval runtime expr))
+                 (cdr form))
+       (error "sorry, this primitive eval only knows how to do ail-code" form)))
+
 (define (ail-load runtime filename)
   (call-with-input-file filename
     (lambda (in)
       (let loop ()
         (let ((form (read in)))
           (unless (eof-object? form)
-            (racket-eval runtime form)
+            (ail-code-eval runtime form)
             (loop))))))
   'nil)
 
@@ -31,13 +38,14 @@
   (let ((path (path->string
                (path->complete-path filename
                                     (or basedir (current-directory))))))
-    (cond ((regexp-match #px"\\.ail$" path)
-           ((runtime-get runtime 'ar-ail-load) runtime path))
-          (else
-           ((or (runtime-get runtime 'load #f)
-                (runtime-get runtime 'ar-load #f)
-                (error "unable to load an arc file without ar-load or load in the runtime" filename))
-            path)))))
+    ((or (runtime-get runtime 'load #f)
+         (runtime-get runtime 'ar-load #f)
+         (let ((ail-load (runtime-get runtime 'ar-ail-load #f)))
+           (and ail-load
+                (lambda (path)
+                  (ail-load runtime path))))
+         (error "unable to find a loader in the runtime" filename))
+     path)))
 
 (define (new-runtime)
   (let ((runtime (make-base-empty-namespace)))
@@ -62,6 +70,6 @@
 (define (new-arc arcdir)
   (let ((arc (new-runtime)))
     (runtime-set arc 'arcdir* arcdir)
-    (load arc arcdir "ar.ail")
+    (load arc arcdir "ar.arc")
     (load arc arcdir "ac.arc")
     arc))
