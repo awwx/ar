@@ -1,23 +1,25 @@
 #!/bin/bash
 set -e -v
-./mzscheme-arc --no-repl ar-test.arc
-./arc          --no-repl ar-test.arc
 
-./mzscheme-arc --no-repl ac-test.arc
-./arc --no-repl ac-test.arc
+./run --racket mzscheme ar.arc ac.arc arc.arc ar-test.arc
+./run --racket racket   ar.arc ac.arc arc.arc ar-test.arc
 
-ARC=./mzscheme-arc ./arc-test.sh
-ARC=./arc ./arc-test.sh
+./run --racket mzscheme ar.arc ac.arc arc.arc ac-test.arc
+./run --racket racket   ar.arc ac.arc arc.arc ac-test.arc
 
-ARC=./mzscheme-arc ./io-test.sh
-ARC=./arc ./io-test.sh
+./run --racket mzscheme ar.arc ac.arc arc.arc equal-wrt-testing.arc test.arc arc.t
+./run --racket racket   ar.arc ac.arc arc.arc equal-wrt-testing.arc test.arc arc.t
 
-./io-test-root.sh
+./run --racket mzscheme ar.arc ac.arc arc.arc io.arc equal-wrt-testing.arc test.arc io.t
+./run --racket racket   ar.arc ac.arc arc.arc io.arc equal-wrt-testing.arc test.arc io.t
 
-ARC=./mzscheme-arc ./strings-test.sh
-ARC=./arc ./strings-test.sh
+sudo ./run --racket `which mzscheme` ar.arc ac.arc arc.arc io.arc equal-wrt-testing.arc test.arc io-root.t
+sudo ./run --racket `which racket`   ar.arc ac.arc arc.arc io.arc equal-wrt-testing.arc test.arc io-root.t
+
+./run --racket mzscheme ar.arc ac.arc arc.arc arc3.1/strings.arc equal-wrt-testing.arc test.arc strings.t
+./run --racket racket   ar.arc ac.arc arc.arc arc3.1/strings.arc equal-wrt-testing.arc test.arc strings.t
 
 ./arc-script-test.pl
 
-ARC=./mzscheme-arc ./defcall-test.sh
-ARC=./arc          ./defcall-test.sh
+./run --racket mzscheme ar.arc ac.arc arc.arc defcall.arc equal-wrt-testing.arc test.arc defcall.t
+./run --racket racket   ar.arc ac.arc arc.arc defcall.arc equal-wrt-testing.arc test.arc defcall.t

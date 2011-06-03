@@ -32,8 +32,7 @@
 
 (define scriptdir* (path->string (path-only (normalize-path script-file))))
 
-
-(namespace-require `(file ,(string-append arcdir* "ar.ss")))
+(namespace-require `(file ,(string-append arcdir* "run.ss")))
 
 (let ((arc (new-arc arcdir*)))
   (runtime-set arc 'scriptdir* scriptdir*)

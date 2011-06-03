@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+
+use strict;
+use autodie;
+use Fcntl; 
+use FindBin;
+use Getopt::Long qw(:config pass_through);
+use POSIX qw(:sys_wait_h);
+
+my $racket;
+GetOptions('racket=s' => \$racket) or die;
+
+chomp($racket = `which racket`) unless $racket;
+chomp($racket = `which mzscheme`) unless $racket;
+die "unable to find racket or mzscheme in the PATH\n" unless $racket;    
+
+pipe(my $IN, my $OUT);
+fcntl($IN, F_SETFD, (fcntl($IN, F_GETFD, 0) & ~FD_CLOEXEC));
+my $dev = "/dev/fd/" . fileno($IN);
+$SIG{INT} = sub {};
+if (! fork()) {
+    exec($racket, $dev, $FindBin::Bin, @ARGV)
+        or die "unable to exec $racket\n";
+}
+
+while (<DATA>) {
+    print $OUT $_;
+}
+close($OUT);
+do {
+    wait;
+} until (WIFEXITED($?));
+exit WEXITSTATUS($?);
+
+__DATA__
+#lang scheme/load
+
+(define args (vector->list (current-command-line-arguments)))
+
+(define (next-arg)
+  (if (empty? args)
+       #f
+       (let ((next (car args)))
+         (set! args (cdr args))
+         next)))
+
+(define arcdir* (next-arg))
+
+(namespace-require `(file ,(string-append arcdir* "/run.ss")))
+
+(define (do-option runtime opt)
+  (cond ((equal? opt "-e")
+         ((runtime-get runtime 'eval)
+          ((runtime-get runtime 'read) (next-arg))))
+        ((equal? opt "-s")
+         (let ((varname (next-arg)))
+           (let ((value (next-arg)))
+             (runtime-set runtime (string->symbol varname) value))))
+        (else
+         (error "unknown option" arg))))
+
+(let ((runtime (new-runtime)))
+  (runtime-set runtime 'arcdir* arcdir*)
+  (let loop ()
+    (let ((arg (next-arg)))
+      (when arg
+             (if (eqv? (string-ref arg 0) #\-)
+                  (do-option runtime arg)
+                  (load runtime arcdir* arg))
+             (loop)))))

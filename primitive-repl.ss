@@ -6,7 +6,7 @@
 
 #lang scheme
 
-(require "ar.ss")
+(require "run.ss")
 
 (define arcdir*
   (path->string
