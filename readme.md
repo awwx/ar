@@ -445,6 +445,7 @@ Changes
          arc> (a!eval '(map odd '(1 2 3 4 5 6)))
          (t nil t nil t nil)
 
+    todo: fix example
 
 The Arc Implementation Language (Ail)
 -------------------------------------

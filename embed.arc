@@ -3,30 +3,11 @@
 ;; The other runtime doesn't have to be this version of ar, it
 ;; could be a different hacked or experimental version, or one
 ;; built upon ar but running a different language than Arc.
-;;
-;; Example:
-;;
-;; arc> (= a (new-arc))
-;; #<procedure>
-;; arc> a!+
-;; #<procedure:+>
-;; arc> (a!load "arc.arc")
-;; nil
-;; arc> (a!eval '(map odd '(1 2 3 4 5 6)))
-;; (t nil t nil t nil)
 
 (def make-empty-runtime ((o arcdir))
   (let acpath (string (or arcdir arcdir*) "/run.ss")
     ((ail-code (racket-dynamic-require (racket-string->path acpath)
                                        (racket-quote new-runtime)))
-     arcdir)))
-
-(def arc-runtime ((o arcdir))
-  (let acpath (string (or arcdir arcdir*) "/run.ss")
-    ((ail-code
-      (racket-dynamic-require
-       (racket-string->path acpath)
-       (racket-quote new-arc)))
      arcdir)))
 
 (def runtime-access (runtime)
@@ -44,6 +25,3 @@
 
 (def empty-runtime ((o arcdir))
   (runtime-access (make-empty-runtime)))
-
-(def new-arc ((o arcdir))
-  (runtime-access (arc-runtime arcdir)))
