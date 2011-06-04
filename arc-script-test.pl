@@ -1,11 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
+use FindBin;
 
-my $arcdir = $0;
-$arcdir =~ s![^/]+$!!;
-$arcdir = `cd $arcdir; pwd`;
-chomp $arcdir;
+my $arcdir = $FindBin::Bin;
 
 my $expected = "(foo bar)\n";
 
