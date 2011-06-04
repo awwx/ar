@@ -66,5 +66,5 @@ __DATA__
       (when arg
              (if (eqv? (string-ref arg 0) #\-)
                   (do-option runtime arg)
-                  (load runtime arcdir* arg))
+                  (use-load runtime arcdir* arg))
              (loop)))))
