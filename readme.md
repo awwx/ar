@@ -30,12 +30,13 @@ or, if you want to execute your Arc program without entering the REPL:
 
     /path/to/ar/arc --no-repl foo.arc bar.arc
 
-With `arc-script`, you can write a shell script in Arc.  (Though still
+With `script`, you can write a shell script in Arc.  (Though still
 todo is conveniently accessing the command line arguments).
 
 For example, if the file "hello" contained:
 
-    #!/path/to/ar/arc-script
+    #!/path/to/ar/script
+    (use arc)
     (prn "hello there")
 
 you could run this script with:
@@ -46,7 +47,8 @@ you could run this script with:
 if you have ar on your path, you can also use env to avoid hard coding
 the path to ar:
 
-    #!/usr/bin/env arc-script
+    #!/usr/bin/env script
+    (use arc)
     (prn "hello there")
 
 Run tests with:

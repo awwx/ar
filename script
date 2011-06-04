@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+
+use strict;
+use FindBin;
+
+my $scriptfile = shift @ARGV;
+
+exec("$FindBin::Bin/run",
+     $scriptfile,
+     '--',
+     @ARGV)
+  or die "Unable to exec $FindBin::Bin/run: $!\n";

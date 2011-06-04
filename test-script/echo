@@ -1,4 +1,6 @@
-#!/usr/bin/env arc-script
+#!/usr/bin/env script
+
+(use arc)
 
 (let args (ail-code (ar-toarc
                      (racket-vector->list
