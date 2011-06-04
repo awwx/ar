@@ -4,7 +4,6 @@ use FindBin;
 
 exec("$FindBin::Bin/run",
      'arc', 'strings',
-     '-I', '.',
      @ARGV,
      'repl.arc',
      '-e', '(repl)');

@@ -4,11 +4,11 @@
 ;; could be a different hacked or experimental version, or one
 ;; built upon ar but running a different language than Arc.
 
-(def make-empty-runtime ((o arcdir))
-  (let acpath (string (or arcdir arcdir*) "/run.ss")
+(def make-empty-runtime (usepath)
+  (let acpath (use-find "run.ss" usepath)
     ((ail-code (racket-dynamic-require (racket-string->path acpath)
                                        (racket-quote new-runtime)))
-     arcdir)))
+     usepath)))
 
 (def runtime-access (runtime)
   (fn args
@@ -23,5 +23,5 @@
                       varname value #t runtime)))
          (err "invalid number of arguments" arg))))
 
-(def empty-runtime ((o arcdir))
-  (runtime-access (make-empty-runtime arcdir)))
+(def empty-runtime ((o usepath (usepath*)))
+  (runtime-access (make-empty-runtime usepath)))

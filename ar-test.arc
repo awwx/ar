@@ -15,7 +15,7 @@
 (def ac-upto (pattern)
   (prn)
   (write pattern) (prn)
-  (let arc (empty-runtime (racket-path->string (racket-current-directory)))
+  (let arc (empty-runtime (list (racket-path->string (racket-current-directory))))
     (catch
      (each form (read-ar)
        (arc!ar-racket-eval arc!runtime* form)

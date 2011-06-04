@@ -15,20 +15,25 @@ Run
 
 Get to the REPL with:
 
-    ./arc
+    ./repl
 
 or, if you have rlwrap:
 
-    rlwrap -q \" ./arc
+    rlwrap -q \" ./repl
 
 You can load Arc files from the command line and then go into the
-REPL:
+REPL (files without an extension will default to ".arc"):
 
-    /path/to/ar/arc foo.arc bar.arc
+    /path/to/ar/repl foo bar
 
 or, if you want to execute your Arc program without entering the REPL:
 
-    /path/to/ar/arc --no-repl foo.arc bar.arc
+    /path/to/ar/run foo bar
+
+You can pass command line arguments into your program by putting them
+after "--":
+
+    /path/to/ar/run mylibrary myprogram -- arg1 arg2
 
 With `script`, you can write a shell script in Arc.  (Though still
 todo is conveniently accessing the command line arguments).

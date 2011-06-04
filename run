@@ -47,6 +47,10 @@ __DATA__
 
 (define arcdir* (next-arg))
 
+(define usepath*
+  (mcons (path->string (current-directory))
+         (mcons arcdir* 'nil)))
+         
 (namespace-require `(file ,(string-append arcdir* "/run.ss")))
 
 (define todo '())
@@ -75,7 +79,7 @@ __DATA__
         (else
          (error "unknown option" opt))))
 
-(let ((runtime (new-runtime arcdir*)))
+(let ((runtime (new-runtime usepath*)))
   (runtime-set runtime 'arcdir* arcdir*)
   (let loop ()
     (let ((arg (next-arg)))

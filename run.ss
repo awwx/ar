@@ -107,14 +107,14 @@
           (load runtime #f path))
         (hash-set! loaded* (assymbol item) 't)))))
                      
-(define (new-runtime libdir)
+(define (new-runtime usepath)
   (let ((runtime (make-base-empty-namespace)))
     (parameterize ((current-namespace runtime))
       (namespace-require '(only scheme/base #%app #%datum #%top))
       (namespace-require '(prefix racket- scheme/base))
       (namespace-require '(prefix racket- scheme/mpair)))
     (runtime-set runtime 'runtime* runtime)
-    (runtime-set runtime 'usepath* (make-parameter (mcons libdir 'nil)))
+    (runtime-set runtime 'usepath* (make-parameter usepath))
     (runtime-set runtime 'loaded* (make-hash))
     (runtime-set runtime 'ar-racket-eval racket-eval)
     (runtime-set runtime 'ar-var
@@ -136,9 +136,7 @@
         ((runtime-get runtime 'usepath*)
          (mcons (path->string (normalize-path path))
                 ((runtime-get runtime 'usepath*))))))
+    (runtime-set runtime 'use-find
+      (lambda (item (usepath ((runtime-get runtime 'usepath*))))
+        (find item usepath)))
     runtime))
-
-(define (new-arc arcdir)
-  (let ((arc (new-runtime arcdir)))
-    (runtime-set arc 'arcdir* arcdir)
-    arc))
