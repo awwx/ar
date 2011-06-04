@@ -16,8 +16,8 @@ set -e -v
 sudo ./run --racket `which mzscheme` arc io equal-wrt-testing test io-root.t
 sudo ./run --racket `which racket`   arc io equal-wrt-testing test io-root.t
 
-./run --racket mzscheme arc arc3.1/strings.arc equal-wrt-testing test strings.t
-./run --racket racket   arc arc3.1/strings.arc equal-wrt-testing test strings.t
+./run --racket mzscheme arc strings equal-wrt-testing test strings.t
+./run --racket racket   arc strings equal-wrt-testing test strings.t
 
 ./arc-script-test.pl
 

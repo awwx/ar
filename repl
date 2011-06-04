@@ -3,7 +3,7 @@ use strict;
 use FindBin;
 
 exec("$FindBin::Bin/run",
-     'arc.arc', 'arc3.1/strings.arc',
+     'arc.arc', 'strings.arc',
      @ARGV,
      "repl.arc",
      "-e", "(repl)");

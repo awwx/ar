@@ -26,7 +26,7 @@
 
 (let ((arc (new-arc arcdir*)))
   (load arc arcdir* "arc.arc")
-  (load arc arcdir* "arc3.1/strings.arc")
+  (load arc arcdir* "strings.arc")
   (for-each (runtime-get arc 'load) files-to-load)
   (when run-repl
     (load arc arcdir* "repl.arc")

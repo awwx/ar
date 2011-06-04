@@ -37,5 +37,5 @@
 (let ((arc (new-arc arcdir*)))
   (runtime-set arc 'scriptdir* scriptdir*)
   (load arc arcdir* "arc.arc")
-  (load arc arcdir* "arc3.1/strings.arc")
+  (load arc arcdir* "strings.arc")
   (load arc #f script-file))
