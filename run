@@ -36,6 +36,7 @@ __DATA__
 #lang scheme/load
 
 (define args (vector->list (current-command-line-arguments)))
+(current-command-line-arguments (list->vector '()))
 
 (define (next-arg)
   (if (empty? args)
@@ -48,23 +49,39 @@ __DATA__
 
 (namespace-require `(file ,(string-append arcdir* "/run.ss")))
 
+(define todo '())
+
+(define (do f)
+  (set! todo (cons f todo)))
+
+(define (doit)
+  (for-each (lambda (f) (f)) (reverse todo)))
+
 (define (do-option runtime opt)
   (cond ((equal? opt "-e")
-         ((runtime-get runtime 'eval)
-          ((runtime-get runtime 'read) (next-arg))))
+         (let ((expr (next-arg)))
+           (do (lambda ()
+                 ((runtime-get runtime 'eval)
+                  ((runtime-get runtime 'read) expr))))))
         ((equal? opt "-s")
          (let ((varname (next-arg)))
            (let ((value (next-arg)))
-             (runtime-set runtime (string->symbol varname) value))))
+             (do (lambda ()
+                   (runtime-set runtime (string->symbol varname) value))))))
         (else
-         (error "unknown option" arg))))
+         (error "unknown option" opt))))
 
 (let ((runtime (new-runtime arcdir*)))
   (runtime-set runtime 'arcdir* arcdir*)
   (let loop ()
     (let ((arg (next-arg)))
       (when arg
-             (if (eqv? (string-ref arg 0) #\-)
-                  (do-option runtime arg)
-                  (use-load runtime arg))
-             (loop)))))
+        (if (equal? arg "--")
+             (current-command-line-arguments (list->vector args))
+             (begin
+               (if (eqv? (string-ref arg 0) #\-)
+                    (do-option runtime arg)
+                    (do (lambda () (use-load runtime arg))))
+               (loop)))))))
+
+(doit)

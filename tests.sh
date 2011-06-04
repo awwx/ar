@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e -v
 
+./run-test.pl
+
 ./run --racket mzscheme arc ar-test
 ./run --racket racket   arc ar-test
 
