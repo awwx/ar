@@ -1,4 +1,4 @@
-(ail-code (use-load (racket-quote ar)))
+(use ar)
 
 (ail-code (ar-def ar-extend-impl (name test body)
   (racket-let ((previous (ar-var name)))
@@ -71,7 +71,8 @@
 (ail-code (ar-extend ac (s env)
   (ar-tnil
    (racket-and (racket-mpair? s)
-               (racket-not (ar-true (is (car s) (racket-quote ail-code))))))
+               (racket-not (ar-true (is (car s) (racket-quote ail-code))))
+               (racket-not (ar-true (is (car s) (racket-quote use))))))
   (ac-call (car s) (cdr s) env)))
 
 ;; quote

@@ -396,10 +396,22 @@
                                (ar-deep-fromarc form)))
                  (ar-list-fromarc forms)))))
 
+ (ar-def ac-use (items)
+   (cons (racket-quote racket-begin)
+         (map1 (racket-lambda (item)
+                 (cons (racket-quote use-load)
+                       (list (list (racket-quote racket-quote)
+                                   item))))
+               items)))
+
  (ar-def ac (s env)
-   (racket-if (ar-true (caris s (racket-quote ail-code)))
-               (ac-ail-code (cdr s))
-               (err "Bad object in expression" s)))
+   (racket-cond
+    ((ar-true (caris s (racket-quote ail-code)))
+     (ac-ail-code (cdr s)))
+    ((ar-true (caris s (racket-quote use)))
+     (ac-use (cdr s)))
+    (racket-else
+     (err "Bad object in expression" s))))
 
  (racket-define (eval form (runtime (racket-quote nil)))
    (ar-racket-eval

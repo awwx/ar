@@ -5,13 +5,14 @@
 (def matches (pattern form)
   ;; todo the cadr is cheating; what I really want is a recursive
   ;; match
-  (iso (firstn len.pattern cadr.form) pattern))
+  (and (alist cadr.form)
+       (iso (firstn len.pattern cadr.form) pattern)))
 
 (def ac-upto (pattern)
   (prn)
   (write pattern) (prn)
   (let arc (empty-runtime (racket-path->string (racket-current-directory)))
-    (arc!use-load 'ac)
+    (arc!use-load 'ar)
     (catch
       (each form (readfile "ac.arc")
         (arc!eval form)
@@ -23,7 +24,7 @@
   `(let a (ac-upto ',pattern)
      ,@body))
 
-(testfor (ar-def ac-literal? (x))
+(testfor (ar-extend ac (s env) (ac-literal? s))
   (testis (a!eval 123)   123)
   (testis (a!eval #\a)   #\a)
   (testis (a!eval "abc") "abc")
@@ -43,7 +44,8 @@
            (ar-tnil
             (racket-and
              (racket-mpair? s)
-             (racket-not (ar-true (is (car s) (racket-quote ail-code)))))))
+             (racket-not (ar-true (is (car s) (racket-quote ail-code))))
+             (racket-not (ar-true (is (car s) (racket-quote use)))))))
   (testis (a!eval '(+))           0)
   (testis (a!eval '(+ 1 2))       3)
   (testis (a!eval '(+ 1 2 3))     6)
