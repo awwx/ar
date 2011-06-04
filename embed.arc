@@ -10,7 +10,7 @@
 ;; #<procedure>
 ;; arc> a!+
 ;; #<procedure:+>
-;; arc> (a!ar-load "arc.arc")
+;; arc> (a!load "arc.arc")
 ;; nil
 ;; arc> (a!eval '(map odd '(1 2 3 4 5 6)))
 ;; (t nil t nil t nil)
@@ -18,7 +18,8 @@
 (def make-empty-runtime ((o arcdir))
   (let acpath (string (or arcdir arcdir*) "/run.ss")
     ((ail-code (racket-dynamic-require (racket-string->path acpath)
-                                       (racket-quote new-runtime))))))
+                                       (racket-quote new-runtime)))
+     arcdir)))
 
 (def arc-runtime ((o arcdir))
   (let acpath (string (or arcdir arcdir*) "/run.ss")

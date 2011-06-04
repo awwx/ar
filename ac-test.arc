@@ -11,8 +11,7 @@
   (prn)
   (write pattern) (prn)
   (let arc (empty-runtime (racket-path->string (racket-current-directory)))
-    (arc!ar-ail-load arc!runtime* "ar.arc")
-    (arc!ar-load "ac.arc")
+    (arc!use-load 'ac)
     (catch
       (each form (readfile "ac.arc")
         (arc!eval form)

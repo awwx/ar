@@ -59,7 +59,7 @@ __DATA__
         (else
          (error "unknown option" arg))))
 
-(let ((runtime (new-runtime)))
+(let ((runtime (new-runtime arcdir*)))
   (runtime-set runtime 'arcdir* arcdir*)
   (let loop ()
     (let ((arg (next-arg)))

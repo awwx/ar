@@ -1697,7 +1697,11 @@
 
 (def len> (x n) (> (len x) n))
 
-(def load (file)
+(mac redef (name args . body)
+  `(do (assign ,name (fn ,args ,@body))
+       (sref sig ',args ',name)))
+
+(redef load (file)
   (w/infile f file
     (w/uniq eof
       (whiler e (read f eof) eof

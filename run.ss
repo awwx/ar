@@ -34,28 +34,36 @@
             (loop))))))
   'nil)
 
-(define (load runtime basedir filename)
-  (let ((path (path->string
-               (path->complete-path filename
-                                    (or basedir (current-directory))))))
-    ((or (runtime-get runtime 'load #f)
-         (runtime-get runtime 'ar-load #f)
-         (let ((ail-load (runtime-get runtime 'ar-ail-load #f)))
-           (and ail-load
-                (lambda (path)
-                  (ail-load runtime path))))
-         (error "unable to find a loader in the runtime" filename))
-     path)))
+(define (full-path basedir filename)
+  (path->string
+   (path->complete-path
+    filename
+    (if (or (not basedir) (eqv? basedir 'nil))
+         (current-directory)
+         basedir))))
 
-(define (new-runtime)
+(define (load runtime basedir filename)
+  ((runtime-get runtime 'load)
+   (full-path (or basedir (current-directory)) filename)))
+
+(define (use-load runtime basedir item)
+  (let ((item (cond ((symbol? item) item)
+                    ((string? item) (string->symbol item))
+                    (else           (error "can't load-use" item))))
+        (loaded* (runtime-get runtime 'loaded*)))
+    (unless (hash-ref loaded* item #f)
+      (load runtime basedir (string-append (symbol->string item) ".arc"))
+      (hash-set! loaded* item 't))))
+                     
+(define (new-runtime libdir)
   (let ((runtime (make-base-empty-namespace)))
     (parameterize ((current-namespace runtime))
       (namespace-require '(only scheme/base #%app #%datum #%top))
       (namespace-require '(prefix racket- scheme/base))
       (namespace-require '(prefix racket- scheme/mpair)))
     (runtime-set runtime 'runtime* runtime)
+    (runtime-set runtime 'loaded* (make-hash))
     (runtime-set runtime 'ar-racket-eval racket-eval)
-    (runtime-set runtime 'ar-ail-load ail-load)
     (runtime-set runtime 'ar-var
          (case-lambda
           ((name)
@@ -65,11 +73,13 @@
     (runtime-set runtime 'ar-assign
          (lambda (name value)
            (runtime-set runtime name value)))
+    (runtime-set runtime 'load (lambda (filename) (ail-load runtime filename)))
+    (runtime-set runtime 'use-load (lambda (item)
+                                     (use-load runtime libdir item)))
     runtime))
 
 (define (new-arc arcdir)
-  (let ((arc (new-runtime)))
+  (let ((arc (new-runtime arcdir)))
     (runtime-set arc 'arcdir* arcdir)
-    (load arc arcdir "ar.arc")
     (load arc arcdir "ac.arc")
     arc))

@@ -1,3 +1,5 @@
+(ail-code (use-load (racket-quote ar)))
+
 (ail-code (ar-def ar-extend-impl (name test body)
   (racket-let ((previous (ar-var name)))
     (ar-assign name

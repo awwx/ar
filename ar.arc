@@ -428,12 +428,9 @@
                   (eval x)
                   (ar-aload1 p)))))
 
- (ar-def ar-load filenames
-   (racket-for-each
-    (racket-lambda (filename)
-      (racket-call-with-input-file filename
-        (racket-lambda (p) (ar-aload1 p))))
-    filenames)
+ (ar-def load (filename)
+   (racket-call-with-input-file filename
+     (racket-lambda (p) (ar-aload1 p)))
    nil)
 
 )
