@@ -24,15 +24,17 @@
                  (cdr form))
        (error "sorry, this primitive eval only knows how to do ail-code" form)))
 
+(define (loadin runtime in)
+  (let ((form (read in)))
+    (if (eof-object? form)
+         'nil
+         (begin (ail-code-eval runtime form)
+                ((runtime-get runtime 'loadin) in)))))
+
 (define (ail-load runtime filename)
   (call-with-input-file filename
     (lambda (in)
-      (let loop ()
-        (let ((form (read in)))
-          (unless (eof-object? form)
-            (ail-code-eval runtime form)
-            (loop))))))
-  'nil)
+      (loadin runtime in))))
 
 (define (full-path basedir filename)
   (path->string
@@ -76,6 +78,8 @@
     (runtime-set runtime 'load (lambda (filename) (ail-load runtime filename)))
     (runtime-set runtime 'use-load (lambda (item)
                                      (use-load runtime libdir item)))
+    (runtime-set runtime 'loadin (lambda (in)
+                                   (loadin runtime in)))
     runtime))
 
 (define (new-arc arcdir)

@@ -420,17 +420,16 @@
                  eof
                  (ar-toarc v))))
 
- (ar-def ar-aload1 (p)
-   (racket-let ((x (ar-read p)))
+ (ar-def loadin (in)
+   (racket-let ((x (ar-read in)))
      (racket-if (ar-no x)
                  nil
                  (racket-begin
                   (eval x)
-                  (ar-aload1 p)))))
+                  (loadin in)))))
 
  (ar-def load (filename)
    (racket-call-with-input-file filename
-     (racket-lambda (p) (ar-aload1 p)))
-   nil)
+     (racket-lambda (p) (loadin p))))
 
 )
