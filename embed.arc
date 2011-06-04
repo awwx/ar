@@ -24,4 +24,4 @@
          (err "invalid number of arguments" arg))))
 
 (def empty-runtime ((o arcdir))
-  (runtime-access (make-empty-runtime)))
+  (runtime-access (make-empty-runtime arcdir)))

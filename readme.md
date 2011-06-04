@@ -152,8 +152,7 @@ Todo
 
 (see https://github.com/awwx/ar/pull/1 for the above)
 
-* we have the beginnings of a dependency loader, but it's not working
-  across directories yet
+* the dependency loader is quite primitive
 * Optimizations (such as direct-calls)
 * See if we can move coerce and + into Arc.
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"

@@ -68,6 +68,10 @@ __DATA__
            (let ((value (next-arg)))
              (do (lambda ()
                    (runtime-set runtime (string->symbol varname) value))))))
+        ((equal? opt "-I")
+         (let ((path (next-arg)))
+           (do (lambda ()
+                 ((runtime-get runtime 'add-usepath) path)))))
         (else
          (error "unknown option" opt))))
 

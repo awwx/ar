@@ -1,6 +1,7 @@
 #lang scheme
 
 (provide (all-defined-out))
+(require scheme/path)
 
 (define runtime-get
   (case-lambda
@@ -58,17 +59,53 @@
         ((symbol? x) (symbol->string x))
         (else        (error "can't convert to string" x))))
 
+(define (assymbol x)
+  (cond ((string? x) (string->symbol x))
+        ((symbol? x) x)
+        (else        (error "can't convert to symbol" x))))
+
+(define (dirpart path)
+  (let-values (((dir file must) (split-path path)))
+    (path->string dir)))
+
+(define (filepart path)
+  (let ((r (file-name-from-path path)))
+    (if r (path->string r) #f)))
+
+(define (extension path)
+  (let ((r (regexp-match #px"\\.([^\\.]+)$" (filepart path))))
+    (if r (cadr r) #f)))
+
+(define (default-arc path)
+  (if (extension path)
+       path
+       (string-append path ".arc")))
+
+(define (find file dirs)
+  (cond ((absolute-path? file)
+         (cond ((file-exists? file)
+                file)
+               ((and (not (extension file))
+                     (file-exists? (string-append file ".arc")))
+                (string-append file ".arc"))
+               (else
+                (error "not found" file))))
+        ((eq? dirs 'nil)
+         (error "not found" file))
+        (else
+         (let ((try (string-append (mcar dirs) "/" (default-arc file))))
+           (if (file-exists? (string->path try))
+                try
+                (find file (mcdr dirs)))))))
+
 (define (use-load runtime item)
-  (let ((basedir ((runtime-get runtime 'usedir*))))
-    (if (regexp-match #px"[/\\.]" (asstring item))
-         (load runtime basedir (asstring item))
-         (let ((item (cond ((symbol? item) item)
-                           ((string? item) (string->symbol item))
-                           (else           (error "can't load-use" item))))
-               (loaded* (runtime-get runtime 'loaded*)))
-           (unless (hash-ref loaded* item #f)
-             (load runtime basedir (string-append (symbol->string item) ".arc"))
-             (hash-set! loaded* item 't))))))
+  (let ((loaded* (runtime-get runtime 'loaded*))
+        (usepath* (runtime-get runtime 'usepath*)))
+    (unless (hash-ref loaded* (assymbol item) #f)
+      (let ((path (find (asstring item) (usepath*))))
+        (parameterize ((usepath* (mcons (dirpart path) (usepath*))))
+          (load runtime #f path))
+        (hash-set! loaded* (assymbol item) 't)))))
                      
 (define (new-runtime libdir)
   (let ((runtime (make-base-empty-namespace)))
@@ -77,7 +114,7 @@
       (namespace-require '(prefix racket- scheme/base))
       (namespace-require '(prefix racket- scheme/mpair)))
     (runtime-set runtime 'runtime* runtime)
-    (runtime-set runtime 'usedir* (make-parameter libdir))
+    (runtime-set runtime 'usepath* (make-parameter (mcons libdir 'nil)))
     (runtime-set runtime 'loaded* (make-hash))
     (runtime-set runtime 'ar-racket-eval racket-eval)
     (runtime-set runtime 'ar-var
@@ -94,6 +131,11 @@
                                      (use-load runtime item)))
     (runtime-set runtime 'loadin (lambda (in)
                                    (loadin runtime in)))
+    (runtime-set runtime 'add-usepath
+      (lambda (path)
+        ((runtime-get runtime 'usepath*)
+         (mcons (path->string (normalize-path path))
+                ((runtime-get runtime 'usepath*))))))
     runtime))
 
 (define (new-arc arcdir)
