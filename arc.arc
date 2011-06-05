@@ -1,4 +1,4 @@
-(ail-code (use-load (racket-quote ac)))
+(use ac)
 
 (assign do (annotate 'mac
              (fn args `((fn () ,@args)))))
