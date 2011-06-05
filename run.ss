@@ -105,7 +105,8 @@
       (let ((path (find (asstring item) (usepath*))))
         (parameterize ((usepath* (mcons (dirpart path) (usepath*))))
           (load runtime #f path))
-        (hash-set! loaded* (assymbol item) 't)))))
+        (hash-set! loaded* (assymbol item) 't))))
+  'nil)
                      
 (define (new-runtime usepath)
   (let ((runtime (make-base-empty-namespace)))
