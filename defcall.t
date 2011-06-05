@@ -1,3 +1,5 @@
+(use defcall test)
+
 (defcall char (c n)
   (string (n-of n c)))
 

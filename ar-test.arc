@@ -1,6 +1,4 @@
-(load "equal-wrt-testing.arc")
-(load "test.arc")
-(load "embed.arc")
+(use arc test embed)
 
 (def matches (pattern form)
   (iso (firstn len.pattern form) pattern))

@@ -1,3 +1,5 @@
+(use arc)
+
 (ail-code (racket-require (racket-prefix-in racket- scheme/tcp)))
 (ail-code (racket-require (racket-prefix-in racket- scheme/port)))
 

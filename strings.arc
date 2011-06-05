@@ -1,3 +1,5 @@
+(use arc)
+
 ; Matching.  Spun off 29 Jul 06.
 
 ; arc> (tostring (writec (coerce 133 'char)))

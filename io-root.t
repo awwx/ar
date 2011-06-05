@@ -1,5 +1,7 @@
 ;; tests that need to be run as root
 
+(use io test)
+
 (def euid ()
   (tostring (system "id -u")))
 

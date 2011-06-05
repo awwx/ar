@@ -1,3 +1,5 @@
+(use arc test)
+
 (testis (w/instring s "" (readc s 'end)) 'end)
 
 (testis (w/instring s ""    (peekc s)) 'nil)

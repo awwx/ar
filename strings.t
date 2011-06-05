@@ -1,3 +1,5 @@
+(use strings test)
+
 (testis (tokens "abc def ghi") '("abc" "def" "ghi"))
 
 (testis (halve "first second third") '("first" " second third"))

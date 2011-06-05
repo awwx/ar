@@ -1,3 +1,5 @@
+(use io test)
+
 (= tcp-test-port* 50013)
 
 (def tcp-connect (host port)

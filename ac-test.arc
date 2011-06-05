@@ -1,6 +1,4 @@
-(load "equal-wrt-testing.arc")
-(load "test.arc")
-(load "embed.arc")
+(use arc test embed)
 
 (def matches (pattern form)
   ;; todo the cadr is cheating; what I really want is a recursive

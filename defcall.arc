@@ -1,3 +1,5 @@
+(use arc)
+
 (= call-types* (table))
 
 (defrule ar-apply-non-fn (racket-hash-ref call-types* type.x (fn () nil))

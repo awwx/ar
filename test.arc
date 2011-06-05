@@ -1,3 +1,5 @@
+(use arc equal-wrt-testing)
+
 ; todo not sure about these names
 
 (assign test-verbose* t)
