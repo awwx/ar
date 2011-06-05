@@ -25,3 +25,6 @@ racket   run arc strings.t
 
 mzscheme run defcall.t
 racket   run defcall.t
+
+mzscheme run capture.t
+racket   run capture.arc
