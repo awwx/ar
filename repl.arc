@@ -1,3 +1,5 @@
+(use arc)
+
 (= repl-eof-value (list 'eof))
 
 (def repl ()
@@ -17,3 +19,5 @@
                   (= that val)
                   (= thatexpr expr)
                   (repl))))))))
+
+(repl)

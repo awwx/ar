@@ -13,27 +13,30 @@ Bug reports are *greatly* appreciated!
 Run
 ---
 
-Get to the REPL with:
+Run the REPL with:
 
-    ./repl
+    ./run repl
 
 or, if you have rlwrap:
 
-    rlwrap -q \" ./repl
+    rlwrap -q \" ./run repl
 
 You can load Arc files from the command line and then go into the
 REPL (files without an extension will default to ".arc"):
 
-    /path/to/ar/repl foo bar
+    ./run foo bar repl
 
-or, if you want to execute your Arc program without entering the REPL:
+(Note that foo.arc should either start with `(use arc)` to get Arc loaded for it, or else you could start your arguments with "arc").
 
-    /path/to/ar/run foo bar
+Or, if you just want to run your Arc program without entering the
+REPL:
+
+    ./run foo bar
 
 You can pass command line arguments into your program by putting them
 after "--":
 
-    /path/to/ar/run mylibrary myprogram -- arg1 arg2
+    ./run mylibrary myprogram -- arg1 arg2
 
 With `script`, you can write a shell script in Arc.  (Though still
 todo is conveniently accessing the command line arguments).
@@ -157,7 +160,8 @@ Todo
 
 (see https://github.com/awwx/ar/pull/1 for the above)
 
-* the dependency loader is quite primitive
+* The dependency loader should track which files have been loaded by
+  their full path.
 * Optimizations (such as direct-calls)
 * See if we can move coerce and + into Arc.
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"

@@ -1,9 +1,0 @@
-#!/usr/bin/perl
-use strict;
-use FindBin;
-
-exec("$FindBin::Bin/run",
-     'arc', 'strings',
-     @ARGV,
-     'repl.arc',
-     '-e', '(repl)');
