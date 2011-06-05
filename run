@@ -1,39 +1,12 @@
-#!/usr/bin/perl
-
-use strict;
-use autodie;
-use Fcntl; 
-use FindBin;
-use Getopt::Long qw(:config pass_through);
-use POSIX qw(:sys_wait_h);
-
-my $racket;
-GetOptions('racket=s' => \$racket) or die;
-
-chomp($racket = `which racket`) unless $racket;
-chomp($racket = `which mzscheme`) unless $racket;
-die "unable to find racket or mzscheme in the PATH\n" unless $racket;    
-
-pipe(my $IN, my $OUT);
-fcntl($IN, F_SETFD, (fcntl($IN, F_GETFD, 0) & ~FD_CLOEXEC));
-my $dev = "/dev/fd/" . fileno($IN);
-$SIG{INT} = sub {};
-if (! fork()) {
-    exec($racket, $dev, $FindBin::Bin, @ARGV)
-        or die "unable to exec $racket\n";
-}
-
-while (<DATA>) {
-    print $OUT $_;
-}
-close($OUT);
-do {
-    wait;
-} until (WIFEXITED($?));
-exit WEXITSTATUS($?);
-
-__DATA__
+#!/usr/bin/env racket
 #lang scheme/load
+
+(define arcdir*
+  (path->string
+   (let-values (((base _2 _3)
+                 (split-path (normalize-path
+                              (find-system-path 'run-file)))))
+     base)))
 
 (define args (vector->list (current-command-line-arguments)))
 (current-command-line-arguments (list->vector '()))
@@ -44,8 +17,6 @@ __DATA__
        (let ((next (car args)))
          (set! args (cdr args))
          next)))
-
-(define arcdir* (next-arg))
 
 (define usepath*
   (mcons (path->string (current-directory))
