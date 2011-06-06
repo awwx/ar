@@ -34,3 +34,6 @@ racket   run pictorial-test.t
 
 mzscheme run extend-ontype.t
 racket   run extend-ontype.t
+
+mzscheme run runtime.t
+racket   run runtime.t
