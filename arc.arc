@@ -198,14 +198,23 @@
                `(,(car body) (aif ,@(cdr body)))
                body))))
 
+(def varref (name)
+  (eval name))
+
+(def varset (name val)
+  (eval `(assign ,name ',val)))
+
+(def extenddef (name testf f)
+  (let orig (varref name)
+    (varset name
+            (fn args
+              (aif (apply testf args)
+                    (apply f orig it args)
+                    (apply orig args))))))
+
 (mac extend (name arglist test . body)
-  (w/uniq args
-    `(let orig ,name
-       (assign ,name
-               (fn ,args
-                 (aif (apply (fn ,arglist ,test) ,args)
-                       (apply (fn ,arglist ,@body) ,args)
-                       (apply orig ,args)))))))
+  `(extenddef ',name (fn ,arglist ,test)
+     (fn ,(join '(orig it) arglist) ,@body)))
 
 (mac defrule (name test . body)
   `(extend ,name ,(sig name) ,test ,@body))
