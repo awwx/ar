@@ -1,50 +1,90 @@
-(use strings test)
+(use strings pictorial-test)
 
-(testis (tokens "abc def ghi") '("abc" "def" "ghi"))
+(pictorial-test (this-runtime) #<<.
 
-(testis (halve "first second third") '("first" " second third"))
+> (tokens "abc def ghi")
+("abc" "def" "ghi")
 
-(testis (positions digit "abc6d78defg9") '(3 5 6 11))
+> (halve "first second third")
+("first" " second third")
 
-(testis (lines "one\ntwo\nthree\n") '("one" "two" "three" ""))
+> (positions digit "abc6d78defg9")
+(3 5 6 11)
 
-(testis (slices "abc6d78defg9" digit) '("abc" "d" "" "defg" ""))
+> (lines "one\ntwo\nthree\n")
+("one" "two" "three" "")
 
-(testis (urldecode "ab%20cd") "ab cd")
+> (slices "abc6d78defg9" digit)
+("abc" "d" "" "defg" "")
 
-(testis (urldecode (urlencode "foobar")) "foobar")
+> (urldecode "ab%20cd")
+"ab cd"
 
-(testis (litmatch "<p>" "ab<p>cd" 2) t)
+> (urldecode (urlencode "foobar"))
+"foobar"
 
-(testis (endmatch ".arc" "foo.t") nil)
-(testis (endmatch ".arc" "foo.arc") t)
+> (litmatch "<p>" "ab<p>cd" 2)
+t
 
-(testis (posmatch "xy" "abxcyxydef") 5)
+> (endmatch ".arc" "foo.t")
+nil
 
-(testis (begins "abcdef" "foo") nil)
-(testis (begins "foobar" "foo") t)
+> (endmatch ".arc" "foo.arc")
+t
 
-(testis (subst "X" "foo" "abc foo def") "abc X def")
+> (posmatch "xy" "abxcyxydef")
+5
 
-(testis (multisubst '(("foo" "X") ("bar" "Y")) "one bar two foo three")
-        "one Y two X three")
+> (begins "abcdef" "foo")
+nil
 
-(testis (findsubseq "foo" "abcfoodef") 3)
+> (begins "foobar" "foo")
+t
 
-(testis (blank "") t)
-(testis (blank " abc ") nil)
-(testis (blank "    ") t)
+> (subst "X" "foo" "abc foo def")
+"abc X def"
 
-(testis (nonblank "  abc ") "  abc ")
-(testis (nonblank "      ") nil)
+> (multisubst '(("foo" "X") ("bar" "Y")) "one bar two foo three")
+"one Y two X three"
 
-(testis (trim "  abc def   ") "abc def")
+> (findsubseq "foo" "abcfoodef")
+3
 
-(testis (num 3000.1478) "3,000.15")
+> (blank "")
+t
 
-(testis (pluralize 5 "apple") "apples")
-(testis (pluralize 1 "apple") "apple")
-(testis (pluralize '(x) "apple") "apple")
-(testis (pluralize '(x y z) "apple") "apples")
+> (blank " abc ")
+nil
 
-(testis (plural 5 "apple") "5 apples")
+> (blank "    ")
+t
+
+> (nonblank "  abc ")
+"  abc "
+
+> (nonblank "      ")
+nil
+
+> (trim "  abc def   ")
+"abc def"
+
+> (num 3000.1478)
+"3,000.15"
+
+> (pluralize 5 "apple")
+"apples"
+
+> (pluralize 1 "apple")
+"apple"
+
+> (pluralize '(x) "apple")
+"apple"
+
+> (pluralize '(x y z) "apple")
+"apples"
+
+> (plural 5 "apple")
+"5 apples"
+
+.
+)
