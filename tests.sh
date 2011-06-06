@@ -28,3 +28,6 @@ racket   run defcall.t
 
 mzscheme run capture.t
 racket   run capture.arc
+
+mzscheme run pictorial-test.t
+racket   run pictorial-test.t

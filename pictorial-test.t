@@ -1,4 +1,4 @@
-(use parse-test-spec test)
+(use pictorial-test test)
 
 (let in (instring "abcde")
   (testis (re-match "ab?" in) '("ab"))
@@ -69,14 +69,14 @@
   (testis (parse-test-result) '((val "(a b c\n   d e f)\n"))))
 
 (fromstring "prints: abc\n"
-  (testis (parse-test-result) '((out "abc"))))
+  (testis (parse-test-result) '((prints "abc"))))
 
-(fromstring "error: foo\n"
+(fromstring "err: foo\n"
   (testis (parse-test-result) '((err "foo"))))
 
 (fromstring "stderr: abc\nprints: foo\n(123\n 456)\n"
   (testis (parse-test-result)
-          '((errout "abc") (out "foo") (val "(123\n 456)\n"))))
+          '((errout "abc") (prints "foo") (val "(123\n 456)\n"))))
 
 
 (fromstring #<<.
@@ -110,3 +110,38 @@
 .
   (testis (parse-one-test-spec)
           '((expr "(just-for-side-effect)\n"))))
+
+
+(fromstring "" (testis (parse-test-specs) nil))
+
+(fromstring #<<.
+> (abc)
+
+> (def)
+.
+  (testis (parse-test-specs)
+          '(((expr "(abc)\n")) ((expr "(def)\n")))))
+
+(fromstring #<<.
+> (prn "hi")
+prints: hi\n
+.
+  (testis (parse-test-specs)
+          '(((expr "(prn \"hi\")\n") (prints "hi\n")))))
+
+(let spec (fromstring #<<.
+> (+ 3 5)
+8
+.
+            (car (parse-test-specs)))
+  (testis (eval-test (this-runtime) spec)
+          '((val 8))))
+
+(let spec (fromstring #<<.
+> (+ 3 5)
+4
+.
+            (car (parse-test-specs)))
+  (testis (check-test-result (this-runtime) spec
+                             (eval-test (this-runtime) spec))
+          "expected val 4, actual 8"))

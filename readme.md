@@ -657,3 +657,5 @@ rocketnia provided a fix for the ssyntax precedence being different
 than Arc 3.1.
 
 Pauan provided an implementation for defcall.
+
+Pauan contributed pictorial tests.
