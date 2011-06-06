@@ -198,15 +198,17 @@
                `(,(car body) (aif ,@(cdr body)))
                body))))
 
+(mac extend (name arglist test . body)
+  (w/uniq args
+    `(let orig ,name
+       (assign ,name
+               (fn ,args
+                 (aif (apply (fn ,arglist ,test) ,args)
+                       (apply (fn ,arglist ,@body) ,args)
+                       (apply orig ,args)))))))
+
 (mac defrule (name test . body)
-  (let arglist (sig name)
-    (w/uniq (orig args)
-      `(let ,orig ,name
-         (assign ,name
-           (fn ,args
-             (aif (apply (fn ,arglist ,test) ,args)
-                   (apply (fn ,arglist ,@body) ,args)
-                   (apply ,orig ,args))))))))
+  `(extend ,name ,(sig name) ,test ,@body))
 
 (assign ac-defined-vars* (table))
 
