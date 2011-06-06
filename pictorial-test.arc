@@ -89,17 +89,20 @@
            runtime!runtime*))))
 
 (def check-test-result (runtime expected actual)
-  (catch:each (key expected-value) (keep [in (car _) 'val 'prints 'stderr] expected)
-    (let actual-value-assoc (assoc key actual)
-      (if (no actual-value-assoc)
-           (throw (+ "expected " key " " (tostring:write expected-value) ", "
-              "not present in actual result"))
-           (let actual-value (cadr actual-value-assoc)
-             (when (is key 'val)
-               (= expected-value (runtime!read expected-value)))
-             (if (no (equal-wrt-testing expected-value actual-value))
+  (catch
+   (if (and (alref actual 'err) (no (alref expected 'err)))
+        (throw (+ "error: " (alref actual 'err)))
+        (each (key expected-value) (keep [in (car _) 'val 'prints 'stderr] expected)
+          (let actual-value-assoc (assoc key actual)
+            (if (no actual-value-assoc)
                  (throw (+ "expected " key " " (tostring:write expected-value) ", "
-                           "actual " (tostring:write actual-value)))))))))
+                           "not present in actual result"))
+                 (let actual-value (cadr actual-value-assoc)
+                   (when (is key 'val)
+                     (= expected-value (runtime!read expected-value)))
+                   (if (no (equal-wrt-testing expected-value actual-value))
+                       (throw (+ "expected " key " " (tostring:write expected-value) ", "
+                                 "actual " (tostring:write actual-value)))))))))))
 
 (def pictorial-test (runtime spec-string)
   (let specs (fromstring spec-string (parse-test-specs))

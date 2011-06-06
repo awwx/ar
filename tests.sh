@@ -31,3 +31,6 @@ racket   run capture.arc
 
 mzscheme run pictorial-test.t
 racket   run pictorial-test.t
+
+mzscheme run extend-ontype.t
+racket   run extend-ontype.t
