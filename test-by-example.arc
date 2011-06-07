@@ -78,9 +78,7 @@
 (def eval-test (runtime spec)
   (capture-val-out-errout
    (fn ()
-     (eval (runtime!read (alref spec 'expr))
-           ;; todo
-           runtime*))))
+     (eval (runtime!read (alref spec 'expr)) runtime))))
 
 (def check-test-result (runtime expected actual)
   (catch

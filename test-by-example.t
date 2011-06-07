@@ -145,3 +145,9 @@ prints: hi\n
   (testis (check-test-result runtime* spec
                              (eval-test runtime* spec))
           "expected val 4, actual 8"))
+
+(example-test (runtime '(foobit-example)) #<<.
+> foobit
+6673
+.
+)
