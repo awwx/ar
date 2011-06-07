@@ -1,4 +1,4 @@
-(use arc test embed)
+(use arc test runtime)
 
 (def matches (pattern form)
   ;; todo the cadr is cheating; what I really want is a recursive
@@ -9,8 +9,7 @@
 (def ac-upto (pattern)
   (prn)
   (write pattern) (prn)
-  (let arc (empty-runtime (list (racket-path->string (racket-current-directory))))
-    (arc!use-load 'ar)
+  (let arc (runtime '(ar) (list (racket-path->string (racket-current-directory))))
     (catch
       (each form (readfile "ac.arc")
         (arc!eval form)
