@@ -160,6 +160,8 @@ Todo
 
 (see https://github.com/awwx/ar/pull/1 for the above)
 
+* Date/time tests are failing on different computers... maybe a
+  timezone problem?
 * The dependency loader should track which files have been loaded by
   their full path.
 * Optimizations (such as direct-calls)
