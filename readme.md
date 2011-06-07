@@ -148,6 +148,43 @@ higher standard of proof that the approach is truly necessary than
 making a similar change in a more conventional project would.
 
 
+Making ar Less Terrible
+-----------------------
+
+ar is currently terrible in many ways: various things aren't
+implemented; of the things that are implemented, much is written in an
+awkward way; there are many bugs; and of the functionality which is
+actually working, much doesn't have tests -- so the functionality
+could be accidentally lost at any time.
+
+When I work on ar myself, I pick the next thing which seems especially
+terrible to me, and I work on that.  Thus ar (slowly) gets less
+terrible over time.
+
+Naturally you may have different priorities about which problems are
+the most important for you.  Or, you may be impatient with the rate of
+progress.
+
+If you'd like to help make ar less terrible, you can also pick
+something that seems especially important to you, fix or implement it,
+and send a github pull request with your change.
+
+Small commits are much easier to digest and incorporate than large
+commits.  (Even if your commit is perfect, I still need to understand
+it myself).  Thus if you have a larger change, it is better to submit
+it as a sequence of small pull requests instead of one large pull
+request.  That may seem less efficient, but it's faster in practice.
+
+If you look at the [ar commit
+history](https://github.com/awwx/ar/commits/master), you'll notice
+that each commit is usually quite small: it makes just one isolated
+change.  I work in small chunks because of the complexity of ar
+itself: it's easier to see the ramifications of a small change.  An
+ideal github pull request would be of *similar size*: this makes it
+possible for me to quickly accept your commit, and the faster I can
+accept your commits, the faster they can get into ar.
+
+
 Todo
 ----
 
