@@ -1,4 +1,4 @@
-(use pictorial-test test)
+(use test-by-example test)
 
 (let in (instring "abcde")
   (testis (re-match "ab?" in) '("ab"))

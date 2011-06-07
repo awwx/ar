@@ -104,7 +104,7 @@
                        (throw (+ "expected " key " " (tostring:write expected-value) ", "
                                  "actual " (tostring:write actual-value)))))))))))
 
-(def pictorial-test (runtime spec-string)
+(def example-test (runtime spec-string)
   (let specs (fromstring spec-string (parse-test-specs))
     (each spec specs
       (let actual (eval-test runtime spec)

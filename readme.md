@@ -658,4 +658,4 @@ than Arc 3.1.
 
 Pauan provided an implementation for defcall.
 
-Pauan contributed pictorial tests.
+Pauan contributed testing by example.

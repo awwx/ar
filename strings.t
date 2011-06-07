@@ -1,6 +1,6 @@
-(use strings pictorial-test)
+(use strings test-by-example)
 
-(pictorial-test (this-runtime) #<<.
+(example-test (this-runtime) #<<.
 
 > (tokens "abc def ghi")
 ("abc" "def" "ghi")

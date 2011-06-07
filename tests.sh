@@ -29,8 +29,8 @@ racket   run defcall.t
 mzscheme run capture.t
 racket   run capture.arc
 
-mzscheme run pictorial-test.t
-racket   run pictorial-test.t
+mzscheme run test-by-example.t
+racket   run test-by-example.t
 
 mzscheme run extend-ontype.t
 racket   run extend-ontype.t

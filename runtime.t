@@ -1,6 +1,6 @@
-(use runtime pictorial-test)
+(use runtime test-by-example)
 
-(pictorial-test (this-runtime) #<<.
+(example-test (this-runtime) #<<.
 
 > (= foo 123)
 

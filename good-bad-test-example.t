@@ -1,6 +1,6 @@
-(use pictorial-test)
+(use test-by-example)
 
-(pictorial-test (this-runtime) #<<.
+(example-test (this-runtime) #<<.
 > (+ 3 5)
 8
 

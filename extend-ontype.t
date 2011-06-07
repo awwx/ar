@@ -1,6 +1,6 @@
-(use extend-ontype pictorial-test)
+(use extend-ontype test-by-example)
 
-(pictorial-test (this-runtime) #<<.
+(example-test (this-runtime) #<<.
 
 > (def rock (n)
     (annotate 'rock n))
