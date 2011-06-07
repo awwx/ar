@@ -1,6 +1,12 @@
-(use defcall test)
+(use test-by-example)
 
-(defcall char (c n)
-  (string (n-of n c)))
+(example-test (runtime '(defcall)) #<<.
 
-(testis (#\A 6) "AAAAAA")
+> (defcall char (c n)
+    (string (n-of n c)))
+
+> (#\A 6)
+"AAAAAA"
+
+.
+)
