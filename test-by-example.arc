@@ -85,7 +85,7 @@
   (write-val runtime
     (capture-val-out-errout
      (fn ()
-       (eval (runtime!read (alref spec 'expr)) runtime)))))
+       (runtime!eval (runtime!read (alref spec 'expr)))))))
 
 (def check-test-result (runtime expected actual)
   (catch
