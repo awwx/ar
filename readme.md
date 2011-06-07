@@ -197,6 +197,8 @@ Todo
 
 (see https://github.com/awwx/ar/pull/1 for the above)
 
+* When a runtime is passed to eval, it isn't running ac from the
+  passed runtime.
 * Date/time tests are failing on different computers... maybe a
   timezone problem?
 * The dependency loader should track which files have been loaded by
