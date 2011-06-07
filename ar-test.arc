@@ -1,4 +1,4 @@
-(use arc test embed)
+(use arc test runtime)
 
 (def matches (pattern form)
   (iso (firstn len.pattern form) pattern))
@@ -13,10 +13,10 @@
 (def ac-upto (pattern)
   (prn)
   (write pattern) (prn)
-  (let arc (empty-runtime (list (racket-path->string (racket-current-directory))))
+  (let arc (runtime '() (list (racket-path->string (racket-current-directory))))
     (catch
      (each form (read-ar)
-       (arc!ar-racket-eval arc!runtime* form)
+       (arc!ar-racket-eval arc form)
        (when (matches pattern (ar-toarc form)) (throw nil)))
      (err "pattern not found in source" pattern))
     arc))
