@@ -1,6 +1,6 @@
 (use runtime test-by-example)
 
-(example-test (this-runtime) #<<.
+(example-test runtime* #<<.
 
 > (= foo 123)
 

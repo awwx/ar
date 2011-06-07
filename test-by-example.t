@@ -134,7 +134,7 @@ prints: hi\n
 8
 .
             (car (parse-test-specs)))
-  (testis (eval-test (this-runtime) spec)
+  (testis (eval-test runtime* spec)
           '((val 8))))
 
 (let spec (fromstring #<<.
@@ -142,6 +142,6 @@ prints: hi\n
 4
 .
             (car (parse-test-specs)))
-  (testis (check-test-result (this-runtime) spec
-                             (eval-test (this-runtime) spec))
+  (testis (check-test-result runtime* spec
+                             (eval-test runtime* spec))
           "expected val 4, actual 8"))

@@ -1,6 +1,4 @@
-(use strings capture equal-wrt-testing)
-;; todo
-(use embed)
+(use strings capture equal-wrt-testing runtime)
 
 ;; todo goes somewhere else
 
@@ -77,16 +75,12 @@
 (def parse-test-specs ()
   (drain (parse-one-test-spec)))
 
-;; todo
-(def this-runtime ()
-  (runtime-access runtime*))
-
 (def eval-test (runtime spec)
   (capture-val-out-errout
    (fn ()
      (eval (runtime!read (alref spec 'expr))
            ;; todo
-           runtime!runtime*))))
+           runtime*))))
 
 (def check-test-result (runtime expected actual)
   (catch

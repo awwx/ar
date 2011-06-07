@@ -1,6 +1,6 @@
 (use test-by-example)
 
-(example-test (this-runtime) #<<.
+(example-test runtime* #<<.
 > (+ 3 5)
 8
 

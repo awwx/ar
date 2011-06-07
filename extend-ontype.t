@@ -1,6 +1,6 @@
 (use extend-ontype test-by-example)
 
-(example-test (this-runtime) #<<.
+(example-test runtime* #<<.
 
 > (def rock (n)
     (annotate 'rock n))
