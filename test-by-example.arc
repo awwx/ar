@@ -75,10 +75,17 @@
 (def parse-test-specs ()
   (drain (parse-one-test-spec)))
 
+(def write-val (runtime result)
+  (aif (assoc 'val result)
+        (+ `((val ,(tostring (runtime!write cadr.it))))
+           (rem [is (car _) 'val] result))
+        result))
+
 (def eval-test (runtime spec)
-  (capture-val-out-errout
-   (fn ()
-     (eval (runtime!read (alref spec 'expr)) runtime))))
+  (write-val runtime
+    (capture-val-out-errout
+     (fn ()
+       (eval (runtime!read (alref spec 'expr)) runtime)))))
 
 (def check-test-result (runtime expected actual)
   (catch
@@ -90,11 +97,10 @@
                  (throw (+ "expected " key " " (tostring:write expected-value) ", "
                            "not present in actual result"))
                  (let actual-value (cadr actual-value-assoc)
-                   (when (is key 'val)
-                     (= expected-value (runtime!read expected-value)))
-                   (if (no (equal-wrt-testing expected-value actual-value))
-                       (throw (+ "expected " key " " (tostring:write expected-value) ", "
-                                 "actual " (tostring:write actual-value)))))))))))
+                   (if (isnt (trim expected-value 'end)
+                             (trim actual-value   'end))
+                        (throw (+ "expected " key " " (tostring:write expected-value) ", "
+                                  "actual " (tostring:write actual-value)))))))))))
 
 (def example-test (runtime spec-string)
   (let specs (fromstring spec-string (parse-test-specs))
