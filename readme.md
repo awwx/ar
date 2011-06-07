@@ -446,18 +446,14 @@ Changes
     different set of definitions loaded.  Thus the other runtimes can be
     a hacked version of ar, or have some other language than Arc loaded.
 
-         arc> (load "embed.arc")
+         arc> (use runtime)
          nil
-         arc> (= a (new-arc))
-         #<procedure>
+         arc> (= a (runtime '(arc)))
+         #<namespace:0>
          arc> a!+
          #<procedure:+>
-         arc> (a!ar-load "arc.arc")
-         nil
          arc> (a!eval '(map odd '(1 2 3 4 5 6)))
-         (t nil t nil t nil)
 
-    todo: fix example
 
 The Arc Implementation Language (Ail)
 -------------------------------------
