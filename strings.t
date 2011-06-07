@@ -1,6 +1,6 @@
-(use strings test-by-example)
+(use runtime test-by-example)
 
-(example-test runtime* #<<.
+(example-test (runtime '(strings)) #<<.
 
 > (tokens "abc def ghi")
 ("abc" "def" "ghi")
