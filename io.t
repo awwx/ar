@@ -28,16 +28,14 @@
   (testis their-ip "127.0.0.1")
   (testis the-client-ip "127.0.0.1"))
 
-(do (clean)
-    (system (+ "touch " td "/one"))
-    (system (+ "touch " td "/two"))
-    (testis (sort < (dir td)) '("one" "two")))
+(w/foofile
+  (testis (dir testdir) '()))
 
-(let f (+ td "/foo")
-  (clean)
-  (system (+ "touch " f))
-  (rmfile f)
-  (testis (dir td) '()))
+(w/testdir
+ (with (one (+ testdir "/one") two (+ testdir "/two"))
+   (system (+ "touch " one))
+   (system (+ "touch " two))
+   (testis (sort < (dir testdir)) '("one" "two"))))
 
 (with (alive (make-semaphore)
        done  (make-semaphore))

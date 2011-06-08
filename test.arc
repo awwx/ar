@@ -21,8 +21,11 @@
 (mac testis (expr expected)
   `(test-iso (tostring (write ',expr)) (catcherr ,expr) ,expected))
 
-(assign td "/tmp/SR0hwhic5P")
+(mac w/testdir body
+  `(let testdir (+ "/tmp/" (uniq))
+     (system (+ "rm -rf " testdir))
+     (system (+ "mkdir " testdir))
+     ,@body))
 
-(def clean ()
-  (system (string "rm -rf " td))
-  (system (string "mkdir " td)))
+(mac w/foofile body
+  `(w/testdir (let foofile (+ testdir "/foo") ,@body)))

@@ -273,23 +273,21 @@
 
 (testis (tostring (system "echo hello")) "hello\n")
 
-(let f (string td "/foo")
-  (clean)
-  (w/outfile s f (disp "hi" s))
-  (testis (tostring (system (string "cat " f))) "hi"))
+(w/testdir
+  (let f (string testdir "/foo")
+    (w/outfile s f (disp "hi" s))
+    (testis (tostring (system (string "cat " f))) "hi")))
 
 (testis (let s (outstring) (disp "foo" s) (inside s)) "foo")
 
 (testis (w/outstring s (disp "foo" s) (inside s)) "foo")
 
-(let f (string td "/foo")
-  (clean)
+(w/testdir:let f (string testdir "/foo")
   (w/outfile s f (disp "hello" s))
   (w/appendfile s f (disp " there" s))
   (testis (tostring (system (string "cat " f))) "hello there"))
 
-(let f (string td "/foo")
-  (clean)
+(w/testdir:let f (string testdir "/foo")
   (w/outfile s f
     (w/stdout s (disp "xyzzy")))
   (testis (tostring (system (string "cat " f))) "xyzzy"))
@@ -506,51 +504,59 @@
 
 (testis (tostring (system "echo hello")) "hello\n")
 
-(do (system "echo abc >/tmp/foo")
-    (w/infile s "/tmp/foo"
-      (testis (readc s) #\a)
-      (testis (readc s) #\b)))
+(w/foofile
+  (system (+ "echo abc >" foofile))
+  (w/infile s foofile
+    (testis (readc s) #\a)
+    (testis (readc s) #\b)))
 
-(do (w/outfile s "/tmp/foo" (disp "hi" s))
-    (testis (tostring (system "cat /tmp/foo")) "hi"))
+(w/foofile
+  (w/outfile s foofile (disp "hi" s))
+  (testis (tostring (system (+ "cat " foofile))) "hi"))
 
 (testis (let s (outstring) (disp "foo" s) (inside s)) "foo")
 (testis (w/outstring s (disp "foo" s) (inside s)) "foo")
 
-(do (w/outfile s "/tmp/foo" (disp "hello" s))
-    (w/appendfile s "/tmp/foo" (disp " there" s))
-    (testis (tostring (system "cat /tmp/foo")) "hello there"))
+(w/foofile
+  (w/outfile s foofile (disp "hello" s))
+  (w/appendfile s foofile (disp " there" s))
+  (testis (tostring (system (+ "cat " foofile))) "hello there"))
 
-(do (w/outfile s "/tmp/foo"
-      (w/stdout s
-        (disp "xyzzy")))
-    (testis (tostring (system "cat /tmp/foo")) "xyzzy"))
+(w/foofile
+  (w/outfile s foofile (w/stdout s (disp "xyzzy")))
+  (testis (tostring (system (+ "cat " foofile))) "xyzzy"))
 
 (testis (fromstring "abc" (readc)) #\a)
 
 (testis (w/instring s "abc" (allchars s)) "abc")
 
-(do (w/outfile s "/tmp/foo" (disp "1 2 3" s))
-    (testis (readfile "/tmp/foo") '(1 2 3)))
+(w/foofile
+  (w/outfile s foofile (disp "1 2 3" s))
+  (testis (readfile foofile) '(1 2 3)))
 
-(do (w/outfile s "/tmp/foo" (disp "123 456" s))
-    (testis (readfile1 "/tmp/foo") 123))
+(w/foofile
+ (w/outfile s foofile (disp "123 456" s))
+ (testis (readfile1 foofile) 123))
 
-(do (system "echo '1 2 (3 4)' >/tmp/foo")
-    (testis (w/infile s "/tmp/foo" (readall s)) '(1 2 (3 4))))
+(w/foofile
+  (system (+ "echo '1 2 (3 4)' >" foofile))
+  (testis (w/infile s foofile (readall s)) '(1 2 (3 4))))
 
 (testis (readall "1 2 (3 4)") '(1 2 (3 4)))
 
-(do (system "echo xyzzy >/tmp/foo")
-    (testis (filechars "/tmp/foo") "xyzzy\n"))
+(w/foofile
+  (system (+ "echo xyzzy >" foofile))
+  (testis (filechars foofile) "xyzzy\n"))
 
-(do (clean)
-    (system (string "echo abc >" (string td "/foo")))
-    (mvfile (string td "/foo") (string td "/bar"))
-    (testis (filechars (string td "/bar")) "abc\n"))
+(w/testdir
+  (with (foofile (+ testdir "/foo") barfile (+ testdir "/bar"))
+    (system (string "echo abc >" foofile))
+    (mvfile foofile barfile)
+    (testis (filechars barfile) "abc\n")))
 
-(do (writefile '(a b "cd" 5 6) "/tmp/foo")
-    (testis (filechars "/tmp/foo") "(a b \"cd\" 5 6)"))
+(w/foofile
+  (writefile '(a b "cd" 5 6) foofile)
+  (testis (filechars foofile) "(a b \"cd\" 5 6)"))
 
 (testis (rand 1) 0)
 
@@ -699,24 +705,28 @@
 (testis (assoc-key-sort '((b 2) (d 4) (a 1) (c 3)))
         '((a 1) (b 2) (c 3) (d 4)))
 
-(do (writefile (obj a 1 b 2) "/tmp/foo")
-    (testis (assoc-key-sort (erp (tablist (w/infile s "/tmp/foo" (read-table s)))))
-            '((a 1) (b 2))))
+(w/foofile
+ (writefile (obj a 1 b 2) foofile)
+ (testis (assoc-key-sort (erp (tablist (w/infile s foofile (read-table s)))))
+         '((a 1) (b 2))))
 
-(testis (erp (fromstring "((a 1) (b 2))" (read-table)))
+(testis (fromstring "((a 1) (b 2))" (read-table))
         (obj a 1 b 2))
 
-(do (writefile (obj a 1 b 2) "/tmp/foo")
-    (testis (w/infile s "/tmp/foo" (read-table s))
-            (obj a 1 b 2)))
+(w/foofile
+ (writefile (obj a 1 b 2) foofile)
+ (testis (w/infile s foofile (read-table s))
+         (obj a 1 b 2)))
 
-(testis (do (writefile (obj a 1 b 2 c 3) "/tmp/foo")
-            (load-table "/tmp/foo"))
-        (obj a 1 b 2 c 3))
+(w/foofile
+ (testis (do (writefile (obj a 1 b 2 c 3) foofile)
+             (load-table foofile))
+         (obj a 1 b 2 c 3)))
 
-(testis (do (save-table (obj a 1 b 2 c 3) "/tmp/foo")
-            (listtab (readfile1 "/tmp/foo")))
-        (obj a 1 b 2 c 3))
+(w/foofile
+  (testis (do (save-table (obj a 1 b 2 c 3) foofile)
+              (listtab (readfile1 foofile)))
+          (obj a 1 b 2 c 3)))
 
 (testis (listtab (read (tostring (write-table (obj a 1 b 2 c 3 d 4 e 5)))))
         (obj a 1 b 2 c 3 d 4 e 5))
@@ -810,21 +820,21 @@
 (testis (saferead "123") 123)
 (testis (saferead "#abc") nil)
 
-(do (racket-delete-file "/tmp/foo")
-    (testis (safe-load-table "/tmp/foo") (obj))
-    (writefile (obj a 1 b 2) "/tmp/foo")
-    (testis (safe-load-table "/tmp/foo") (obj a 1 b 2)))
+(w/foofile
+ (testis (safe-load-table foofile) (obj))
+ (writefile (obj a 1 b 2) foofile)
+ (testis (safe-load-table foofile) (obj a 1 b 2)))
 
-(do (system "rm -rf /tmp/bar /tmp/bar2")
-    (system "mkdir /tmp/bar")
-    (testis (dir-exists "/tmp/bar") "/tmp/bar")
-    (testis (dir-exists "/tmp/bar2") nil)
-    (system "rm -rf /tmp/bar"))
+(w/testdir
+ (let bardir (+ testdir "/bar")
+   (system (+ "mkdir " bardir))
+   (testis (dir-exists bardir) bardir)
+   (testis (dir-exists (+ testdir "/bar2")) nil)))
 
-(do (system "rm -rf /tmp/foo")
-    (ensure-dir "/tmp/foo/a/b/c")
-    (testis (dir-exists "/tmp/foo/a/b/c") "/tmp/foo/a/b/c")
-    (system "rm -rf /tmp/foo"))
+(w/testdir
+ (let dirpath (+ testdir "/a/b/c")
+   (ensure-dir dirpath)
+   (testis (dir-exists dirpath) dirpath)))
 
 ; broken on aws: timezone problem?
 ; (testis (timedate 1296961475) '(35 4 19 5 2 2011))
@@ -888,10 +898,9 @@
 (testis (len> "abc" 3) nil)
 (testis (len> "abc" 2) t)
 
-(let f (string td "/foo.arc")
-  (clean)
-  (writefile '(def MWiyhWKuZG (x) (* x 5)) f)
-  (load f)
+(w/foofile
+  (writefile '(def MWiyhWKuZG (x) (* x 5)) foofile)
+  (load foofile)
   (testis (MWiyhWKuZG 6) 30))
 
 (testis (positive 'foo) nil)
