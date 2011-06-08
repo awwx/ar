@@ -3,7 +3,7 @@
 (example-test (runtime '(capture)) #<<.
 
 > (capture-out (fn () (pr "xyz")))
-((out "xyz"))
+((prints "xyz"))
 
 > (capture-errout (fn () (ero "foo")))
 ((errout "\"foo\" \n"))
@@ -18,7 +18,7 @@
                      (pr "xyz")
                      (ero 'ignored)
                      123))
-((val 123) (out "xyz"))
+((val 123) (prints "xyz"))
 
 > (capture-val-out-errout (fn () 123))
 ((val 123))
@@ -27,13 +27,13 @@
                             (pr "xyz")
                             (ero 'foo)
                             123))
-((val 123) (out "xyz") (errout "foo \n"))
+((val 123) (prints "xyz") (errout "foo \n"))
 
 > (capture-val-out-errout (fn ()
                             (pr "abc")
                             (ero 'def)
                             (err "foo")))
-((err "foo") (out "abc") (errout "def \n"))
+((err "foo") (prints "abc") (errout "def \n"))
 
 .
 )

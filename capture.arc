@@ -3,7 +3,7 @@
 (def capture-out (f)
   (let out (tostring (f))
     (if (> len.out 0)
-         `((out ,out)))))
+         `((prints ,out)))))
 
 (def capture-errout (f)
   (let errout (w/outstring s

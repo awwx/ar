@@ -157,3 +157,9 @@ prints: hi\n
 #<fn:+>
 .
 )
+
+(example-test runtime* #<<.
+> (pr "foo")
+prints: foo
+.
+)

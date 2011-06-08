@@ -95,7 +95,8 @@
           (let actual-value-assoc (assoc key actual)
             (if (no actual-value-assoc)
                  (throw (+ "expected " key " " (tostring:write expected-value) ", "
-                           "not present in actual result"))
+                           "not present in actual result: "
+                           (tostring:write actual)))
                  (let actual-value (cadr actual-value-assoc)
                    (if (isnt (trim expected-value 'end)
                              (trim actual-value   'end))
