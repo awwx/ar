@@ -1047,15 +1047,14 @@
        (car args)
       `(let it ,(car args) (and it (aand ,@(cdr args))))))
 
-
-(def ar-f (x)
+(def ar-fnil (x)
   (and (ar-tnil x) x))
 
 (def uniq? (x)
   (no:ar-tnil:racket-symbol-interned? x))
 
 (def print-w/name (pre x suf (o port))
-  (zap ar-f:racket-object-name x)
+  (zap ar-fnil:racket-object-name x)
   (if (and x (no:uniq? x))
         (disp (string pre ":" x suf) port)
         (disp (string pre suf) port)))
@@ -1065,7 +1064,6 @@
 
 (defrule print (isa x 'mac)
   (print-w/name "#<mac" x ">" port))
-
 
 ; Repeatedly evaluates its body till it returns nil, then returns vals.
 
