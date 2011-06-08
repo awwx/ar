@@ -154,6 +154,6 @@ prints: hi\n
 
 (example-test runtime* #<<.
 > +
-#<procedure:+>
+#<fn:+>
 .
 )
