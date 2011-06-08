@@ -26,7 +26,8 @@ REPL (files without an extension will default to ".arc"):
 
     ./run foo bar repl
 
-(Note that foo.arc should either start with `(use arc)` to get Arc loaded for it, or else you could start your arguments with "arc").
+(Note that foo.arc should either start with `(use arc)` to get Arc
+loaded for it, or else you could start your arguments with "arc").
 
 Or, if you just want to run your Arc program without entering the
 REPL:
@@ -676,19 +677,24 @@ need this runtime implementation just to get a fix for the queue bug).
 Reflecting the Arc compiler into Arc was inspired by rntz's [Arc
 compiler written in Arc](https://github.com/nex3/arc/tree/arcc).
 
-rocketnia explained why my definition of inline was broken by quote
-copying its value, and contributed the patch to make quote not do
-that.
+rocketnia
 
-rocketnia provided the patch to make lexical variables take precedence
-over macros with the same name; waterhouse contributed the test.
+* explained why my definition of inline was broken by quote copying
+  its value, and contributed the patch to make quote not do that.
 
-Pauan moved Arc's coerce and + functions out of ar; and made `(coerce
-'() 'cons)` return nil.
+* provided the patch to make lexical variables take precedence over
+  macros with the same name; waterhouse contributed the test.
 
-rocketnia provided a fix for the ssyntax precedence being different
-than Arc 3.1.
+* provided a fix for the ssyntax precedence being different than Arc
+  3.1.
 
-Pauan provided an implementation for defcall.
+Pauan
 
-Pauan contributed testing by example.
+ * moved Arc's coerce and + functions out of ar; and made `(coerce
+   '() 'cons)` return nil.
+
+ * provided an implementation for defcall.
+
+ * contributed testing by example.
+
+ * made functions and macros print as #<fn> and #<mac>.
