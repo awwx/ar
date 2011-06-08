@@ -1051,10 +1051,14 @@
   (and (ar-tnil x) x))
 
 (def auniq (x)
-  (no:ar-tnil:racket-symbol-interned? x))
+  (and (isa x 'sym)
+       (no:ar-tnil:racket-symbol-interned? x)))
 
 (def name (x)
   (ar-fnil (racket-object-name x)))
+
+(def print-name (x)
+  (and (~auniq x) (name x)))
 
 (def print-w/name (pre x suf (o port))
   (zap name x)

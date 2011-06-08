@@ -467,6 +467,22 @@
 
 (testis (aand (+ 3 4) (+ it 5)) 12)
 
+(testis (auniq 'foo) nil)
+
+(testis (auniq 3) nil)
+
+(testis (auniq (uniq)) t)
+
+(testis (name +) '+)
+
+(testis (name (fn ())) nil)
+
+(testis (tostring (pr (fn ()))) "#<fn>")
+
+(testis (tostring (pr +)) "#<fn:+>")
+
+(testis (tostring (pr and)) "#<mac>")
+
 (testis (let x 5 (drain (-- x) 0)) '(4 3 2 1))
 
 ; todo test for whiler
