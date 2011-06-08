@@ -284,22 +284,18 @@ Changes
          t
          arc> (eval 123)
          123
-         arc> +
-         #<fn:+>
-         arc> (ac-literal? +)
+         arc> =
+         #<mac>
+         arc> (ac-literal? =)
          nil
-         arc> (eval +)
-         Error: Bad object in expression #<procedure:+>
-         arc> (defrule ac-literal? (isa x 'fn) t)
+         arc> (eval =)
+         Error: Bad object in expression #(tagged mac #<procedure>)
+         arc> (defrule ac-literal? (isa x 'mac) t)
          #<fn>
-         arc> (ac-literal? +)
+         arc> (ac-literal? =)
          t
-         arc> (eval +)
-         #<fn:+>
-
-    (todo: this is no longer a good example, because function values are
-    now already treated as literals).
-
+         arc> (eval =)
+         #<mac>
 
 * lexical identifiers take precedence over macros
 
