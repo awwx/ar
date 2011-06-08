@@ -62,7 +62,7 @@ the path to ar:
 
 Run tests with:
 
-    ./tests.sh
+    ./tests.pl
 
 
 Goals
