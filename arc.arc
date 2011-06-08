@@ -1056,9 +1056,9 @@
 
 (def print-w/name (pre x suf (o port))
   (zap ar-f:racket-object-name x)
-  (aif (and x (no:uniq? x))
-         (disp (string pre ":" x suf) port)
-         (disp (string pre suf) port)))
+  (if (and x (no:uniq? x))
+        (disp (string pre ":" x suf) port)
+        (disp (string pre suf) port)))
 
 (defrule print (isa x 'fn)
   (print-w/name "#<fn" x ">" port))
