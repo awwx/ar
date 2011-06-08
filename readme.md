@@ -50,7 +50,7 @@ For example, if the file "hello" contained:
 you could run this script with:
 
     $ chmod +x hello
-    $ ./hello    
+    $ ./hello
 
 if you have ar on your path, you can also use env to avoid hard coding
 the path to ar:
@@ -285,17 +285,17 @@ Changes
          arc> (eval 123)
          123
          arc> +
-         #<procedure:ar-+>
+         #<fn:+>
          arc> (ac-literal? +)
          nil
          arc> (eval +)
-         err: Bad object in expression #<procedure:ar-+>
+         Error: Bad object in expression #<procedure:+>
          arc> (defrule ac-literal? (isa x 'fn) t)
-         #<procedure:g1444>
+         #<fn>
          arc> (ac-literal? +)
          t
          arc> (eval +)
-         #<procedure:ar-+>
+         #<fn:+>
 
     (todo: this is no longer a good example, because function values are
     now already treated as literals).
@@ -304,7 +304,7 @@ Changes
 * lexical identifiers take precedence over macros
 
          arc> (mac achtung (x) `(+ ,x 2))
-         #(tagged mac #<procedure>)
+         #<mac>
          arc> (let achtung [+ _ 5] (achtung 0))
          5
 
@@ -490,7 +490,7 @@ Changes
          arc> (= a (runtime '(arc)))
          #<namespace:0>
          arc> a!+
-         #<procedure:+>
+         #<fn:+>
          arc> (a!eval '(map odd '(1 2 3 4 5 6)))
 
 
@@ -576,7 +576,7 @@ This choice of representation means that extensions to the compiler
 can be written in Arc, and often using just plain Arc lists.
 
     arc> (defrule ac (is s 'foo) '(prn "Fee-fi-fo-fum!"))
-    #<procedure:g1524>
+    #<fn>
     arc> foo
     Fee-fi-fo-fum!
 
