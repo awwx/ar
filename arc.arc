@@ -1050,12 +1050,12 @@
 (def ar-fnil (x)
   (and (ar-tnil x) x))
 
-(def uniq? (x)
+(def auniq (x)
   (no:ar-tnil:racket-symbol-interned? x))
 
 (def print-w/name (pre x suf (o port))
   (zap ar-fnil:racket-object-name x)
-  (if (and x (no:uniq? x))
+  (if (and x (no:auniq x))
         (disp (string pre ":" x suf) port)
         (disp (string pre suf) port)))
 
