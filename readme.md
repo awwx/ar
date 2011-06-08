@@ -698,3 +698,5 @@ Pauan
  * contributed testing by example.
 
  * made functions and macros print as #<fn> and #<mac>.
+
+ * tests for extend and defrule.

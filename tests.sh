@@ -37,3 +37,9 @@ racket   run extend-ontype.t
 
 mzscheme run runtime.t
 racket   run runtime.t
+
+mzscheme run extend.t
+racket   run extend.t
+
+mzscheme run defrule.t
+racket   run defrule.t
