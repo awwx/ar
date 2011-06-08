@@ -1047,28 +1047,6 @@
        (car args)
       `(let it ,(car args) (and it (aand ,@(cdr args))))))
 
-(def ar-fnil (x)
-  (and (ar-tnil x) x))
-
-(def auniq (x)
-  (and (isa x 'sym)
-       (no:ar-tnil:racket-symbol-interned? x)))
-
-(def name (x)
-  (ar-fnil (racket-object-name x)))
-
-(def print-name (x)
-  (and (~auniq x) (name x)))
-
-(def prefix (s v)
-  (aif v (+ s v)))
-
-(defrule print (isa x 'fn)
-  (disp (+ "#<fn" (prefix ":" print-name.x) ">") port))
-
-(defrule print (isa x 'mac)
-  (disp (+ "#<mac" (prefix ":" print-name.x) ">") port))
-
 ; Repeatedly evaluates its body till it returns nil, then returns vals.
 
 (mac drain (expr (o eof nil))
@@ -1103,6 +1081,28 @@
   (w/uniq gx
     `(let ,gx ,x
        (if (,test ,gx) ,gx ,alt))))
+
+(def ar-fnil (x)
+  (and (ar-tnil x) x))
+
+(def auniq (x)
+  (and (isa x 'sym)
+       (no:ar-tnil:racket-symbol-interned? x)))
+
+(def name (x)
+  (ar-fnil (racket-object-name x)))
+
+(def print-name (x)
+  (check name.x ~auniq))
+
+(def prefix (s v)
+  (aif v (+ s v)))
+
+(defrule print (isa x 'fn)
+  (disp (+ "#<fn" (prefix ":" print-name.x) ">") port))
+
+(defrule print (isa x 'mac)
+  (disp (+ "#<mac" (prefix ":" print-name.x) ">") port))
 
 (def pos (test seq (o start 0))
   (let f (testify test)

@@ -481,6 +481,10 @@
 
 (testis (tostring (pr +)) "#<fn:+>")
 
+(= rEQQo8Eio7 (fn ()))
+
+(testis (tostring (pr rEQQo8Eio7)) "#<fn>")
+
 (testis (tostring (pr and)) "#<mac>")
 
 (testis (let x 5 (drain (-- x) 0)) '(4 3 2 1))
