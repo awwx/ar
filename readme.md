@@ -700,3 +700,6 @@ Pauan
  * made functions and macros print as #<fn> and #<mac>.
 
  * tests for extend and defrule.
+
+ret comes from Sean Kenney's kwizwiz.arc:
+https://github.com/skenney26/kwizwiz/blob/ac0547e7d090690bec3a8a5d06fb1cfcf6484b82/kwizwiz.arc#L22
