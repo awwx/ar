@@ -31,11 +31,6 @@
 (def makeerr (msg)
   (catcherr (err msg)))
 
-; lexical marker to run code as a test instead of
-; including in the runtime
-(mac test-marker body
-  `(do ,@body))
-
 (mac testis (expr expected)
   `(test-iso (tostring (write ',expr)) (catcherr ,expr) ,expected))
 
@@ -45,26 +40,6 @@
             ,gresult (catcherr (,f ,input)))
        (test-iso (tostring (write ',input) (pr " ") (write ',qf))
                  ,gresult ,gexpected))))
-
-(mac testt (expr)
-  `(if ,expr
-        (do (pr "ok ")
-            (write ',expr)
-            (pr " is true\n"))
-        (do (pr "FAIL ")
-            (write ',expr)
-            (pr " is nil\n")
-            (err "test failed"))))
-
-(mac testnil (expr)
-  `(if (no ,expr)
-        (do (pr "ok ")
-            (write ',expr)
-            (pr " is nil\n"))
-        (do (pr "FAIL ")
-            (write ',expr)
-            (pr " is not nil\n")
-            (err "test failed"))))
 
 (assign td "/tmp/SR0hwhic5P")
 
