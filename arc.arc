@@ -1060,17 +1060,14 @@
 (def print-name (x)
   (and (~auniq x) (name x)))
 
-(def print-w/name (pre x suf (o port))
-  (zap name x)
-  (if (and x (no:auniq x))
-        (disp (string pre ":" x suf) port)
-        (disp (string pre suf) port)))
+(def prefix (s v)
+  (aif v (+ s v)))
 
 (defrule print (isa x 'fn)
-  (print-w/name "#<fn" x ">" port))
+  (disp (+ "#<fn" (prefix ":" print-name.x) ">") port))
 
 (defrule print (isa x 'mac)
-  (print-w/name "#<mac" x ">" port))
+  (disp (+ "#<mac" (prefix ":" print-name.x) ">") port))
 
 ; Repeatedly evaluates its body till it returns nil, then returns vals.
 
