@@ -1,4 +1,4 @@
-(use arc)
+(use arc values)
 
 (ail-code (racket-require (racket-prefix-in racket- scheme/tcp)))
 (ail-code (racket-require (racket-prefix-in racket- scheme/port)))
@@ -17,13 +17,6 @@
 
 (def limited-input-port (in maxbytes)
   (racket-make-limited-input-port in maxbytes (ail-code #t)))
-
-(mac values (vars expr . body)
-  (w/uniq (i o)
-    `(with (,i (fn () ,expr)
-            ,o (fn ,vars ,@body))
-       (ail-code
-        (racket-call-with-values ,i ,o)))))
 
 (def client-ip (port)
   (values (us them) (racket-tcp-addresses port) them))
