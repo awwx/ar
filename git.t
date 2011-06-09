@@ -1,4 +1,4 @@
-(use test test-by-example path)
+(use test test-by-example path cwd)
 
 (example-test (runtime '(print-table git)) #<<.
 
@@ -20,7 +20,7 @@ nil
 > (parse-git-spec "git://github.com/nex3/arc.git!arcc:arcc/ac.arc")
 #table((file "arcc/ac.arc") (repo "git://github.com/nex3/arc.git") (revision "arcc"))
 
-> (git-path (parse-git-spec "git://github.com/nex3/arc.git!arcc"))
+> (git-dir (parse-git-spec "git://github.com/nex3/arc.git!arcc:arcc/ac.arc"))
 "github.com_nex3_arc.git/arcc"
 
 .
@@ -42,4 +42,21 @@ nil
              repo)
      (testis
       (filechars (path repo "foo"))
-      "version 1\n"))))
+      "version 1\n"))
+
+   (testis (r!git-filepath "git://github.com/awwx/for-testing.git:foo")
+           (path testdir "git/github.com_awwx_for-testing.git/master/foo"))
+
+   (testis (~~file-exists (r!git-filepath "git://github.com/awwx/for-testing.git:bar.arc"))
+           t)
+
+   (w/cwd (r!git-repo "git://github.com/awwx/for-testing.git")
+     (system "git reset --hard HEAD^"))
+
+   (testis (~~file-exists (r!git-filepath "git://github.com/awwx/for-testing.git:bar.arc"))
+           nil)
+
+   (r!git-pull "git://github.com/awwx/for-testing.git")
+
+   (testis (~~file-exists (r!git-filepath "git://github.com/awwx/for-testing.git:bar.arc"))
+           t)))

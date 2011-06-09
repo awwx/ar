@@ -10,6 +10,7 @@
       (subst "__" "_" hack)))))
 
 (def parse-git-spec (spec)
+  (zap string spec)
   (and (begins spec "git://")
        (iflet p (pos [in _ #\: #\!] spec 6)
          (with (repo (cut spec 0 p)
@@ -35,16 +36,17 @@
   (zap git-spec git)
   (or git!revision "master"))
 
-(def git-path (git)
+(def git-dir (git)
   (path (filenamize (cut git!repo 6))
         (filenamize (git-revision git))))
 
 (def gitcmd args
-  (apply check-system "/usr/bin/git" args))
+  (w/stdout stderr
+    (apply check-system "/usr/bin/git" args)))
 
 (def git-repo (git)
   (zap git-spec git)
-  (ret gitdir (path git-cachedir* (git-path git))
+  (ret gitdir (path git-cachedir* (git-dir git))
     (unless (dir-exists gitdir)
       (let dir (dirpart gitdir)
         (ensure-dir dir)
@@ -52,3 +54,11 @@
           (gitcmd "clone" "--no-checkout" git!repo (filepart gitdir)))
         (w/cwd gitdir
           (gitcmd "checkout" "-q" (git-revision git)))))))
+
+(def git-filepath (git)
+  (zap git-spec git)
+  (path (git-repo git) git!file))
+
+(def git-pull (git)
+  (w/cwd (git-repo git)
+    (gitcmd "pull")))
