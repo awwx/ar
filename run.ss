@@ -25,7 +25,7 @@
                    (cdr form)))
         ((and (pair? form) (eq? (car form) 'use))
          (for-each (lambda (item)
-                     (use-load runtime item))
+                     ((runtime-get runtime 'use-load) item))
                    (cdr form)))
         (else
          (error "sorry, this primitive eval only knows how to do ail-code and use!" form))))
