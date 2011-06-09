@@ -111,6 +111,24 @@ Non-Goals
     to ask, "I want to do X.  How can we get ar to let me to do that
     easily?"
 
+* It's also not a goal of ar to provide a comprehensive implementation
+  of all the features included with ar.
+
+    For example, ar has tests, and so includes a small testing library
+    to run the tests.  But it isn't a goal of ar to provide a general
+    purpose testing library; instead, there's just enough of a test
+    framework to run ar's tests.
+
+    As another example, some useful utilities such as `ret` and `cwd`
+    are included in ar.  But it's not a goal of ar to provide useful
+    utilities; the ones that are included are included because they're
+    needed to load libraries.
+
+    In summary, if it can be loaded as a library, then it doesn't need
+    to be in ar itself.  (Since there are some things that we'll be
+    able to move out of ar and into libraries when the loader is
+    further along, ar may be able to get smaller over time).
+
 
 Design Philosophy
 -----------------
