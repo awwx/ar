@@ -144,7 +144,7 @@ prints: hi\n
             (car (parse-test-specs)))
   (testis (check-test-result runtime* spec
                              (eval-test runtime* spec))
-          "expected val \"4\\n\", actual \"8\""))
+          "expected val \"4\\n\", actual ((val \"8\"))"))
 
 (example-test (runtime '(foobit-example)) #<<.
 > foobit
@@ -163,3 +163,13 @@ prints: hi\n
 prints: foo
 .
 )
+
+(pr "expected (not a real failure): ")
+(testis
+ (catcherr
+  (example-test runtime* #<<.
+> (err "foo")
+err: bar
+.
+  ))
+ (makeerr "test failed"))

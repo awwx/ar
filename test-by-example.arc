@@ -91,7 +91,7 @@
   (catch
    (if (and (alref actual 'err) (no (alref expected 'err)))
         (throw (+ "error: " (alref actual 'err)))
-        (each (key expected-value) (keep [in (car _) 'val 'prints 'stderr] expected)
+        (each (key expected-value) (keep [in (car _) 'val 'err 'prints 'stderr] expected)
           (let actual-value-assoc (assoc key actual)
             (if (no actual-value-assoc)
                  (throw (+ "expected " key " " (tostring:write expected-value) ", "
@@ -101,7 +101,7 @@
                    (if (isnt (trim expected-value 'end)
                              (trim actual-value   'end))
                         (throw (+ "expected " key " " (tostring:write expected-value) ", "
-                                  "actual " (tostring:write actual-value)))))))))))
+                                  "actual " (tostring:write actual)))))))))))
 
 (def example-test (runtime spec-string)
   (let specs (fromstring spec-string (parse-test-specs))
