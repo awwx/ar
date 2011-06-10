@@ -203,7 +203,7 @@
     (racket-else (racket-vector (racket-quote tagged) totype rep))))
 
  (ar-def ar-tnil (x)
-   (racket-if x (racket-quote t) nil))
+   (racket-if x t nil))
 
  (ar-def ar-no (x)
    (racket-eq? x nil))
@@ -275,8 +275,8 @@
 
  (ar-def ar-pairwise (pred lst)
    (racket-cond
-     ((racket-null? lst) (racket-quote t))
-     ((racket-null? (racket-cdr lst)) (racket-quote t))
+     ((racket-null? lst) t)
+     ((racket-null? (racket-cdr lst)) t)
      ((racket-not (racket-eqv? (pred (racket-car lst) (racket-cadr lst))
                                nil))
       (ar-pairwise pred (racket-cdr lst)))
