@@ -221,10 +221,10 @@ what value "r!between" will have later at runtime when the code is
 executed (and "r" won't even exist yet at compile time if it's a
 lexical variable).
 
-This is all speculative and rudimentary at this point.  Probably the
-biggest problem right now is that using "runtime" is slow because it
-loads and compiles Arc.  I imagine that it might be possible to cache
-the compile, but I haven't tried it yet.
+Overall, this approach is both speculative and rudimentary at this
+point.  Probably the biggest problem right now is that using "runtime"
+is slow because it loads and compiles Arc each time.  I imagine that
+it might be possible to cache the compile, but I haven't tried it yet.
 
 Another structural problem is that it's not possible right now to load
 non-Arc code from a git repository because the "use-git" code which
