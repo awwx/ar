@@ -130,6 +130,110 @@ Non-Goals
     further along, ar may be able to get smaller over time).
 
 
+Modules and Libraries
+---------------------
+
+Many languages have a "require" or "import" statement that often
+does three things together:
+
+* You can conveniently load a library (a collection of code) with
+  a single statement.
+
+* There's some kind of isolation between your code and the library's
+  code: the library is loaded into a separate package, namespace, or
+  module.
+
+* Even though the library's code is separate, there's some controlled
+  way to access the "public" parts of the library from your code (such
+  as by importing identifiers, or calling public methods of the
+  library's class).
+
+In ar, the facility for isolating code is provided by "runtime" and
+the facility for loading code is provided by "use".  Thus when you
+load a library, you can choose whether you want it isolated from your
+own code or not; and, if you do want it to be isolated, you can choose
+how you want the code to be partitioned.
+
+To load libraries from github, you can say `(use use-git)` followed by
+`(use "git://repository-url")`, which puts that repository on your use
+path.  For example:
+
+    arc> (use use-git "git://github.com/awwx/lib.git")
+    Cloning into master...
+    ...
+
+This will perform a "git clone" to fetch the repository, if you don't
+already have it.  (By default repositories are stored in the
+".ar-cache" directory in your home directory).  To avoid having
+libraries change randomly on you, ar doesn't perform a "git pull"
+automatically to update the repository to the latest revision; after
+the first use the fetched files will stay the same.  You can do a git
+pull yourself to update to the latest revision:
+
+    arc> (git-pull "git://github.com/awwx/lib.git")
+
+You can checkout a specific branch, tag, or commit with "!":
+
+    arc> (use "git://github.com/awwx/lib.git!version4")
+    arc> (use "git://github.com/awwx/lib.git!testing")
+    arc> (use "git://github.com/awwx/lib.git!5fdb435fb5e0009d0595")
+
+Once the repository is on your use path, you can use libraries in the
+repository.  For example, the "awwx/lib" repository contains a file
+called "between0.arc", so:
+
+    arc> (use use-git "git://github.com/awwx/lib.git" between0)
+    nil
+    arc> (between x '(a b c) (pr "*") (pr x))
+    a*b*cnil
+
+Using "use" in this way loads the code directly into your own runtime
+with Arc's `load`: there's no isolation of the library into a
+separate namespace or module or anything else.  To provide isolation
+you can load the library into a separate runtime instead:
+
+    arc> (use runtime)
+    nil
+    arc> (= r (runtime '(use-git "git://github.com/awwx/lib.git" between0)))
+    #<namespace:0>
+    arc> r!between
+    #<mac>
+    arc> (r!eval '(between x '(a b c) (pr "*") (pr x)))
+    a*b*cnil
+
+You can "import" identifiers by assigning them to variables in your
+runtime:
+
+    arc> (= between r!between)
+    #<mac>
+    arc> (between x '(a b c) (pr "*") (pr x))
+    a*b*cnil
+
+Note that you can call a *function* foo in a runtime r simply by
+referring to it with `r!foo`, but trying to use a *macro* directly
+doesn't work:
+
+    arc> (r!between x '(a b c) (pr "*") (pr x))
+    Error: reference to undefined identifier: x
+
+This is because macros are expanded at compile time, and we don't know
+what value "r!between" will have later at runtime when the code is
+executed (and "r" won't even exist yet at compile time if it's a
+lexical variable).
+
+This is all speculative and rudimentary at this point.  Probably the
+biggest problem right now is that using "runtime" is slow because it
+loads and compiles Arc.  I imagine that it might be possible to cache
+the compile, but I haven't tried it yet.
+
+Another structural problem is that it's not possible right now to load
+non-Arc code from a git repository because the "use-git" code which
+clones git repositories is itself written in Arc.  This could be fixed
+by running the git clone code in a separate runtime... but that would
+make startup twice as slow unless I can figure out how to make using
+"runtime" faster.
+
+
 Design Philosophy
 -----------------
 
