@@ -83,6 +83,8 @@
                                 (racket-quote ())
                                 (ar-deep-fromarc b)))))
     (racket-else
+     (racket-when (racket-pair? x)
+       (err "Racket pair passed to ar-deep-fromarc" x))
      x)))
 
  (racket-define err racket-error)
