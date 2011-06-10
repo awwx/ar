@@ -48,6 +48,8 @@ for my $test (@tests) {
     $children->{$pid} = [$test, $filename];
 }
 
+$| = 1;
+
 while ((my $pid = wait()) != -1) {
     my $child = $children->{$pid};
     next unless defined $child;
