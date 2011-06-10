@@ -90,7 +90,7 @@
 
 (ail-code (ar-def ac-body* (body env)
   (racket-if (ar-no body)
-              (list (racket-quote (racket-quote nil)))
+              (list nil)
               (ac-body body env))))
 
 (ail-code (ar-def ac-arglist (a)
