@@ -48,7 +48,7 @@
     ((racket-pair? x)
      (racket-mcons (racket-car x) (ar-r/list-toarc (racket-cdr x))))
     ((racket-null? x)
-     (racket-quote nil))
+     nil)
     (racket-else x)))
 
  (ar-def list args
@@ -58,7 +58,7 @@
    (racket-cond
     ((racket-mpair? x)
      (racket-cons (racket-mcar x) (ar-list-fromarc (racket-mcdr x))))
-    ((racket-eq? x (racket-quote nil))
+    ((racket-eq? x nil)
      (racket-quote ()))
     (racket-else x)))
 
@@ -89,13 +89,13 @@
  (racket-hash-set! sig (racket-quote err) (racket-quote args))
 
  (ar-def car (x)
-   (racket-if (racket-eq? x (racket-quote nil))
-               (racket-quote nil)
+   (racket-if (racket-eq? x nil)
+               nil
                (racket-mcar x)))
 
  (ar-def cdr (x)
-   (racket-if (racket-eq? x (racket-quote nil))
-               (racket-quote nil)
+   (racket-if (racket-eq? x nil)
+               nil
                (racket-mcdr x)))
 
  (ar-def cadr (x)
@@ -203,7 +203,7 @@
     (racket-else (racket-vector (racket-quote tagged) totype rep))))
 
  (ar-def ar-tnil (x)
-   (racket-if x (racket-quote t) (racket-quote nil)))
+   (racket-if x (racket-quote t) nil))
 
  (ar-def ar-no (x)
    (racket-eq? x nil))
@@ -262,10 +262,10 @@
                                             (coerce y (racket-quote string)))
                                           x))))
         (racket-else (err "Can't coerce" x totype))))
-     ((racket-eq? x (racket-quote nil))
+     ((racket-eq? x nil)
       (racket-case totype
         ((string)    "")
-        ((cons)      (racket-quote nil))
+        ((cons)      nil)
         (racket-else (err "Can't coerce" x type))))
      ((racket-symbol? x)
       (racket-case totype
@@ -278,9 +278,9 @@
      ((racket-null? lst) (racket-quote t))
      ((racket-null? (racket-cdr lst)) (racket-quote t))
      ((racket-not (racket-eqv? (pred (racket-car lst) (racket-cadr lst))
-                               (racket-quote nil)))
+                               nil))
       (ar-pairwise pred (racket-cdr lst)))
-     (racket-else (racket-quote nil))))
+     (racket-else nil)))
 
  (ar-def is2 (a b)
    (ar-tnil
@@ -365,14 +365,14 @@
 
  (racket-define (peekc (port (racket-current-input-port)))
    (racket-let ((c (racket-peek-char port)))
-     (racket-if (racket-eof-object? c) (racket-quote nil) c)))
+     (racket-if (racket-eof-object? c) nil c)))
 
  (racket-hash-set! sig
                    (racket-quote readc)
                    (ar-toarc (racket-quote ((o port stdin) (o eof nil)))))
 
  (racket-define (readc (port (racket-current-input-port))
-                       (eof (racket-quote nil)))
+                       (eof nil))
    (racket-let ((c (racket-read-char port)))
      (racket-if (racket-eof-object? c) eof c)))
 
@@ -414,10 +414,10 @@
     (racket-else
      (err "Bad object in expression" s))))
 
- (racket-define (eval form (runtime (racket-quote nil)))
+ (racket-define (eval form (runtime nil))
    (ar-racket-eval
     (racket-if (ar-true runtime) runtime runtime*)
-    (ar-deep-fromarc (ac form (racket-quote nil)))))
+    (ar-deep-fromarc (ac form nil))))
 
  (racket-define arc-readtable* #f)
 
@@ -425,7 +425,7 @@
                    (racket-quote ar-read)
                    (ar-toarc (racket-quote (input (o eof nil)))))
 
- (racket-define (ar-read input (eof (racket-quote nil)))
+ (racket-define (ar-read input (eof nil))
    (racket-let ((v (racket-parameterize
                     ((racket-current-readtable arc-readtable*))
                     (racket-read input))))

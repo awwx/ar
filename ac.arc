@@ -95,7 +95,7 @@
 
 (ail-code (ar-def ac-arglist (a)
   (racket-cond
-   ((ar-no a) (racket-quote nil))
+   ((ar-no a) nil)
    ((racket-symbol? a) (list a))
    ((racket-and (racket-symbol? (cdr a))
                 (racket-not (ar-no (cdr a))))
@@ -181,7 +181,7 @@
 (ail-code (ar-def ac-if (args env)
   (racket-cond
    ((ar-no args)
-    (racket-quote (racket-quote nil)))
+    nil)
    ((ar-no (cdr args))
     (ac (car args) env))
    (racket-else
