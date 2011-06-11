@@ -62,6 +62,8 @@ after "--":
 To add a remote git repository to your use path, specify the "Git
 Read-Only" repository URL, such as found on github:
 
+![github git url](http://awwx.github.com/ar/git-url.png)
+
     $ run git://github.com/awwx/example.git hello
     Cloning into master...
     [...]
