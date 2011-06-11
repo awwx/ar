@@ -49,15 +49,15 @@ after "--":
 
     run /path/to/my/code/ mylibrary myprogram -- arg1 arg2
 
-An argument beginning with "git:" clones the git repository if you
-haven't cloned it yet, and adds it to the use path:
+To add a remote git repository to your use path, specify the "Git
+Read-Only" repository URL, such as found on github:
 
     $ run git://github.com/awwx/example.git hello
     Cloning into master...
     [...]
     hello, this is hello.arc
 
-https://github.com/awwx/example has a file
+Here, https://github.com/awwx/example has a file
 [https://github.com/awwx/example/blob/master/hello.arc](hello.arc),
 which contains `(prn "hello, this is hello.arc")`.
 
@@ -67,30 +67,37 @@ You can specify a particular commit, tag, or branch with "!":
     git://github.com/awwx/lib.git!version4
     git://github.com/awwx/lib.git!testing
 
-To avoid having remote libraries code change randomly on you, ar never
-performs a "git pull" automatically: after the first clone the fetched
-files will stay the same until you update them.
+Using a "git:" URL will perform a "git clone" for you if this is the
+first time you've used that repository.  To avoid having remote
+libraries code change randomly on you, ar *doesn't* perform a "git
+pull" automatically: after the first clone the fetched files will stay
+the same until you update them youself.
 
-You can do a git-pull yourself to update the repository to the latest
-revison:
+You can do a git-pull to update the repository to the latest revision:
 
     run git repl
     arc> (git-pull "git://github.com/awwx/lib.git")
 
-
 Within Arc, a `(use ...)` form loads the items in the same way as if
 they were specified on the "run" command line.
 
-    run repl
+    $ run repl
     arc> (use "git://github.com/awwx/example.git" hello)
     hello, this is hello.arc
     t
 
-Items, whether specified on the "run" command line or in a `use` form,
-are loaded only once.  Thus an Arc source code file can start with a
-`(use ...)` as a simple way to load its dependencies.
+Source code files are loaded only once, whether specified on the "run"
+command line or in a `use` form.  Thus an Arc source code file can
+start with a `(use ...)` as a simple way to load its dependencies.
 
-Due to limitiations of the current implementation, using a "git:..."
+(However, if you specify a source code file in two different ways such
+as by `/mycode/ foo` and `/mycode/foo`, it will get loaded twice.  It
+might be better to check for whether code has already been loaded by
+the absolute path of the source file... but I'm still trying to figure
+out what to do about using or overriding code by their symbolic name).
+
+
+Due to limitations of the current implementation, using a "git:..."
 repository will load Arc, git, and use-git into the current runtime.
 Thus you can't use the remote repository feature with non-Arc
 languages yet.
