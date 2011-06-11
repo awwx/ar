@@ -16,12 +16,22 @@ Run
 If you have a file named "foo.arc" in your current directory, you can
 run it with:
 
-    /path/to/ar/run foo
+    /path/to/ar/run arc foo
 
 (you can type either "foo" or "foo.arc"; files without an extension
-default to ".arc").
+default to ".arc").  Specifying "arc" loads arc.arc, which in turn
+loads the Arc compiler ac and the Arc runtime ar.
 
-If you have ar on your system path, you can use just "run":
+If you begin foo.arc with a `use` form like this:
+
+    (use arc)
+
+then you don't need to specify "arc" on the command line:
+
+    /path/to/ar/run foo
+
+If you have the ar directory on your system path, you can just type
+"run":
 
     run foo
 
