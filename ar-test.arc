@@ -259,6 +259,6 @@
   (testis (a!ac + nil)
           (makeerr "Bad object in expression #<procedure:+>")))
 
-(testfor (racket-define (eval form (runtime (racket-quote nil))))
+(testfor (racket-define (eval form (runtime nil)))
   (testis (a!eval '(ail-code (racket-+ 3 4))) 7)
   (testis (a!eval '(ail-code (racket-set! foo 123) foo)) 123))
