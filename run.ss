@@ -98,14 +98,33 @@
                 try
                 (find file (mcdr dirs)))))))
 
+(define (adir item)
+  (let-values (((dir file must) (split-path item)))
+    must))
+
+(define (add-usepath runtime dir)
+  ((runtime-get runtime 'usepath*)
+   (mcons (path->string (normalize-path dir))
+          ((runtime-get runtime 'usepath*)))))
+
+(define (begins str pat)
+  (and (<= (string-length pat) (string-length str))
+       (equal? (substring str 0 (string-length pat)) pat)))
+
 (define (use-load runtime item)
   (let ((loaded* (runtime-get runtime 'loaded*))
         (usepath* (runtime-get runtime 'usepath*)))
-    (unless (hash-ref loaded* (assymbol item) #f)
-      (let ((path (find (asstring item) (usepath*))))
-        (load runtime #f path)
-        (hash-set! loaded* (assymbol item) 't))))
-  't)
+    (cond ((begins (asstring item) "git:")
+           (use-load runtime 'use-git)
+           ((runtime-get runtime 'use-load) item))
+          ((adir (asstring item))
+           (add-usepath runtime (asstring item)))
+          (else
+           (unless (hash-ref loaded* (assymbol item) #f)
+             (let ((path (find (asstring item) (usepath*))))
+               (load runtime #f path)
+               (hash-set! loaded* (assymbol item) 't)))))
+    't))
                      
 (define (new-runtime usepath)
   (let ((runtime (make-base-empty-namespace)))
@@ -133,9 +152,7 @@
                                    (loadin runtime in)))
     (runtime-set runtime 'add-usepath
       (lambda (path)
-        ((runtime-get runtime 'usepath*)
-         (mcons (path->string (normalize-path path))
-                ((runtime-get runtime 'usepath*))))))
+        (add-usepath runtime path)))
     (runtime-set runtime 'use-find
       (lambda (item (usepath ((runtime-get runtime 'usepath*))))
         (find item usepath)))

@@ -13,31 +13,97 @@ Bug reports are *greatly* appreciated!
 Run
 ---
 
-Run the REPL with:
+If you have a file named "foo.arc" in your current directory, you can
+run it with:
 
-    ./run repl
+    /path/to/ar/run foo
 
-or, if you have rlwrap:
+(you can type either "foo" or "foo.arc"; files without an extension
+default to ".arc").
 
-    rlwrap -q \" ./run repl
+If you have ar on your system path, you can use just "run":
 
-You can load Arc files from the command line and then go into the
-REPL (files without an extension will default to ".arc"):
+    run foo
 
-    ./run foo bar repl
+You can load your "foo.arc" and then go into the REPL with:
 
-(Note that foo.arc should either start with `(use arc)` to get Arc
-loaded for it, or else you could start your arguments with "arc").
+    run foo repl
 
-Or, if you just want to run your Arc program without entering the
-REPL:
+or just run the Arc REPL by itself:
 
-    ./run foo bar
+    run repl
+
+if you have rlwrap:
+
+    rlwrap -q \" run foo repl
+
+By default, the use path where files such as "foo" is looked for
+contains the current directory and the ar directory.  To add a local
+directory to the use path, use a trailing "/".  This will run
+/path/to/my/libs/foo.arc:
+
+    run /path/to/my/libs/ foo
 
 You can pass command line arguments into your program by putting them
 after "--":
 
-    ./run mylibrary myprogram -- arg1 arg2
+    run /path/to/my/code/ mylibrary myprogram -- arg1 arg2
+
+An argument beginning with "git:" clones the git repository if you
+haven't cloned it yet, and adds it to the use path:
+
+    $ run git://github.com/awwx/example.git hello
+    Cloning into master...
+    [...]
+    hello, this is hello.arc
+
+https://github.com/awwx/example has a file
+[https://github.com/awwx/example/blob/master/hello.arc](hello.arc),
+which contains `(prn "hello, this is hello.arc")`.
+
+You can specify a particular commit, tag, or branch with "!":
+
+    git://github.com/awwx/lib.git!5fdb435fb5e0009d0595
+    git://github.com/awwx/lib.git!version4
+    git://github.com/awwx/lib.git!testing
+
+To avoid having remote libraries code change randomly on you, ar never
+performs a "git pull" automatically: after the first clone the fetched
+files will stay the same until you update them.
+
+You can do a git-pull yourself to update the repository to the latest
+revison:
+
+    run git repl
+    arc> (git-pull "git://github.com/awwx/lib.git")
+
+
+Within Arc, a `(use ...)` form loads the items in the same way as if
+they were specified on the "run" command line.
+
+    run repl
+    arc> (use "git://github.com/awwx/example.git" hello)
+    hello, this is hello.arc
+    t
+
+Items, whether specified on the "run" command line or in a `use` form,
+are loaded only once.  Thus an Arc source code file can start with a
+`(use ...)` as a simple way to load its dependencies.
+
+Due to limitiations of the current implementation, using a "git:..."
+repository will load Arc, git, and use-git into the current runtime.
+Thus you can't use the remote repository feature with non-Arc
+languages yet.
+
+Code loaded with "use" is loaded directly into the current runtime
+with Arc's `load`, with no separation or isolation between your code
+and the library's code.  One way of providing isolation (somewhat
+similar to what modules or namespaces supply in other language) is to
+load code into a different runtime, as described below.
+
+
+script
+------
 
 With `script`, you can write a shell script in Arc.  (Though still
 todo is conveniently accessing the command line arguments).
@@ -130,8 +196,8 @@ Non-Goals
     further along, ar may be able to get smaller over time).
 
 
-Modules and Libraries
----------------------
+Runtimes
+--------
 
 Many languages have a "require" or "import" statement that often
 does three things together:
@@ -153,44 +219,6 @@ the facility for loading code is provided by "use".  Thus when you
 load a library, you can choose whether you want it isolated from your
 own code or not; and, if you do want it to be isolated, you can choose
 how you want the code to be partitioned.
-
-To load libraries from github, you can say `(use use-git)` followed by
-`(use "git://repository-url")`, which puts that repository on your use
-path.  For example:
-
-    arc> (use use-git "git://github.com/awwx/lib.git")
-    Cloning into master...
-    ...
-
-This will perform a "git clone" to fetch the repository, if you don't
-already have it.  (By default repositories are stored in the
-".ar-cache" directory in your home directory).  To avoid having
-libraries change randomly on you, ar doesn't perform a "git pull"
-automatically to update the repository to the latest revision; after
-the first use the fetched files will stay the same.  You can do a git
-pull yourself to update to the latest revision:
-
-    arc> (git-pull "git://github.com/awwx/lib.git")
-
-You can checkout a specific branch, tag, or commit with "!":
-
-    arc> (use "git://github.com/awwx/lib.git!version4")
-    arc> (use "git://github.com/awwx/lib.git!testing")
-    arc> (use "git://github.com/awwx/lib.git!5fdb435fb5e0009d0595")
-
-Once the repository is on your use path, you can use libraries in the
-repository.  For example, the "awwx/lib" repository contains a file
-called "between0.arc", so:
-
-    arc> (use use-git "git://github.com/awwx/lib.git" between0)
-    nil
-    arc> (between x '(a b c) (pr "*") (pr x))
-    a*b*cnil
-
-Using "use" in this way loads the code directly into your own runtime
-with Arc's `load`: there's no isolation of the library into a
-separate namespace or module or anything else.  To provide isolation
-you can load the library into a separate runtime instead:
 
     arc> (use runtime)
     nil
@@ -324,8 +352,6 @@ Todo
   passed runtime.
 * Date/time tests are failing on different computers... maybe a
   timezone problem?
-* The dependency loader should track which files have been loaded by
-  their full path.
 * Optimizations (such as direct-calls)
 * See if we can move coerce and + into Arc.
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"

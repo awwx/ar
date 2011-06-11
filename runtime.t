@@ -1,4 +1,4 @@
-(use runtime test-by-example)
+(use runtime test-by-example test path)
 
 (example-test runtime* #<<.
 
@@ -22,3 +22,15 @@ runtime
 
 .
 )
+
+(w/testdir
+  (let adir (path testdir "a")
+    (ensure-dir adir)
+    (writefile '(prn "this is foo") (path adir "foo.arc"))
+    (let r (runtime '(arc))
+      (r!eval `(use ,(+ adir "/")))
+      (example-test r #<<.
+> (use foo)
+prints: this is foo\n
+.
+      ))))
