@@ -281,8 +281,34 @@ make startup twice as slow unless I can figure out how to make using
 "runtime" faster.
 
 
+Publishing Libraries and Programs that Use ar
+---------------------------------------------
+
+Here's how it's supposed to work...
+
+1. You write some code.
+
+2. You publish it on a code site such as github.
+
+3. People can use your code by saying
+   `(use "git://github.com/you/your-repo.git")`;
+   or, if they want more control, they can hack the environment that
+   the code is loaded in so that it does what they want.
+
+So that's the concept.  There are numerous unresolved issues at this
+point such as naming, versioning, and the implementation itself.
+
+If you run into problems publishing or using libraries using ar (and I
+expect you probably will), I recommend opening an issue on the
+problem: https://github.com/awwx/ar/issues
+
+
 Design Philosophy
 -----------------
+
+This is the design philosophy for ar itself; since ar is supposed to
+let you do what you want, ar shouldn't be preventing you from using
+your own design philosophy for your programs or your libraries.
 
 If an existing language or library does `(A, B and C)`, and someone
 wants it to do `(A, B, and D)`, there are various approaches that we
