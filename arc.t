@@ -142,40 +142,27 @@
 (testis (all 'x '(a x x)) nil)
 (testis (all 'x '(x x x)) t)
 
-(defvar N1WcGPq9wG (fn () 3))
-(testis N1WcGPq9wG 3)
+(= CNL8RtIYUL (fn () 8663))
+(ac-zeroarg 'CNL8RtIYUL)
+(testis CNL8RtIYUL 8663)
 
 (testis (sym "foo") 'foo)
 
 (testis (int "123") 123)
 
-(ac-defvar 'j4K3II9Jh6 (list (fn () 'foo)))
-(testis j4K3II9Jh6 'foo)
-
-(ac-defvar 'EFsEQlU8S1 (list nil (fn (x) (assign U5liRzluxt (+ x 1)))))
-(assign EFsEQlU8S1 5)
-(testis U5liRzluxt 6)
-
-(ac-defvar 'Y1jAJlOrAr (list nil))
-(testis
- (catcherr (assign Y1jAJlOrAr 5))
- (makeerr "Y1jAJlOrAr is not assignable"))
-
 (testis (do (assign NJyVDPGgYb (parameter 33))
             (parameterize NJyVDPGgYb 77 (NJyVDPGgYb)))
         77)
 
-(make-dynamic fJFyT3D6q9 (parameter 36))
-(testis fJFyT3D6q9 36)
+(make-dynamic 'GP0FkzfMmj (parameter 798977))
+(testis GP0FkzfMmj 798977)
+(testis (type (ail-code GP0FkzfMmj)) 'parameter)
 
-(make-dynamic NwhlXqTbBJ (parameter 36))
-(testis (type (paramfor NwhlXqTbBJ)) 'parameter)
+(make-dynamic 'ZwGHcSdlg8 (parameter 560963))
+(testis (dlet ZwGHcSdlg8 878353 ZwGHcSdlg8) 878353)
 
-(make-dynamic asbHOchCJG (parameter 36))
-(testis (dlet asbHOchCJG 77 asbHOchCJG) 77)
-
-(dynamic Y2J8kJ2gV6 33)
-(testis (dlet Y2J8kJ2gV6 77 Y2J8kJ2gV6) 77)
+(dynamic NS1U4gnLNn 839783)
+(testis (dlet NS1U4gnLNn 316938 NS1U4gnLNn) 316938)
 
 (dynamic GuLWTizlbc 33)
 (make-w/ GuLWTizlbc)
@@ -187,8 +174,6 @@
 
 (implicit imapnBKGmp 3)
 (testis imapnBKGmp 3)
-(assign imapnBKGmp 4)
-(testis imapnBKGmp 4)
 (testis (w/imapnBKGmp 5 imapnBKGmp) 5)
 
 (testis (do1 3 4) 3)

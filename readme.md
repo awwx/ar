@@ -599,10 +599,6 @@ Changes
 * uniq implemented using Racket's gensym
 
 
-* defvar allows global variables to be hacked to supply your own
-  implementation for getting or setting the variable
-
-
 * readline accepts CR-LF line endings
 
     which is useful for Internet protocols such as HTTP.

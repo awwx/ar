@@ -1,9 +1,12 @@
 (use arc)
 
-(sref dynamic-parameter* racket-current-directory 'cwd)
+(assign cwd
+        (racket-make-derived-parameter racket-current-directory
+           idfn
+           (fn (path) (racket-path->string path))))
+(ac-zeroarg 'cwd)
 
-(defvar cwd
-  (fn () (racket-path->string (racket-current-directory)))
-  (fn (v) (racket-current-directory v)))
+(defrule ac-global-assign (is a 'cwd)
+  `(racket-current-directory ,b))
 
 (make-w/ cwd)

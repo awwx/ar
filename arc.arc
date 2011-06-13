@@ -219,31 +219,13 @@
 (mac defrule (name test . body)
   `(extend ,name ,(sig name) ,test ,@body))
 
-(assign ac-defined-vars* (table))
+(assign ac-zeroarg* (table))
 
-(def ac-defvar (v x)
-  (sref ac-defined-vars* x v)
-  nil)
+(defrule ac-global (ac-zeroarg* v)
+  `(,v))
 
-(def ac-defined-var (v)
-  (ac-defined-vars* v))
-
-(defrule ac-global (ac-defined-var v)
-  `(,(car it)))
-
-(def ac-not-assignable (v)
-  (fn (x)
-    (err (string v " is not assignable"))))
-
-(defrule ac-global-assign (ac-defined-var a)
-  `(,(or (cadr it) (ac-not-assignable a)) ,b))
-
-(mac defvar args
-  (with (name (car args)
-         get  (cadr args)
-         set  (caddr args))
-  `(ac-defvar ',name (list ,get ,set))))
-(sref sig '(name get (o set)) 'defvar)
+(def ac-zeroarg (name)
+  (sref ac-zeroarg* t name))
 
 (def sym (x) (coerce x 'sym))
 
@@ -259,24 +241,17 @@
 (mac parameterize (param val . body)
   `(primitive-parameterize ,param ,val (fn () ,@body)))
 
-(assign dynamic-parameter* (table))
-
-(mac make-dynamic (name param)
-  (w/uniq paramval
-    `(let ,paramval ,param
-       (sref dynamic-parameter* ,paramval ',name)
-       (defvar ,name (fn () (,paramval)) (fn (val) (,paramval val))))))
-
-(mac paramfor (name)
-  `(dynamic-parameter* ',name))
-
+(def make-dynamic (name param)
+  (varset name param)
+  (ac-zeroarg name))
+  
 (mac dlet (name val . body)
-  `(primitive-parameterize (paramfor ,name) ,val (fn () ,@body)))
+  `(primitive-parameterize (ail-code ,name) ,val (fn () ,@body)))
 
 (mac dynamic args
   (with (name (car args)
          init (cadr args))
-    `(make-dynamic ,name (parameter ,init))))
+    `(make-dynamic ',name (parameter ,init))))
 
 (mac make-w/ (name)
   (let w/name (sym (+ "w/" name))
@@ -284,7 +259,7 @@
        `(dlet ,',name ,val ,@body))))
 
 (mac make-implicit (name param)
-  `(do (make-dynamic ,name ,param)
+  `(do (make-dynamic ',name ,param)
        (make-w/ ,name)))
 
 (mac implicit args
