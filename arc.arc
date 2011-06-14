@@ -3,13 +3,17 @@
 (assign do (annotate 'mac
              (fn args `((fn () ,@args)))))
 
+(assign redefine-warning
+  (fn (var)
+    (if (bound var)
+         (do (ar-disp "*** redefining " (racket-current-error-port))
+             (ar-disp var (racket-current-error-port))
+             (ar-disp #\newline (racket-current-error-port))))))
+
 (assign safeset
   (annotate 'mac
     (fn (var val)
-      `(do (if (bound ',var)
-               (do (ar-disp "*** redefining " (racket-current-error-port))
-                   (ar-disp ',var (racket-current-error-port))
-                   (ar-disp #\newline (racket-current-error-port))))
+      `(do (redefine-warning ',var)
            (assign ,var ,val)))))
 
 (assign assign-fn
