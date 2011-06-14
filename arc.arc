@@ -520,8 +520,8 @@
 (def close ports
   (map close-port ports))
 
-(dynamic infile racket-open-input-file)
-(sref sig '(name) 'infile)
+(def infile (name)
+  (racket-open-input-file name))
 
 (def outfile (filename (o append))
   (let flag (if append 'append 'truncate)

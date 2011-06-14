@@ -1,4 +1,4 @@
-(use arc test)
+(use arc test runtime)
 
 (testis (w/instring s "" (readc s 'end)) 'end)
 
@@ -562,11 +562,11 @@
 (testis (tostring (writeb 65) (writeb 66) (writeb 67))
         "ABC")
 
-(testis (dlet infile (fn (name)
-                       ;; a not very random /dev/urandom :-)
-                       (instring "\u0000\u0001\u0002"))
-          (rand-string 3))
-        "012")
+(let r (runtime '(arc))
+  ;; a not very random /dev/urandom :-)
+  (= r!infile (fn (name)
+                (instring "\u0000\u0001\u0002")))
+  (testis (r!rand-string 3) "012"))
 
 (testis (accum a (a 1) (a 2) (a 3))
         '(1 2 3))
