@@ -1137,8 +1137,8 @@
     (mvfile tmpfile file))
   val)
 
-(dynamic rand racket-random)
-(= (sig 'rand) '((o n)))
+(def rand ((o n))
+  (if n (racket-random n) (racket-random)))
 
 (mac rand-choice exprs
   `(case (rand ,(len exprs))

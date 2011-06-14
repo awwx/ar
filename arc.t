@@ -1,4 +1,4 @@
-(use arc test runtime)
+(use arc test runtime test-by-example)
 
 (testis (w/instring s "" (readc s 'end)) 'end)
 
@@ -543,11 +543,18 @@
   (writefile '(a b "cd" 5 6) foofile)
   (testis (filechars foofile) "(a b \"cd\" 5 6)"))
 
+(let x (rand)
+  (testis (and (>= x 0) (< x 1)) t))
+
 (testis (rand 1) 0)
 
-(testis (tostring (dlet rand (fn (n) 1)
-                    (rand-choice (pr "a") (pr "b") (pr "c"))))
-        "b")
+(let r (runtime '(arc))
+  (= r!rand (fn (n) 1))
+  (example-test r #<<.
+> (rand-choice (pr "a") (pr "b") (pr "c") (pr "d") (pr "e") (pr "f"))
+"b"
+.
+  ))
 
 (testis (n-of 5 7) '(7 7 7 7 7))
 
@@ -834,8 +841,13 @@
 (testis (ellipsize "hello" 10) "hello")
 (testis (ellipsize "hello there" 10) "hello ther...")
 
-(dlet rand (fn (x) 2)
-  (testis (rand-elt '(a b c d e)) 'c))
+(let r (runtime '(arc))
+  (= r!rand (fn (x) 2))
+  (example-test r #<<.
+> (rand-elt '(a b c d e))
+c
+.
+  ))
 
 ; todo test for until
 
