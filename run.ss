@@ -156,4 +156,5 @@
     (runtime-set runtime 'use-find
       (lambda (item (usepath ((runtime-get runtime 'usepath*))))
         (find item usepath)))
+    (runtime-set runtime 'new-runtime new-runtime)
     runtime))
