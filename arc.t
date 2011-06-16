@@ -154,9 +154,12 @@
             (parameterize NJyVDPGgYb 77 (NJyVDPGgYb)))
         77)
 
-(make-dynamic 'GP0FkzfMmj (parameter 798977))
+(assign JBrZM76yku (parameter 798977))
+(make-dynamic 'GP0FkzfMmj JBrZM76yku)
 (testis GP0FkzfMmj 798977)
 (testis (type (ail-code GP0FkzfMmj)) 'parameter)
+(assign GP0FkzfMmj 902677)
+(testis (JBrZM76yku) 902677)
 
 (make-dynamic 'ZwGHcSdlg8 (parameter 560963))
 (testis (dlet ZwGHcSdlg8 878353 ZwGHcSdlg8) 878353)

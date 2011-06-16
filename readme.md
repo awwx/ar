@@ -890,5 +890,8 @@ Pauan
 
  * tests for extend and defrule.
 
+ * discovered how to use Racket's make-derived-parameter to implement
+   cwd in a non-kludgy way.
+
 ret comes from Sean Kenney's kwizwiz.arc:
 https://github.com/skenney26/kwizwiz/blob/ac0547e7d090690bec3a8a5d06fb1cfcf6484b82/kwizwiz.arc#L22

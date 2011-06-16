@@ -245,8 +245,14 @@
 (mac parameterize (param val . body)
   `(primitive-parameterize ,param ,val (fn () ,@body)))
 
+(assign ac-var-assigner* (table))
+
+(defrule ac-global-assign (ac-var-assigner* a)
+  `(,it ,b))
+
 (def make-dynamic (name param)
   (varset name param)
+  (sref ac-var-assigner* param name)
   (ac-zeroarg name))
   
 (mac dlet (name val . body)
