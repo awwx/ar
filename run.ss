@@ -125,7 +125,7 @@
                (load runtime #f path)
                (hash-set! loaded* (assymbol item) 't)))))
     't))
-                     
+
 (define (new-runtime usepath)
   (let ((runtime (make-base-empty-namespace)))
     (parameterize ((current-namespace runtime))
