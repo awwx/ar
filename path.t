@@ -31,6 +31,27 @@ nil
 > (filepart "foo")
 "foo"
 
+> (extension "foo")
+nil
+
+> (extension "foo.")
+nil
+
+> (extension "foo.a")
+"a"
+
+> (extension "foo.a.")
+nil
+
+> (extension "foo.arc")
+"arc"
+
+> (extension "/a/b/c/foo.bar/")
+nil
+
+> (extension "/a/b/c/foo.bar")
+"bar"
+
 > (fullpath "/a/b/c/foo.bar")
 "/a/b/c/foo.bar"
 

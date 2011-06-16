@@ -1,4 +1,4 @@
-(use arc cwd values)
+(use arc cwd values re)
 
 (ail-code (racket-require (racket-prefix-in racket- scheme/path)))
 
@@ -12,6 +12,10 @@
 (def filepart (path)
   (aif (ar-fnil (racket-file-name-from-path path))
         (racket-path->string it)))
+
+(def extension (path)
+  (aand (filepart path)
+        (cadr (re-match "\\.([^\\.]+)$" it))))
 
 (def fullpath (path (o basedir cwd))
   (racket-path->string
