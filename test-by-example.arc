@@ -1,23 +1,4 @@
-(use strings capture equal-wrt-testing runtime)
-
-;; todo goes somewhere else
-
-(= racket-#f (ail-code "#f"))
-
-(def regexp (pattern)
-   (if (isa pattern 'string) (racket-pregexp pattern) pattern))
-
-(def re-match (pattern (o in stdin))
-  (let result (racket-regexp-try-match (regexp pattern) in)
-    (if (is result racket-#f)
-         nil
-         (map racket-bytes->string/utf-8 (ar-r/list-toarc result)))))
-
-; This isn't anchored at the beginning of the input unless you use
-; "^" yourself.
-
-(def re-looking-at (pattern (o in stdin))
-  (ar-tnil:racket-regexp-match-peek (regexp pattern) in))
+(use strings capture equal-wrt-testing runtime re)
 
 (def skip-newlines ((o in stdin))
   (when (re-match "^ *\r?\n" in)
