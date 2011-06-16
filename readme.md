@@ -5,7 +5,7 @@ Status
 ------
 
 ar is now loading and running code from strings.arc.  Much of Arc
-remains unimplemented (see the todo below for the complete list).
+remains unimplemented (see the todo below for the known list).
 
 Bug reports are *greatly* appreciated!
 
@@ -107,7 +107,6 @@ as by `/mycode/ foo` and `/mycode/foo`, it will get loaded twice.  It
 might be better to check for whether code has already been loaded by
 the absolute path of the source file... but I'm still trying to figure
 out what to do about using or overriding code by their symbolic name).
-
 
 Due to limitations of the current implementation, using a "git:..."
 repository will load Arc, git, and use-git into the current runtime.
@@ -393,23 +392,52 @@ Todo
 
 (see https://github.com/awwx/ar/pull/1 for the above)
 
+* Let external libraries loaded by "use" declare their default
+  dependencies, but provide some way of overriding them.
+
+* Isolate the "use" loader so that it can be used with non-Arc
+  languages.
+
+* Come up with some better name than "dlet" so that we can
+  consistently use "implicit" to refer to parameter based variables.
+
+* Some form of reification for global variables might provide a more
+  useful import mechanism.
+
+* Creating new runtimes is slow because all the work of compiling code
+  (such as arc.arc) is done over again every time.  If we extracted
+  out the non-functional parts from ac, memoizing the remaining
+  functional parts might help.
+
 * When a runtime is passed to eval, it isn't running ac from the
   passed runtime.
+
 * Date/time tests are failing on different computers... maybe a
   timezone problem?
+
 * Optimizations (such as direct-calls)
+
 * See if we can move coerce and + into Arc.
+
 * (err "foo" '(1 2 3)) prints "Error: foo {1 2 3 . nil}"
+
 * defrule is a fun hack but awkward to use for ssyntax: we have to put
   defrule's in a particular order to specify ssyntax precedence
+
 * would be nice if typing ^C returned to the REPL
-* pipe-from
+
 * ac-nameit, ac-dbname
+
 * atstrings
+
 * ac-binaries
+
 * macex1
+
 * explicit-flush
+
 * declare
+
 * primitives
   * current-process-milliseconds
   * current-gc-milliseconds
@@ -421,7 +449,9 @@ Todo
   * acos
   * atan
   * log
+
 * Arc 3.1 calls ac-macex in ac-assignn... I wonder why?
+
 * need tests for
   * atomic
   * threads
