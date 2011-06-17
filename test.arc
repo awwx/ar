@@ -21,10 +21,14 @@
 (mac testis (expr expected)
   `(test-iso (tostring (write ',expr)) (catcherr ,expr) ,expected))
 
+(mac cleandir (var dir . body)
+  `(let ,var ,dir
+     (system (+ "rm -rf " ,var))
+     (system (+ "mkdir " ,var))
+     ,@body))
+
 (mac w/testdir body
-  `(let testdir (+ "/tmp/" (uniq))
-     (system (+ "rm -rf " testdir))
-     (system (+ "mkdir " testdir))
+  `(cleandir testdir (+ "/tmp/" (uniq))
      ,@body))
 
 (mac w/foofile body
