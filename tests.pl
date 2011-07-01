@@ -42,7 +42,7 @@ for my $test (@tests) {
     if ($pid == 0) {
         open(STDOUT, '>', $filename);
         open(STDERR, '>&STDOUT');
-        exec(@$test);
+        exec(@$test) or die "exec: $!\n";
     }
 
     $children->{$pid} = [$test, $filename];
