@@ -44,19 +44,26 @@ nil
       (filechars (path repo "foo"))
       "version 1\n"))
 
-   (testis (r!git-filepath "git://github.com/awwx/for-testing.git:foo")
-           (path testdir "git/github.com_awwx_for-testing.git/master/foo"))
+   (testis (r!git-filepath "git://github.com/awwx/for-testing.git!bbdbb4:foo")
+           (path testdir "git/github.com_awwx_for-testing.git/bbdbb4/foo"))
 
-   (testis (~~file-exists (r!git-filepath "git://github.com/awwx/for-testing.git:bar.arc"))
+   (testis (~~file-exists (r!git-filepath "git://github.com/awwx/for-testing.git!bbdbb4:bar.arc"))
            t)
 
-   (w/cwd (r!git-repo "git://github.com/awwx/for-testing.git")
+   (w/cwd (r!git-repo "git://github.com/awwx/for-testing.git!bbdbb4")
      (system "git reset --hard HEAD^"))
 
-   (testis (~~file-exists (r!git-filepath "git://github.com/awwx/for-testing.git:bar.arc"))
+   (testis (~~file-exists (r!git-filepath "git://github.com/awwx/for-testing.git!bbdbb4:bar.arc"))
            nil)
 
-   (r!git-pull "git://github.com/awwx/for-testing.git")
+   ))
 
-   (testis (~~file-exists (r!git-filepath "git://github.com/awwx/for-testing.git:bar.arc"))
-           t)))
+(w/testdir
+ (let r (runtime '(git))
+   (= r!git-cachedir* (path testdir "git"))
+   (let repo (r!git-repo "git://github.com/awwx/for-testing.git")
+     (w/cwd repo
+       (system "git reset --hard aaf940"))
+     (testis (~~file-exists (path repo "bar.arc")) nil)
+     (r!git-pull "git://github.com/awwx/for-testing.git")
+     (testis (~~file-exists (path repo "bar.arc")) t))))
