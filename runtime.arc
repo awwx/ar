@@ -3,6 +3,14 @@
 (defrule type (ar-tnil (racket-namespace? x))
   'runtime)
 
+(with (orig bound default (list 'default))
+  (redef bound (name (o runtime))
+    (if runtime
+          (isnt (racket-namespace-variable-value
+                   name (ail-code #t) (fn () default) runtime)
+                 default)
+          (orig name))))
+
 (extend-ontype ar-apply-non-fn runtime (runtime (varname))
   (ail-code (racket-namespace-variable-value varname #t #f runtime)))
 

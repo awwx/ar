@@ -2,7 +2,13 @@
 
 (example-test runtime* #<<.
 
+> (bound 'foo)
+nil
+
 > (= foo 123)
+
+> (bound 'foo)
+t
 
 > runtime*!foo
 123
@@ -22,6 +28,11 @@ runtime
 
 .
 )
+
+(let r (runtime '())
+  (testis (bound 'foo r) nil)
+  (= r!foo 123)
+  (testis (bound 'foo r) t))
 
 (w/testdir
   (let adir (path testdir "a")
