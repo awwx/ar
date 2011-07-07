@@ -62,3 +62,7 @@
 (def git-pull (git)
   (w/cwd (git-repo git)
     (gitcmd "pull")))
+
+(def git-loc (git)
+  (zap git-spec git)
+  (string "git://" git!repo (aif git!revision (+ "!" it))))
