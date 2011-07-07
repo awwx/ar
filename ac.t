@@ -71,12 +71,12 @@
 (testfor (ar-def ac-dotted-list? (x))
   (testis (a!ac-dotted-list? '()) nil))
 
-(testfor (ar-extend ac (s env) (caris s (racket-quote fn)))
-  (testis (a!eval '((fn ())))                  nil)
-  (testis (a!eval '((fn () 3)))                3)
-  (testis (a!eval '((fn (a) a) 3))             3)
-  (testis (a!eval '((fn (a b) b) 1 2))         2)
-  (testis (a!eval '((fn (a b) (+ a b 3)) 1 2)) 6))
+(testfor (ar-extend ac (s env) (caris s (racket-quote ar-fn)))
+  (testis (a!eval '((ar-fn ())))                  nil)
+  (testis (a!eval '((ar-fn () 3)))                3)
+  (testis (a!eval '((ar-fn (a) a) 3))             3)
+  (testis (a!eval '((ar-fn (a b) b) 1 2))         2)
+  (testis (a!eval '((ar-fn (a b) (+ a b 3)) 1 2)) 6))
 
 (testfor (ar-extend ac (s env) (caris s (racket-quote quasiquote)))
   (testis (a!eval '`nil) nil)
@@ -116,23 +116,23 @@
 (testfor (ar-extend ac (s env) (caris s (racket-quote assign)))
   (testis (a!eval '(assign x 123)) 123)
 
-  (testis (a!eval '((fn ()
+  (testis (a!eval '((ar-fn ()
                       (assign x 123)
                       x)))
           123)
 
-  (testis (a!eval '((fn (x)
+  (testis (a!eval '((ar-fn (x)
                       (assign x 123))
                     456))
           123)
 
-  (testis (a!eval '((fn (x)
+  (testis (a!eval '((ar-fn (x)
                       (assign x 123)
                       x)
                     456))
           123)
 
-  (testis (a!eval '((fn (a b)
+  (testis (a!eval '((ar-fn (a b)
                       (assign a 11)
                       (assign b 22)
                       (list a b))
@@ -144,25 +144,25 @@
   (testis (a!eval '(ac-macro? 'foo))                nil)
   (testis (a!eval '(ac-macro? (annotate 'mac 123))) 123)
 
-  (testis (a!eval '((fn ()
+  (testis (a!eval '((ar-fn ()
                       (assign foo 5)
                       (ac-macro? 'foo))))
           nil)
 
-  (testis (a!eval '((fn ()
+  (testis (a!eval '((ar-fn ()
                       (assign foo (annotate 'mac 123))
                       (ac-macro? 'foo))))
           123))
 
 (testfor (ar-extend ac-call (fn args env)
            (racket-if (ar-true (ac-lex? fn env)) nil (ac-macro? fn)))
-  (a!eval '(assign foo (annotate 'mac (fn (x) x))))
+  (a!eval '(assign foo (annotate 'mac (ar-fn (x) x))))
   (testis (a!eval '(foo 123)) 123))
 
 (testfor (ar-def ac-fn-rest (args body env))
-  (testis (a!eval '((fn args (car args)) 1 2))             1)
-  (testis (a!eval '(cdr ((fn args args) 1)))               nil)
-  (testis (a!eval '((fn (a b . rest) (car rest)) 1 2 3 4)) 3))
+  (testis (a!eval '((ar-fn args (car args)) 1 2))             1)
+  (testis (a!eval '(cdr ((ar-fn args args) 1)))               nil)
+  (testis (a!eval '((ar-fn (a b . rest) (car rest)) 1 2 3 4)) 3))
 
 (testfor (racket-define bound)
   (testis (a!eval '(bound 'QmrQOCYWOy)) nil)
@@ -184,7 +184,7 @@
 
 (testfor (racket-define (table (init nil)))
   (testis (a!eval '(table)) (table))
-  (testis (a!eval `(table ,(fn (k) (= k!a 3)))) (obj a 3)))
+  (testis (a!eval `(table ,(ar-fn (k) (= k!a 3)))) (obj a 3)))
 
 (testfor (ar-def sref (com val ind))
   (a!eval '(assign a '(x y z)))
@@ -195,7 +195,7 @@
   (a!eval '(sref a 55 'x))
   (testis a!a (obj x 55))
 
-  (testis (a!eval '(table (fn (h)
+  (testis (a!eval '(table (ar-fn (h)
                             (sref h 55 'x)
                             (sref h 66 'y))))
           (obj x 55 y 66))
@@ -205,7 +205,7 @@
   (testis a!a "abMd"))
 
 (testfor (ar-def details (c))
-  (testis (a!eval '(on-err details (fn () (/ 1 0))))
+  (testis (a!eval '(on-err details (ar-fn () (/ 1 0))))
           "/: division by zero"))
 
 (testfor (ar-def parameter (init))

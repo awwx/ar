@@ -1,5 +1,8 @@
 (use ac)
 
+(assign fn (annotate 'mac
+             (ar-fn args `(ar-fn ,@args))))
+
 (assign do (annotate 'mac
              (fn args `((fn () ,@args)))))
 

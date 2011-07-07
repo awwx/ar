@@ -125,7 +125,7 @@
                                 (ac-body*x args body env))))))
 
 (ail-code (ar-extend ac (s env)
-  (caris s (racket-quote fn))
+  (caris s (racket-quote ar-fn))
   (ac-fn (cadr s) (cddr s) env)))
 
 ;; quasiquotation
@@ -265,7 +265,7 @@
 
 (ail-code (racket-define ac-fn-rest-impl
   (eval (ar-toarc (racket-quote
-    (fn (args r/rest rest body env)
+    (ar-fn (args r/rest rest body env)
       `(racket-lambda ,(join args r/rest)
          (racket-let ((,rest (,ar-r/list-toarc ,r/rest)))
            ,@(ac-body*x (join args (list rest)) body env)))))))))
