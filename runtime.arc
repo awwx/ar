@@ -21,5 +21,5 @@
 (def runtime ((o uses) (o usepath (usepath*)))
   (let runtime (new-runtime usepath)
     (each item uses
-      (runtime!use-load item))
+      (runtime!use-apply item))
     runtime))

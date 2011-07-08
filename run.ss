@@ -25,7 +25,7 @@
                    (cdr form)))
         ((and (pair? form) (eq? (car form) 'use))
          (for-each (lambda (item)
-                     ((runtime-get runtime 'use-load) item))
+                     ((runtime-get runtime 'use-apply) item))
                    (cdr form)))
         (else
          (error "sorry, this primitive eval only knows how to do ail-code and use!" form))))
@@ -111,12 +111,12 @@
   (and (<= (string-length pat) (string-length str))
        (equal? (substring str 0 (string-length pat)) pat)))
 
-(define (use-load runtime item)
+(define (use-apply runtime item)
   (let ((loaded* (runtime-get runtime 'loaded*))
         (usepath* (runtime-get runtime 'usepath*)))
     (cond ((begins (asstring item) "git:")
-           (use-load runtime 'use-git)
-           ((runtime-get runtime 'use-load) item))
+           (use-apply runtime 'use-git)
+           ((runtime-get runtime 'use-apply) item))
           ((adir (asstring item))
            (add-usepath runtime (asstring item)))
           (else
@@ -146,8 +146,8 @@
          (lambda (name value)
            (runtime-set runtime name value)))
     (runtime-set runtime 'load (lambda (filename) (ail-load runtime filename)))
-    (runtime-set runtime 'use-load (lambda (item)
-                                     (use-load runtime item)))
+    (runtime-set runtime 'use-apply (lambda (item)
+                                     (use-apply runtime item)))
     (runtime-set runtime 'loadin (lambda (in)
                                    (loadin runtime in)))
     (runtime-set runtime 'add-usepath

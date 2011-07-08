@@ -61,7 +61,7 @@
                (if (eqv? (string-ref arg 0) #\-)
                     (do-option runtime arg)
                     (do (lambda ()
-                          ((runtime-get runtime 'use-load) arg))))
+                          ((runtime-get runtime 'use-apply) arg))))
                (loop)))))))
 
 (doit)

@@ -31,7 +31,7 @@
  (racket-hash-set! sig (racket-quote instring)  (ar-toarc (racket-quote (str))))
  (racket-hash-set! sig (racket-quote outstring) (ar-toarc (racket-quote ())))
  (racket-hash-set! sig (racket-quote uniq)      (ar-toarc (racket-quote ())))
- (racket-hash-set! sig (racket-quote use-load)  (ar-toarc (racket-quote (item))))
+ (racket-hash-set! sig (racket-quote use-apply) (ar-toarc (racket-quote (item))))
  (racket-hash-set! sig (racket-quote ar-toarc)  (ar-toarc (racket-quote (x))))
 
  (racket-define-syntax-rule (ar-def name signature . body)
@@ -402,7 +402,7 @@
  (ar-def ac-use (items)
    (cons (racket-quote racket-begin)
          (map1 (racket-lambda (item)
-                 (cons (racket-quote use-load)
+                 (cons (racket-quote use-apply)
                        (list (list (racket-quote racket-quote)
                                    item))))
                items)))

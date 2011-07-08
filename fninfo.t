@@ -2,7 +2,7 @@
 
 (let r (runtime '())
   (= r!arcdir* arcdir*)
-  (r!use-load 'fninfo)
+  (r!use-apply 'fninfo)
   (example-test r #<<.
 
 > (fn-args isa)
