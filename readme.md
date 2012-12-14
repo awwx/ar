@@ -1,13 +1,12 @@
-Join the conversation about the Arc Runtime Project ("ar") on Convore:
-https://convore.com/arc-runtime-project/
+This is an unfinished project that I'm no longer working on; it is archived here.
+
+* * *
 
 Status
 ------
 
 ar is now loading and running code from strings.arc.  Much of Arc
 remains unimplemented (see the todo below for the known list).
-
-Bug reports are *greatly* appreciated!
 
 
 Run
